@@ -1,6 +1,15 @@
 # RPC Node + Geyser Setup for MEV Bot
 
-This document outlines hardware requirements and upgrade paths for running a Solana RPC node (non-voting) with Geyser plugin for MEV bot operations.
+This document outlines hardware requirements and setup for running a Solana RPC node (non-voting) with Geyser plugin for the tre MEV bot.
+
+## Why Local Validator + Geyser?
+
+The tre bot uses a **Geyser-first architecture** that requires a local validator with the Yellowstone gRPC Geyser plugin. This provides:
+
+- **Ultra-low latency:** Direct access to transactions as they're processed (1-5ms vs 50-200ms for external APIs)
+- **No API dependencies:** All data comes from your local validator
+- **Real-time account updates:** Pool states update in real-time via Geyser AccountUpdates
+- **No rate limits:** Process unlimited transactions per second
 
 ## Current Machine Specs
 
@@ -259,7 +268,34 @@ ss -tuln | grep 10000
 2. [ ] Decide on upgrade path (local upgrade vs cloud vs subscription)
 3. [ ] If upgrading RAM: purchase compatible DDR5 ECC RDIMMs
 4. [ ] Test with Solana testnet first before mainnet
-5. [ ] Integrate Geyser gRPC with MEV bot pipeline
+5. [ ] Configure Geyser endpoint in tre config.json
+
+---
+
+## Integration with tre Bot
+
+Once your validator is running with Geyser, configure tre:
+
+```json
+{
+  "geyser": {
+    "enabled": true,
+    "endpoint": "http://localhost:10000",
+    "skip_votes": true
+  },
+  "local_rpc": {
+    "enabled": true,
+    "url": "http://localhost:8899"
+  }
+}
+```
+
+Then run the bot:
+
+```bash
+cd /home/ubuntu/tre
+./target/release/tre-arb-bot -c config.json
+```
 
 ---
 

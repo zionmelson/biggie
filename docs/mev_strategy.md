@@ -2,35 +2,38 @@
 
 ## Overview
 
-This bot extracts MEV from Solana by intercepting pending transactions via Jito Shredstream. We see swaps 200-400ms before confirmation, enabling backrunning and sandwich attacks.
+This bot extracts MEV from Solana using a **Geyser-first architecture**. By connecting directly to your local validator's Geyser plugin, we intercept transactions as they're processed, enabling ultra-low-latency backrunning.
 
 ## Architecture
 
 ```
-Jito Block Engine
-         │
-         │ Shreds (UDP)
-         ▼
 ┌─────────────────────┐
-│  Shredstream Proxy  │  localhost:20000 UDP, :10000 gRPC
+│   Local Validator   │
+│   (Geyser Plugin)   │
 └─────────────────────┘
          │
-         │ gRPC: Entry { slot, transactions[] }
+         │ gRPC: TransactionUpdates
+         ▼
+┌─────────────────────┐
+│   Geyser Client     │  Subscribe to transaction stream
+└─────────────────────┘
+         │
+         │ TransactionUpdate { slot, signature, transaction }
          ▼
 ┌─────────────────────┐
 │  Transaction Parser │  Identify DEX swaps
 └─────────────────────┘
          │
-         │ ParsedSwap { pool, mints, amounts }
+         │ ParsedSwap { pool, mints, amounts, direction }
          ▼
 ┌─────────────────────┐
 │   MEV Evaluator     │  Filter profitable opportunities
 └─────────────────────┘
          │
-         │ MevOpportunity { victim_tx, arb_route }
+         │ MevOpportunity { victim_tx, arb_route, profit }
          ▼
 ┌─────────────────────┐
-│   Bundle Builder    │  [victim, arb] or [front, victim, back]
+│   Bundle Builder    │  [victim, arb] backrun bundle
 └─────────────────────┘
          │
          ▼
@@ -41,11 +44,14 @@ Jito Block Engine
 
 ## Timing Advantage
 
+With Geyser, we receive transactions as they're being processed by the validator:
+
 ```
-Slot N timeline:
-├── t=0ms     Leader starts building
-├── t=50ms    First shreds broadcast
-├── t=100ms   We receive shreds ◄── Window opens
+Transaction lifecycle:
+├── t=0ms     TX received by validator
+├── t=1-5ms   Geyser streams TX to bot ◄── Our window
+├── t=5-10ms  We parse + evaluate + build bundle
+├── t=10-20ms Bundle submitted to Jito
 ├── t=400ms   Block finalized
 └── t=500ms   Confirmation propagates
 ```
@@ -71,14 +77,14 @@ Slot N timeline:
 
 ## MEV Strategies
 
-### Backrunning
+### Backrunning (Primary Strategy)
 
 1. Victim swaps A → B on Pool X
 2. Pool X price shifts (more A, less B)
 3. We buy B cheap on Pool X, sell on Pool Y
 4. Bundle: `[victim_tx, arb_tx]`
 
-### Sandwich
+### Sandwich (Optional, Disabled by Default)
 
 1. Victim swaps A → B with slippage tolerance
 2. Front-run: We buy B first (price up)
@@ -88,14 +94,14 @@ Slot N timeline:
 
 ## Flash Loan Integration
 
-We use flash loans to fund arb legs without capital:
+We use Solend flash loans to fund arb legs without capital:
 
-1. Borrow anchor token (USDC/SOL) from Solend
+1. Borrow anchor token (SOL/USDC) from Solend
 2. Execute swap chain
 3. Repay loan + fee
 4. Keep profit
 
-### Solend Flash Loan Details (verified from source)
+### Solend Flash Loan Details
 
 | Component | Value |
 |-----------|-------|
@@ -104,15 +110,25 @@ We use flash loans to fund arb legs without capital:
 | Fee Structure | `flash_loan_fee_wad` (0.3% default = 3_000_000_000_000_000) |
 | Fee Receiver | Configured per reserve |
 
-Anchor tokens configured in `solend_flash_loans` with reserve addresses.
+Flash loan reserves are configured in `solend_flash_loans` with full account addresses.
 
 ## Configuration
 
 ```json
 {
-  "shredstream": {
+  "geyser": {
     "enabled": true,
-    "endpoint": "http://127.0.0.1:10000"
+    "endpoint": "http://localhost:10000",
+    "skip_votes": true
+  },
+  "shredstream": {
+    "mev": {
+      "backrun_enabled": true,
+      "sandwich_enabled": false,
+      "min_swap_amount": 10000000,
+      "min_profit_lamports": 50000,
+      "tip_profit_share_bps": 5000
+    }
   }
 }
 ```
@@ -121,13 +137,15 @@ Anchor tokens configured in `solend_flash_loans` with reserve addresses.
 
 ```
 src/
-├── shredstream.rs           # gRPC client
+├── geyser.rs                # Geyser gRPC client (primary data source)
+├── pool_discovery.rs        # Dynamic pool state tracking
 ├── shredstream/
-│   ├── programs.rs          # DEX program IDs
+│   ├── geyser_pipeline.rs   # Main Geyser processing loop
 │   ├── parser.rs            # Transaction → ParsedSwap
 │   ├── evaluator.rs         # ParsedSwap → MevOpportunity
 │   ├── backrun.rs           # Backrun bundle construction
-│   └── pipeline.rs          # Main processing loop
+│   ├── programs.rs          # DEX program IDs
+│   └── types.rs             # Shared types
 ├── executor.rs              # Transaction building & signing
 └── jito.rs                  # Bundle submission
 ```
@@ -135,25 +153,22 @@ src/
 ## Running
 
 ```bash
-# Terminal 1: Shredstream proxy
-cd /home/ubuntu/shredstream-proxy
-./target/release/jito-shredstream-proxy shredstream \
-    --block-engine-url https://mainnet.block-engine.jito.wtf \
-    --auth-keypair /home/ubuntu/cain/wallets/jito-auth.json \
-    --desired-regions ny \
-    --dest-ip-ports 127.0.0.1:8001 \
-    --grpc-service-port 10000
+# Ensure local validator is running with Geyser plugin
+# (See docs/rpc_node_setup.md for validator setup)
 
-# Terminal 2: Bot
+# Run the bot
 cd /home/ubuntu/tre
-./target/release/tre-arb-bot --config ./config.json
+./target/release/tre-arb-bot -c config.json
 ```
 
-## Risks
+Logs are written to `/tmp/tre-arb.log`.
+
+## Risks & Mitigations
 
 | Risk | Mitigation |
 |------|-----------|
 | Victim tx fails | Bundle fails atomically |
-| Stale pool state | Refresh via RPC for high-value |
-| Competing searchers | Higher tips |
+| Stale pool state | Real-time updates via Geyser AccountUpdates |
+| Competing searchers | Higher tips, faster processing |
 | Flash loan unavailable | Skip opportunity |
+| Network latency | Local validator eliminates external API latency |

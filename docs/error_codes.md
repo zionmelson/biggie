@@ -1,5 +1,7 @@
 # Complete Solana Protocol Error Reference
 
+Reference for error codes encountered when parsing transactions and submitting bundles. These errors come from on-chain DEX programs and are useful for debugging failed swaps and bundle rejections.
+
 ## Error Code Ranges Overview
 
 | Range | Hex Range | Category |
