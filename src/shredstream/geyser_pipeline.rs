@@ -3,8 +3,8 @@
 //! Main processing loop: Geyser TransactionUpdates → parse → evaluate → build → submit
 //! This replaces the shredstream proxy with direct Geyser plugin access.
 
-use super::backrun::{BackrunBundleBuilder, BundleBuilderConfig};
-use super::evaluator::{MevEvaluator, MevOpportunity, PoolInfo};
+use super::backrun::{BackrunBundleBuilder, BundleBuilderConfig, SandwichBundle};
+use super::evaluator::{MevEvaluator, MevOpportunity, PoolInfo, SandwichOpportunity};
 use super::parser::parse_transaction;
 use crate::amm_math::PoolStateCache;
 use crate::executor::FlashLoanReserve;
@@ -37,6 +37,8 @@ pub struct GeyserPipelineStats {
     pub bundles_submitted: AtomicU64,
     pub bundles_accepted: AtomicU64,
     pub bundles_rejected: AtomicU64,
+    pub bundles_finalized: AtomicU64,
+    pub bundles_dropped: AtomicU64,
     pub total_profit_lamports: AtomicU64,
     pub last_slot: AtomicU64,
     pub reconnect_count: AtomicU64,
@@ -46,6 +48,8 @@ pub struct GeyserPipelineStats {
     pub eval_no_route: AtomicU64,
     pub eval_below_threshold: AtomicU64,
     pub pools_known: AtomicU64,
+    // Bundle result subscriber stats
+    pub result_subscriber_connected: AtomicU64,
 }
 
 /// Pipeline configuration
@@ -65,6 +69,8 @@ pub struct GeyserPipelineConfig {
     pub submission_timeout: Duration,
     /// Minimum time between submissions (rate limiting)
     pub min_submission_interval: Duration,
+    /// Whether sandwich attacks are enabled
+    pub sandwich_enabled: bool,
 }
 
 impl Default for GeyserPipelineConfig {
@@ -77,6 +83,7 @@ impl Default for GeyserPipelineConfig {
             bundle_config: BundleBuilderConfig::default(),
             submission_timeout: Duration::from_secs(5),
             min_submission_interval: Duration::from_millis(200),
+            sandwich_enabled: false,
         }
     }
 }
@@ -111,7 +118,7 @@ impl GeyserMevPipeline {
         lookup_tables: Vec<AddressLookupTableAccount>,
         jito_client: Arc<JitoClient>,
     ) -> Self {
-        let evaluator = MevEvaluator::new(pool_states, pool_registry);
+        let evaluator = MevEvaluator::new(pool_states, pool_registry, config.sandwich_enabled);
         let bundle_builder = BackrunBundleBuilder::new(
             config.bundle_config.clone(),
             payer,
@@ -178,11 +185,16 @@ impl GeyserMevPipeline {
         let mut last_submission = Instant::now() - self.config.min_submission_interval;
         let mut last_registry_sync = Instant::now();
         let mut last_eval_log = Instant::now();
-        let registry_sync_interval = Duration::from_secs(5);
-        let eval_log_interval = Duration::from_secs(30);
+        let registry_sync_interval = Duration::from_secs(2); // Sync more frequently (was 5)
+        let eval_log_interval = Duration::from_secs(10); // Log more frequently (was 30)
 
         // Initial sync from registry
         self.sync_pools_from_registry();
+        tracing::info!(
+            "Initial pool sync: {} pools, {} routes",
+            self.evaluator.known_pool_count(),
+            self.evaluator.route_count()
+        );
 
         // Main processing loop
         while let Some(timestamped_update) = stream.message().await? {
@@ -545,6 +557,9 @@ pub async fn spawn_geyser_pipeline(
     lookup_tables: Vec<AddressLookupTableAccount>,
     jito_client: Arc<JitoClient>,
 ) -> Result<(Arc<GeyserPipelineStats>, Arc<RwLock<(Hash, u64)>>)> {
+    // Clone jito_client for the bundle result subscriber before passing to pipeline
+    let jito_for_results = Arc::clone(&jito_client);
+
     let mut pipeline = GeyserMevPipeline::new(
         config,
         pool_states,
@@ -606,6 +621,12 @@ pub async fn spawn_geyser_pipeline(
         }
     });
 
+    // Spawn bundle result subscriber to track actual bundle outcomes
+    let stats_for_results = Arc::clone(&stats);
+    tokio::spawn(async move {
+        run_bundle_result_subscriber(jito_for_results, stats_for_results).await;
+    });
+
     // Spawn main pipeline loop with reconnection
     let stats_for_reconnect = Arc::clone(&stats);
     tokio::spawn(async move {
@@ -625,6 +646,68 @@ pub async fn spawn_geyser_pipeline(
     });
 
     Ok((stats, blockhash_arc))
+}
+
+/// Run bundle result subscriber to track actual bundle outcomes from Jito
+async fn run_bundle_result_subscriber(
+    jito_client: Arc<JitoClient>,
+    stats: Arc<GeyserPipelineStats>,
+) {
+    loop {
+        match jito_client.subscribe_bundle_results().await {
+            Ok(mut stream) => {
+                stats.result_subscriber_connected.store(1, Ordering::Relaxed);
+                tracing::info!("Bundle result subscriber connected");
+
+                while let Ok(Some(result)) = stream.message().await {
+                    let status: BundleStatus = result.into();
+                    match &status {
+                        BundleStatus::Accepted { bundle_id, slot, validator } => {
+                            stats.bundles_accepted.fetch_add(1, Ordering::Relaxed);
+                            tracing::info!(
+                                bundle_id = %bundle_id,
+                                slot = slot,
+                                validator = %validator,
+                                "Bundle ACCEPTED by validator"
+                            );
+                        }
+                        BundleStatus::Finalized { bundle_id } => {
+                            stats.bundles_finalized.fetch_add(1, Ordering::Relaxed);
+                            tracing::info!(bundle_id = %bundle_id, "Bundle FINALIZED");
+                        }
+                        BundleStatus::Processed { bundle_id, slot, .. } => {
+                            tracing::debug!(bundle_id = %bundle_id, slot = slot, "Bundle processed");
+                        }
+                        BundleStatus::Rejected { bundle_id, reason } => {
+                            stats.bundles_rejected.fetch_add(1, Ordering::Relaxed);
+                            tracing::warn!(
+                                bundle_id = %bundle_id,
+                                reason = %reason,
+                                "Bundle REJECTED"
+                            );
+                        }
+                        BundleStatus::Dropped { bundle_id, reason } => {
+                            stats.bundles_dropped.fetch_add(1, Ordering::Relaxed);
+                            tracing::warn!(
+                                bundle_id = %bundle_id,
+                                reason = %reason,
+                                "Bundle DROPPED"
+                            );
+                        }
+                        BundleStatus::Submitted { .. } | BundleStatus::Unknown { .. } => {}
+                    }
+                }
+
+                stats.result_subscriber_connected.store(0, Ordering::Relaxed);
+                tracing::warn!("Bundle result stream ended, reconnecting in 5s...");
+            }
+            Err(e) => {
+                stats.result_subscriber_connected.store(0, Ordering::Relaxed);
+                tracing::warn!("Bundle result subscriber error: {}, reconnecting in 5s...", e);
+            }
+        }
+        tokio::time::sleep(Duration::from_secs(5)).await;
+    }
 }
 
 /// Run blockhash updater from Geyser block stream

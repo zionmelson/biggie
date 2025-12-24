@@ -11,3 +11,6 @@ pub mod geyser;
 
 // Dynamic pool discovery from Geyser (replaces static JSON maps)
 pub mod pool_discovery;
+
+// Jito tip floor monitoring for competitive tipping
+pub mod tip_monitor;

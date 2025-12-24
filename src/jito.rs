@@ -518,9 +518,18 @@ impl From<BundleResult> for BundleStatus {
                             let ix_index = extract_instruction_index(&msg_str);
                             let error_code = extract_error_code(&msg_str);
                             
+                            // Safely truncate signature (may be empty or short)
+                            let sig_short = if s.tx_signature.len() >= 16 {
+                                &s.tx_signature[..16]
+                            } else if s.tx_signature.is_empty() {
+                                "no_sig"
+                            } else {
+                                &s.tx_signature
+                            };
+                            
                             format!(
                                 "SIMULATION_FAILURE | sig={} | ix={} | error={} | raw={}",
-                                &s.tx_signature[..16],  // Short sig for readability
+                                sig_short,
                                 ix_index.map(|i| i.to_string()).unwrap_or_else(|| "?".to_string()),
                                 error_code.unwrap_or_else(|| "unknown".to_string()),
                                 msg_str.chars().take(200).collect::<String>()  // Truncate raw msg

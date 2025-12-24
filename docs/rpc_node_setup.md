@@ -15,10 +15,10 @@ The tre bot uses a **Geyser-first architecture** that requires a local validator
 
 | Component | Current | Status |
 |-----------|---------|--------|
-| CPU | AMD EPYC 4244P, 6 cores / 12 threads, 5.1GHz boost | ⚠️ Marginal |
-| RAM | 64 GB | ❌ Insufficient |
-| Storage | 2x 894GB NVMe (Micron TLC) | ⚠️ Marginal |
-| Network | 10 Gbps | ✅ Good |
+| CPU | AMD EPYC 9554P, 64 cores / 128 threads, 3.1GHz | ✅ Excellent |
+| RAM | 1.5 TiB (1536 GB) DDR5 | ✅ Excellent |
+| Storage | 4x 7TB Samsung NVMe + 2x 447GB Micron NVMe (~28TB) | ✅ Excellent |
+| Network | 100 Gbps | ✅ Excellent |
 
 ---
 
@@ -48,7 +48,7 @@ COMFORTABLE:            384 GB
 FUTURE-PROOF:           512 GB
 ```
 
-**64GB = instant death.** Node will swap, fall behind, and never catch up.
+**Note:** With 1.5 TiB RAM, this machine far exceeds requirements and can comfortably run the accounts DB entirely in memory with substantial headroom.
 
 ---
 
@@ -65,45 +65,25 @@ FUTURE-PROOF:           512 GB
 
 ---
 
-## Upgrade Path Options
+## Current Hardware Status
 
-### Option A: Upgrade Current Machine
+### ✅ Hardware Requirements Met
 
-**Minimum Viable Upgrade (~$750-1100)**
+The current machine **exceeds all requirements** for running a Solana RPC node with Geyser:
 
-| Upgrade | Specification | Est. Cost |
-|---------|---------------|-----------|
-| RAM → 256GB | 8x 32GB DDR5 ECC RDIMM | $600-900 |
-| NVMe → 2TB | Samsung 990 Pro or Crucial T700 (Gen4) | $150-200 |
+| Requirement | Minimum | Current | Status |
+|-------------|---------|---------|--------|
+| RAM | 256 GB | 1.5 TiB (1536 GB) | ✅ 6x minimum |
+| CPU Cores | 8 cores | 64 cores (128 threads) | ✅ 8x minimum |
+| NVMe Size | 2 TB | ~28 TB total | ✅ 14x minimum |
+| NVMe IOPS | 500K | Samsung 7450 (~1M+) | ✅ Excellent |
+| Network | 1 Gbps | 100 Gbps | ✅ 100x minimum |
 
-**Comfortable Upgrade (~$1200-1800)**
+**No hardware upgrades needed.** Proceed directly to RPC node setup.
 
-| Upgrade | Specification | Est. Cost |
-|---------|---------------|-----------|
-| RAM → 384GB | 12x 32GB DDR5 ECC RDIMM | $900-1300 |
-| NVMe → 4TB | 2x 2TB Gen4 NVMe | $300-400 |
+### Alternative: External Geyser Providers (if not self-hosting)
 
-**Notes:**
-- Check motherboard max RAM capacity before purchasing
-- Your CPU (6-core EPYC @ 5GHz) is acceptable for RPC replay
-- Existing 10Gbps network is sufficient
-
-### Option B: Cloud Bare Metal (~$300-500/month)
-
-Pre-configured Solana-ready instances:
-
-| Provider | Instance | Specs | Price |
-|----------|----------|-------|-------|
-| Latitude.sh | c3.large.x86 | 32-core, 256GB, 2TB NVMe | ~$350/mo |
-| Teraswitch | Solana-optimized | 32-core, 512GB, 4TB NVMe | ~$450/mo |
-| Vultr | Bare Metal | 24-core, 256GB, 2TB NVMe | ~$400/mo |
-
-**Pros:** No hardware hassle, quick setup, can scale
-**Cons:** Ongoing monthly cost, slightly higher latency than local
-
-### Option C: Yellowstone gRPC Subscription (~$200-400/month)
-
-Skip the node entirely, subscribe to Geyser data:
+If you prefer managed solutions over running your own node:
 
 | Provider | Service | Latency | Price |
 |----------|---------|---------|-------|
@@ -111,41 +91,18 @@ Skip the node entirely, subscribe to Geyser data:
 | Helius | Geyser webhooks/streams | ~10-30ms | ~$200-300/mo |
 | Shyft | gRPC streaming | ~10-30ms | ~$150-300/mo |
 
-**Pros:** Zero hardware changes, immediate setup
-**Cons:** 10-20ms additional latency vs local Geyser, ongoing cost
-
----
-
-## Cost-Benefit Analysis
-
-| Approach | Upfront Cost | Monthly Cost | Latency | Effort |
-|----------|--------------|--------------|---------|--------|
-| Upgrade RAM | $600-1300 | ~$50 (power) | Lowest | Medium |
-| Cloud bare metal | $0 | $300-500 | Low | Low |
-| Yellowstone subscription | $0 | $200-400 | Medium | Lowest |
-| Status quo (Shredstream only) | $0 | $0 | N/A | None |
-
 ---
 
 ## Recommended Approach
 
-### If MEV bot is experimental/learning:
-→ **Keep using Shredstream + RPC simulation** (current setup)
-→ Add Yellowstone subscription later if needed
-
-### If MEV bot is generating revenue:
-→ **Upgrade RAM to 256GB** ($600-900 one-time)
-→ Run local RPC + Geyser for lowest latency
-→ Best ROI if you plan to run for 3+ months
-
-### If you want lowest friction:
-→ **Yellowstone subscription** ($200-400/month)
-→ Same data as local Geyser, just remote
-→ Can always switch to self-hosted later
+### With current hardware:
+→ **Run local RPC + Geyser** for lowest latency
+→ Hardware already exceeds Solana validator requirements
+→ No additional costs beyond power/bandwidth
 
 ---
 
-## RPC Node Setup (After Hardware Upgrade)
+## RPC Node Setup
 
 ### 1. Install Solana CLI
 

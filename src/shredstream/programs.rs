@@ -109,26 +109,30 @@ pub mod raydium_clmm {
 /// Orca Whirlpool swap discriminators (Anchor)
 /// From: whirlpools/programs/whirlpool/src/lib.rs
 pub mod orca_whirlpool {
-    /// swap instruction
+    /// swap instruction: sighash("global:swap")
     pub const SWAP: [u8; 8] = [0xf8, 0xc6, 0x9e, 0x91, 0xe1, 0x75, 0x87, 0xc8];
     /// swap_v2 (Token-2022 support)
     pub const SWAP_V2: [u8; 8] = [0x2b, 0x04, 0xed, 0x0b, 0x1a, 0xc9, 0x1e, 0x62];
     /// two_hop_swap
-    pub const TWO_HOP_SWAP: [u8; 8] = [0xc3, 0x60, 0xed, 0x7d, 0x3d, 0xc3, 0x6c, 0xb7];
+    pub const TWO_HOP_SWAP: [u8; 8] = [0xc3, 0x60, 0xed, 0x6c, 0x44, 0xa2, 0xdb, 0xe6];
 }
 
 /// Meteora DLMM swap discriminators (Anchor)
-/// From: dlmm-sdk
+/// From: dlmm-sdk/ts-client/src/dlmm/idl.ts
 pub mod meteora_dlmm {
-    /// swap instruction
+    /// swap instruction: sighash("global:swap")
     pub const SWAP: [u8; 8] = [0xf8, 0xc6, 0x9e, 0x91, 0xe1, 0x75, 0x87, 0xc8];
+    /// swap2 instruction (with remaining_accounts_info for bin arrays)
+    pub const SWAP2: [u8; 8] = [0x41, 0x4b, 0x3f, 0x4c, 0xeb, 0x5b, 0x5b, 0x88];
 }
 
 /// Meteora DAMM v2 (CP-AMM) swap discriminators (Anchor)
 /// From: damm-v2/programs/cp-amm/src/lib.rs
 pub mod meteora_damm {
-    /// swap instruction
+    /// swap instruction: sighash("global:swap")
     pub const SWAP: [u8; 8] = [0xf8, 0xc6, 0x9e, 0x91, 0xe1, 0x75, 0x87, 0xc8];
+    /// swap2 instruction (supports ExactIn, PartialFill, ExactOut modes)
+    pub const SWAP2: [u8; 8] = [0x5c, 0xb7, 0x8b, 0x6c, 0xc2, 0xf1, 0x9a, 0x43];
 }
 
 /// PancakeSwap CLMM swap discriminators (similar to Raydium CLMM)
@@ -164,10 +168,12 @@ pub fn is_swap_instruction(program_id: &Pubkey, data: &[u8]) -> bool {
                     || data[..8] == orca_whirlpool::TWO_HOP_SWAP)
         }
         Some(DexType::MeteoraDlmm) => {
-            data.len() >= 8 && data[..8] == meteora_dlmm::SWAP
+            data.len() >= 8
+                && (data[..8] == meteora_dlmm::SWAP || data[..8] == meteora_dlmm::SWAP2)
         }
         Some(DexType::MeteoraDamm) => {
-            data.len() >= 8 && data[..8] == meteora_damm::SWAP
+            data.len() >= 8
+                && (data[..8] == meteora_damm::SWAP || data[..8] == meteora_damm::SWAP2)
         }
         Some(DexType::PancakeSwapClmm) => {
             data.len() >= 8 && data[..8] == pancakeswap_clmm::SWAP

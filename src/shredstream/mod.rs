@@ -36,4 +36,4 @@ pub use geyser_pipeline::{
 };
 
 // Main pipeline
-pub use pipeline::{spawn_pipeline, MevPipeline, PipelineConfig, PipelineStats};
+pub use pipeline::{spawn_pipeline, BlockhashUpdate, MevPipeline, PipelineConfig, PipelineStats};

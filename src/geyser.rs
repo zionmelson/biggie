@@ -46,7 +46,7 @@ pub mod proto {
 use proto::geyser::geyser_client::GeyserClient as GeyserGrpcClient;
 use proto::geyser::{
     EmptyRequest, SubscribeSlotUpdateRequest, SubscribeTransactionUpdatesRequest,
-    SubscribeBlockUpdatesRequest, SubscribeProgramsUpdatesRequest,
+    SubscribeBlockUpdatesRequest, SubscribeProgramsUpdatesRequest, SubscribeAccountUpdatesRequest,
     TimestampedTransactionUpdate, TimestampedSlotUpdate, TimestampedBlockUpdate,
     SlotUpdateStatus,
 };
@@ -222,6 +222,20 @@ impl GeyserClient {
         let programs: Vec<Vec<u8>> = program_ids.iter().map(|p| p.to_bytes().to_vec()).collect();
         let request = tonic::Request::new(SubscribeProgramsUpdatesRequest { programs });
         let response = client.subscribe_program_updates(request).await?;
+        Ok(response.into_inner())
+    }
+
+    /// Subscribe to specific account updates (e.g., vault accounts for reserves)
+    /// 
+    /// For tracking token vault balances in real-time
+    pub async fn subscribe_accounts(
+        &self,
+        accounts: Vec<Pubkey>,
+    ) -> Result<tonic::Streaming<proto::geyser::TimestampedAccountUpdate>> {
+        let mut client = GeyserGrpcClient::new(self.channel.clone());
+        let account_bytes: Vec<Vec<u8>> = accounts.iter().map(|a| a.to_bytes().to_vec()).collect();
+        let request = tonic::Request::new(SubscribeAccountUpdatesRequest { accounts: account_bytes });
+        let response = client.subscribe_account_updates(request).await?;
         Ok(response.into_inner())
     }
 }
