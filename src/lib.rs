@@ -1,7 +1,8 @@
 pub mod amm_math;
-pub mod clmm_price_map;
+pub mod clmm_math;
 pub mod config;
 pub mod constants;
+pub mod dlmm_math;
 pub mod executor;
 pub mod jito;
 pub mod shredstream;
@@ -14,3 +15,13 @@ pub mod pool_discovery;
 
 // Jito tip floor monitoring for competitive tipping
 pub mod tip_monitor;
+
+// Unified predictive state management (ShredStream + Geyser integration)
+pub mod predictive_state;
+
+// Multi-region parallel bundle submission for maximum competitiveness
+pub mod multi_region;
+
+// Direct Turbine UDP deshredding - bypasses ShredStream proxy for minimum latency
+// Receives shreds directly from local validator's TVU broadcast
+pub mod turbine;

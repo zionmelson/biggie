@@ -66,6 +66,7 @@ spl-transfer-hook-interface = "0.10"
 spl-tlv-account-resolution = "0.10"
 rayon = "1.10"
 regex = "1.12.2"
+libc = "0.2.178"
 
 [build-dependencies]
 prost-build = "0.13"

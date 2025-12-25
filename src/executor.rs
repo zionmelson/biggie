@@ -13,44 +13,20 @@ use solana_sdk::instruction::Instruction;
 use solana_sdk::pubkey::Pubkey;
 use std::str::FromStr;
 
-/// Native SOL mint (wrapped SOL)
-pub const WSOL_MINT: Pubkey = solana_sdk::pubkey!("So11111111111111111111111111111111111111112");
+// Re-export for backward compatibility
+pub use crate::constants::{
+    calculate_flash_loan_fee, flash_loan_repay_amount, min_output_for_flash_loan, AVG_SWAP_FEE_BPS,
+    BASE_TIP_LAMPORTS, DEFAULT_SLIPPAGE_BPS, MAX_TIP_PROFIT_BPS, MIN_TIP_LAMPORTS,
+    SOLEND_FLASH_LOAN_BPS, TIP_PROFIT_SHARE_BPS, WSOL_MINT,
+};
 
-/// Fee constants (in basis points, 1 bp = 0.01%)
+/// Fee constants module - re-exports from constants for backward compatibility
 pub mod fees {
-    /// Solend flash loan fee: 0.3% = 30 bps
-    pub const SOLEND_FLASH_LOAN_BPS: u64 = 30;
-    /// Average DEX swap fee: ~0.25% = 25 bps (varies by pool)
-    pub const AVG_SWAP_FEE_BPS: u64 = 25;
-    /// Slippage tolerance: 0.5% = 50 bps
-    pub const DEFAULT_SLIPPAGE_BPS: u64 = 50;
-    /// Jito tip minimum in lamports (absolute floor)
-    pub const MIN_TIP_LAMPORTS: u64 = 1_000;
-    /// Default base tip - 75th percentile of recent landed tips
-    pub const BASE_TIP_LAMPORTS: u64 = 10_000;
-    /// Percentage of profit to share as tip (50% = aggressive bidding)
-    pub const TIP_PROFIT_SHARE_BPS: u64 = 5000;
-    /// Maximum tip cap as percentage of profit (keep at least 20% profit)
-    pub const MAX_TIP_PROFIT_BPS: u64 = 8000;
-
-    /// Calculate flash loan fee in base units
-    #[inline]
-    pub fn calculate_flash_loan_fee(borrow_amount: u64) -> u64 {
-        (borrow_amount as u128 * SOLEND_FLASH_LOAN_BPS as u128 / 10_000) as u64
-    }
-
-    /// Calculate minimum amount needed to repay flash loan (principal + fee)
-    #[inline]
-    pub fn flash_loan_repay_amount(borrow_amount: u64) -> u64 {
-        borrow_amount.saturating_add(calculate_flash_loan_fee(borrow_amount))
-    }
-
-    /// Calculate minimum output needed to cover flash loan + buffer for safety
-    #[inline]
-    pub fn min_output_for_flash_loan(borrow_amount: u64, buffer_bps: u64) -> u64 {
-        let repay = flash_loan_repay_amount(borrow_amount);
-        repay.saturating_add((borrow_amount as u128 * buffer_bps as u128 / 10_000) as u64)
-    }
+    pub use crate::constants::{
+        calculate_flash_loan_fee, flash_loan_repay_amount, min_output_for_flash_loan,
+        AVG_SWAP_FEE_BPS, BASE_TIP_LAMPORTS, DEFAULT_SLIPPAGE_BPS, MAX_TIP_PROFIT_BPS,
+        MIN_TIP_LAMPORTS, SOLEND_FLASH_LOAN_BPS, TIP_PROFIT_SHARE_BPS,
+    };
 }
 
 /// Configuration for a Solend flash loan reserve.

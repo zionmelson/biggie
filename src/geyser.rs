@@ -400,6 +400,180 @@ pub fn extract_instructions(
     instructions
 }
 
+/// Convert Geyser's ConfirmedTransaction to VersionedTransaction
+/// 
+/// This is the main conversion function for processing Geyser transaction data.
+/// Returns both the transaction and any loaded addresses from ALTs.
+pub fn convert_geyser_transaction(
+    confirmed_tx: &proto::storage::confirmed_block::ConfirmedTransaction,
+) -> Option<(solana_sdk::transaction::VersionedTransaction, Option<solana_message::v0::LoadedAddresses>)> {
+    use solana_sdk::signature::Signature;
+    use solana_sdk::message::{Message, VersionedMessage, v0};
+    use solana_message::compiled_instruction::CompiledInstruction;
+    use solana_message::v0::LoadedAddresses;
+
+    let transaction = confirmed_tx.transaction.as_ref()?;
+    let message = transaction.message.as_ref()?;
+
+    // Parse signatures
+    let signatures: Vec<Signature> = transaction
+        .signatures
+        .iter()
+        .filter_map(|sig_bytes| {
+            if sig_bytes.len() == 64 {
+                let mut arr = [0u8; 64];
+                arr.copy_from_slice(sig_bytes);
+                Some(Signature::from(arr))
+            } else {
+                None
+            }
+        })
+        .collect();
+
+    if signatures.is_empty() {
+        return None;
+    }
+
+    // Parse account keys
+    let account_keys: Vec<Pubkey> = message
+        .account_keys
+        .iter()
+        .filter_map(|key_bytes| {
+            if key_bytes.len() == 32 {
+                let mut arr = [0u8; 32];
+                arr.copy_from_slice(key_bytes);
+                Some(Pubkey::new_from_array(arr))
+            } else {
+                None
+            }
+        })
+        .collect();
+
+    // Parse recent blockhash
+    if message.recent_blockhash.len() != 32 {
+        return None;
+    }
+    let mut blockhash_arr = [0u8; 32];
+    blockhash_arr.copy_from_slice(&message.recent_blockhash);
+    let recent_blockhash = Hash::new_from_array(blockhash_arr);
+
+    // Parse instructions
+    let instructions: Vec<CompiledInstruction> = message
+        .instructions
+        .iter()
+        .map(|ix| CompiledInstruction {
+            program_id_index: ix.program_id_index as u8,
+            accounts: ix.accounts.clone(),
+            data: ix.data.clone(),
+        })
+        .collect();
+
+    // Check if this is a v0 message (has address table lookups)
+    let has_lookups = !message.address_table_lookups.is_empty();
+
+    // Parse loaded addresses from meta
+    let loaded_addresses = if let Some(meta) = &confirmed_tx.meta {
+        let writable: Vec<Pubkey> = meta
+            .loaded_writable_addresses
+            .iter()
+            .filter_map(|b| {
+                if b.len() == 32 {
+                    let mut arr = [0u8; 32];
+                    arr.copy_from_slice(b);
+                    Some(Pubkey::new_from_array(arr))
+                } else {
+                    None
+                }
+            })
+            .collect();
+
+        let readonly: Vec<Pubkey> = meta
+            .loaded_readonly_addresses
+            .iter()
+            .filter_map(|b| {
+                if b.len() == 32 {
+                    let mut arr = [0u8; 32];
+                    arr.copy_from_slice(b);
+                    Some(Pubkey::new_from_array(arr))
+                } else {
+                    None
+                }
+            })
+            .collect();
+
+        if writable.is_empty() && readonly.is_empty() {
+            None
+        } else {
+            Some(LoadedAddresses { writable, readonly })
+        }
+    } else {
+        None
+    };
+
+    // Build the VersionedMessage
+    let versioned_message = if has_lookups {
+        // V0 message with address lookups
+        let address_table_lookups: Vec<solana_sdk::message::v0::MessageAddressTableLookup> =
+            message
+                .address_table_lookups
+                .iter()
+                .filter_map(|lookup| {
+                    if lookup.account_key.len() != 32 {
+                        return None;
+                    }
+                    let mut arr = [0u8; 32];
+                    arr.copy_from_slice(&lookup.account_key);
+                    Some(solana_sdk::message::v0::MessageAddressTableLookup {
+                        account_key: Pubkey::new_from_array(arr),
+                        writable_indexes: lookup.writable_indexes.clone(),
+                        readonly_indexes: lookup.readonly_indexes.clone(),
+                    })
+                })
+                .collect();
+
+        // For v0 messages, we need to construct the header
+        let header = message.header.as_ref().map(|h| solana_sdk::message::MessageHeader {
+            num_required_signatures: h.num_required_signatures as u8,
+            num_readonly_signed_accounts: h.num_readonly_signed_accounts as u8,
+            num_readonly_unsigned_accounts: h.num_readonly_unsigned_accounts as u8,
+        }).unwrap_or_default();
+
+        let v0_message = v0::Message {
+            header,
+            account_keys,
+            recent_blockhash,
+            instructions,
+            address_table_lookups,
+        };
+
+        VersionedMessage::V0(v0_message)
+    } else {
+        // Legacy message
+        let header = message.header.as_ref().map(|h| solana_sdk::message::MessageHeader {
+            num_required_signatures: h.num_required_signatures as u8,
+            num_readonly_signed_accounts: h.num_readonly_signed_accounts as u8,
+            num_readonly_unsigned_accounts: h.num_readonly_unsigned_accounts as u8,
+        }).unwrap_or_default();
+
+        let legacy_message = Message {
+            header,
+            account_keys,
+            recent_blockhash,
+            instructions,
+        };
+
+        VersionedMessage::Legacy(legacy_message)
+    };
+
+    Some((
+        solana_sdk::transaction::VersionedTransaction {
+            signatures,
+            message: versioned_message,
+        },
+        loaded_addresses,
+    ))
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;

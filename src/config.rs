@@ -98,9 +98,6 @@ impl JitoConfig {
 
 #[derive(Clone, Debug, Serialize, Deserialize)]
 pub struct ShredstreamConfig {
-    /// Whether shredstream is enabled
-    #[serde(default)]
-    pub enabled: bool,
     /// gRPC endpoint URL for the local shredstream proxy (e.g., "http://127.0.0.1:10000")
     #[serde(default = "default_shredstream_endpoint")]
     pub endpoint: String,
@@ -115,9 +112,6 @@ pub struct MevConfig {
     /// Enable backrunning (follow victim swaps)
     #[serde(default = "default_true")]
     pub backrun_enabled: bool,
-    /// Enable sandwich attacks (front + back)
-    #[serde(default)]
-    pub sandwich_enabled: bool,
     /// Minimum swap amount in lamports to consider for MEV
     #[serde(default = "default_min_swap_amount")]
     pub min_swap_amount: u64,
@@ -138,19 +132,32 @@ pub struct MevConfig {
     pub tip_profit_share_bps: u64,
 }
 
-fn default_true() -> bool { true }
-fn default_min_swap_amount() -> u64 { 10_000_000 } // 0.01 SOL
-fn default_min_profit() -> u64 { 50_000 } // 0.00005 SOL
-fn default_min_slippage() -> u64 { 30 } // 0.3%
-fn default_compute_units() -> u32 { 400_000 }
-fn default_compute_price() -> u64 { 1000 }
-fn default_tip_share() -> u64 { 5000 } // 50%
+fn default_true() -> bool {
+    true
+}
+fn default_min_swap_amount() -> u64 {
+    10_000_000
+} // 0.01 SOL
+fn default_min_profit() -> u64 {
+    50_000
+} // 0.00005 SOL
+fn default_min_slippage() -> u64 {
+    30
+} // 0.3%
+fn default_compute_units() -> u32 {
+    400_000
+}
+fn default_compute_price() -> u64 {
+    1000
+}
+fn default_tip_share() -> u64 {
+    5000
+} // 50%
 
 impl Default for MevConfig {
     fn default() -> Self {
         Self {
             backrun_enabled: true,
-            sandwich_enabled: false,
             min_swap_amount: default_min_swap_amount(),
             min_profit_lamports: default_min_profit(),
             min_victim_slippage_bps: default_min_slippage(),
@@ -168,7 +175,6 @@ fn default_shredstream_endpoint() -> String {
 impl Default for ShredstreamConfig {
     fn default() -> Self {
         Self {
-            enabled: false,
             endpoint: default_shredstream_endpoint(),
             mev: MevConfig::default(),
         }
@@ -273,7 +279,7 @@ impl Config {
             .cloned()
             .unwrap_or_else(|| "https://api.mainnet-beta.solana.com".to_string())
     }
-    
+
     /// Returns the WebSocket URL - prefers local if enabled
     pub fn ws_url(&self) -> String {
         if self.local_rpc.enabled {

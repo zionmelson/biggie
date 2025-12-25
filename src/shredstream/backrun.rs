@@ -6,12 +6,13 @@
 //! The victim transaction executes first, moving the pool price.
 //! Our arb transaction executes immediately after, capturing the price delta.
 
-use super::evaluator::{ArbLeg, ArbRoute, MevOpportunity, SandwichOpportunity};
+use super::evaluator::{ArbLeg, MevOpportunity};
 use super::programs::DexType;
-use crate::executor::{fees, FlashLoanReserve, SwapAccount, SwapParams};
+use crate::constants::{ATA_PROGRAM, SYSTEM_PROGRAM, TOKEN_PROGRAM};
+use crate::executor::FlashLoanReserve;
 use crate::jito::random_tip_account;
 use crate::pool_discovery::{
-    derive_whirlpool_tick_arrays, derive_raydium_clmm_tick_arrays, derive_dlmm_bin_arrays,
+    derive_dlmm_bin_arrays, derive_raydium_clmm_tick_arrays, derive_whirlpool_tick_arrays,
 };
 use crate::tip_monitor::TipFloorCache;
 use anyhow::{anyhow, bail, Result};
@@ -26,24 +27,6 @@ use solana_sdk::transaction::VersionedTransaction;
 use solana_system_interface::instruction as system_instruction;
 use std::collections::HashMap;
 use std::sync::Arc;
-
-/// Native SOL mint
-pub const WSOL_MINT: Pubkey = solana_sdk::pubkey!("So11111111111111111111111111111111111111112");
-
-/// Solend program ID
-pub const SOLEND_PROGRAM: Pubkey =
-    solana_sdk::pubkey!("So1endDq2YkqhipRh3WViPa8hdiSpxWy6z3Z6tMCpAo");
-
-/// Token program
-pub const TOKEN_PROGRAM: Pubkey =
-    solana_sdk::pubkey!("TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA");
-
-/// Associated Token program
-pub const ATA_PROGRAM: Pubkey =
-    solana_sdk::pubkey!("ATokenGPvbdGVxr1b2hvZbsiqW5xWH25efTNsLJA8knL");
-
-/// System program
-pub const SYSTEM_PROGRAM: Pubkey = solana_sdk::pubkey!("11111111111111111111111111111111");
 
 /// A complete backrun bundle ready for submission
 #[derive(Debug, Clone)]
@@ -66,37 +49,6 @@ impl BackrunBundle {
     /// Get both transactions as a vector for Jito submission
     pub fn transactions(&self) -> Vec<VersionedTransaction> {
         vec![self.victim_tx.clone(), self.arb_tx.clone()]
-    }
-}
-
-/// A complete sandwich bundle ready for submission
-/// Bundle format: [frontrun_tx, victim_tx, backrun_tx]
-#[derive(Debug, Clone)]
-pub struct SandwichBundle {
-    /// Unique bundle ID
-    pub id: String,
-    /// Our frontrun transaction (executed first)
-    pub frontrun_tx: VersionedTransaction,
-    /// The victim transaction (executed second)
-    pub victim_tx: VersionedTransaction,
-    /// Our backrun transaction (executed third)
-    pub backrun_tx: VersionedTransaction,
-    /// Expected profit in lamports
-    pub expected_profit_lamports: u64,
-    /// Tip amount included
-    pub tip_lamports: u64,
-    /// The opportunity this bundle was built from
-    pub opportunity_id: String,
-}
-
-impl SandwichBundle {
-    /// Get all transactions as a vector for Jito submission
-    pub fn transactions(&self) -> Vec<VersionedTransaction> {
-        vec![
-            self.frontrun_tx.clone(),
-            self.victim_tx.clone(),
-            self.backrun_tx.clone(),
-        ]
     }
 }
 
@@ -123,12 +75,12 @@ impl Default for BundleBuilderConfig {
     fn default() -> Self {
         Self {
             compute_units: 400_000,
-            compute_unit_price: 1000, // 1000 micro-lamports
-            base_tip_lamports: 10_000,
-            tip_profit_share_bps: 5000, // 50%
-            max_tip_profit_bps: 8000,   // 80% max
-            slippage_bps: 300,          // 3% - more tolerance for volatile pools
-            tip_floor_multiplier: 2.0,  // 2x the P75 floor for competitiveness
+            compute_unit_price: 1000,   // 1000 micro-lamports
+            base_tip_lamports: 25_000,  // Higher base for minimum competitiveness
+            tip_profit_share_bps: 7000, // 70% - aggressive bidding wins auctions
+            max_tip_profit_bps: 9000,   // 90% max - keep 10% minimum profit
+            slippage_bps: 200,          // 2% - tighter for more accurate profit
+            tip_floor_multiplier: 3.0,  // 3x P75 floor - outbid competitors
         }
     }
 }
@@ -157,24 +109,20 @@ impl BackrunBundleBuilder {
             tip_floor_cache: None,
         }
     }
-    
+
     /// Set the tip floor cache for dynamic tipping
     pub fn with_tip_floor_cache(mut self, cache: Arc<TipFloorCache>) -> Self {
         self.tip_floor_cache = Some(cache);
         self
     }
-    
+
     /// Set tip floor cache after construction
     pub fn set_tip_floor_cache(&mut self, cache: Arc<TipFloorCache>) {
         self.tip_floor_cache = Some(cache);
     }
 
     /// Build a backrun bundle from an MEV opportunity
-    pub fn build(
-        &self,
-        opportunity: &MevOpportunity,
-        blockhash: Hash,
-    ) -> Result<BackrunBundle> {
+    pub fn build(&self, opportunity: &MevOpportunity, blockhash: Hash) -> Result<BackrunBundle> {
         // Validate victim transaction
         self.validate_victim_tx(&opportunity.victim_tx)?;
 
@@ -188,12 +136,7 @@ impl BackrunBundleBuilder {
         let borrow_ata = derive_ata(&payer_pubkey, &opportunity.borrow_mint);
 
         // Build the arb transaction
-        let arb_tx = self.build_arb_transaction(
-            opportunity,
-            reserve,
-            borrow_ata,
-            blockhash,
-        )?;
+        let arb_tx = self.build_arb_transaction(opportunity, reserve, borrow_ata, blockhash)?;
 
         // Calculate tip
         let tip = self.calculate_tip(opportunity.expected_profit_lamports);
@@ -206,274 +149,6 @@ impl BackrunBundleBuilder {
             tip_lamports: tip,
             opportunity_id: opportunity.id.clone(),
         })
-    }
-
-    /// Build a sandwich bundle from a sandwich opportunity
-    /// 
-    /// ARCHITECTURE: Sandwich uses "atomic sandwich" pattern where:
-    /// - frontrun_tx: borrow + swap (same direction as victim) + repay placeholder
-    /// - victim_tx: victim's swap (sandwiched)
-    /// - backrun_tx: swap opposite + tip (uses tokens from frontrun)
-    /// 
-    /// CRITICAL: Flash loan borrow/repay MUST be in the same transaction!
-    /// We use a self-funded approach: frontrun swaps our own tokens (no flash loan),
-    /// and backrun swaps back for profit.
-    pub fn build_sandwich(
-        &self,
-        opportunity: &SandwichOpportunity,
-        blockhash: Hash,
-    ) -> Result<SandwichBundle> {
-        // Validate victim transaction
-        self.validate_victim_tx(&opportunity.victim_tx)?;
-
-        // Get flash loan reserve for the borrow mint
-        let reserve = self
-            .flash_loan_reserves
-            .get(&opportunity.borrow_mint)
-            .ok_or_else(|| anyhow!("No flash loan reserve for {}", opportunity.borrow_mint))?;
-
-        let payer_pubkey = self.payer.pubkey();
-        let borrow_ata = derive_ata(&payer_pubkey, &opportunity.borrow_mint);
-
-        // Build the frontrun transaction with COMPLETE flash loan cycle
-        // This borrows, swaps, and holds the intermediate tokens
-        let frontrun_tx = self.build_sandwich_frontrun_atomic(
-            opportunity,
-            reserve,
-            borrow_ata,
-            blockhash,
-        )?;
-
-        // Build the backrun transaction (swap opposite direction + repay + tip)
-        // This uses the intermediate tokens from frontrun, swaps back, repays flash loan
-        let backrun_tx = self.build_sandwich_backrun_atomic(
-            opportunity,
-            reserve,
-            borrow_ata,
-            blockhash,
-        )?;
-
-        // Calculate tip
-        let tip = self.calculate_tip(opportunity.expected_profit_lamports);
-
-        Ok(SandwichBundle {
-            id: format!("sw_{}", opportunity.id),
-            frontrun_tx,
-            victim_tx: opportunity.victim_tx.clone(),
-            backrun_tx,
-            expected_profit_lamports: opportunity.expected_profit_lamports,
-            tip_lamports: tip,
-            opportunity_id: opportunity.id.clone(),
-        })
-    }
-    
-    /// Build atomic frontrun transaction for sandwich
-    /// Uses flash loan: borrow -> swap -> hold intermediate tokens (repay happens in backrun)
-    /// 
-    /// WAIT: Flash loans CANNOT span transactions! We need a different approach.
-    /// 
-    /// NEW APPROACH: Use payer's existing token balance OR a "front capital" model:
-    /// - If payer has sufficient tokens: use them directly
-    /// - Otherwise: this opportunity cannot be executed without capital
-    /// 
-    /// For now, we use a SINGLE atomic transaction that does everything:
-    /// borrow -> frontrun swap -> (victim executes) -> backrun swap -> repay
-    /// 
-    /// BUT Jito bundles execute as separate transactions! So we MUST use capital.
-    /// We'll swap using our own funds, not flash loans.
-    fn build_sandwich_frontrun_atomic(
-        &self,
-        opportunity: &SandwichOpportunity,
-        _reserve: &FlashLoanReserve,
-        borrow_ata: Pubkey,
-        blockhash: Hash,
-    ) -> Result<VersionedTransaction> {
-        let payer_pubkey = self.payer.pubkey();
-        let mut instructions = Vec::new();
-
-        // 1. Compute budget
-        instructions.push(ComputeBudgetInstruction::set_compute_unit_limit(
-            self.config.compute_units,
-        ));
-        instructions.push(ComputeBudgetInstruction::set_compute_unit_price(
-            self.config.compute_unit_price,
-        ));
-
-        // 2. Create ATAs (idempotent)
-        instructions.push(create_ata_idempotent(
-            &payer_pubkey,
-            &payer_pubkey,
-            &opportunity.borrow_mint,
-            &TOKEN_PROGRAM,
-        ));
-
-        if opportunity.victim_output_mint != opportunity.borrow_mint {
-            instructions.push(create_ata_idempotent(
-                &payer_pubkey,
-                &payer_pubkey,
-                &opportunity.victim_output_mint,
-                &TOKEN_PROGRAM,
-            ));
-        }
-
-        // 3. Swap in same direction as victim (frontrun) - using our own capital
-        // This requires the payer to have sufficient borrow_mint tokens!
-        let output_ata = derive_ata(&payer_pubkey, &opportunity.victim_output_mint);
-        
-        // Apply slippage tolerance
-        let min_out = opportunity.frontrun_output
-            .saturating_mul(10000 - self.config.slippage_bps)
-            / 10000;
-        
-        let swap_ix = self.build_sandwich_swap_instruction(
-            opportunity,
-            opportunity.frontrun_amount,
-            min_out,
-            borrow_ata,
-            output_ata,
-            true, // same direction as victim
-        )?;
-        instructions.push(swap_ix);
-
-        // Build versioned message
-        let message = v0::Message::try_compile(
-            &payer_pubkey,
-            &instructions,
-            &self.lookup_tables,
-            blockhash,
-        )?;
-
-        let versioned_message = VersionedMessage::V0(message);
-        let tx = VersionedTransaction::try_new(versioned_message, &[self.payer.as_ref()])?;
-
-        Ok(tx)
-    }
-
-    /// Build atomic backrun transaction for sandwich
-    /// Swaps the intermediate tokens back to original + tips
-    fn build_sandwich_backrun_atomic(
-        &self,
-        opportunity: &SandwichOpportunity,
-        _reserve: &FlashLoanReserve,
-        borrow_ata: Pubkey,
-        blockhash: Hash,
-    ) -> Result<VersionedTransaction> {
-        let payer_pubkey = self.payer.pubkey();
-        let mut instructions = Vec::new();
-
-        // 1. Compute budget
-        instructions.push(ComputeBudgetInstruction::set_compute_unit_limit(
-            self.config.compute_units,
-        ));
-        instructions.push(ComputeBudgetInstruction::set_compute_unit_price(
-            self.config.compute_unit_price,
-        ));
-
-        // 2. Swap back (opposite direction from victim)
-        let intermediate_ata = derive_ata(&payer_pubkey, &opportunity.victim_output_mint);
-        
-        // We're swapping the intermediate tokens we got from frontrun
-        // Expected input: frontrun_output (from evaluator simulation)
-        // Expected output: backrun_output (should be > frontrun_amount to profit)
-        //
-        // Apply slippage to backrun output
-        // CRITICAL: backrun_output must cover frontrun_amount to break even
-        let min_out = opportunity.backrun_output
-            .saturating_mul(10000 - self.config.slippage_bps)
-            / 10000;
-        
-        // Validate: after slippage, we must still profit
-        let required_to_break_even = opportunity.frontrun_amount;
-        if min_out < required_to_break_even {
-            bail!(
-                "Sandwich would not profit after slippage: min_out={} < required={}",
-                min_out,
-                required_to_break_even
-            );
-        }
-        
-        let swap_ix = self.build_sandwich_swap_instruction(
-            opportunity,
-            opportunity.frontrun_output, // Input is what we got from frontrun
-            min_out,
-            intermediate_ata,
-            borrow_ata,
-            false, // opposite direction from victim
-        )?;
-        instructions.push(swap_ix);
-
-        // 3. Tip (from profit)
-        let tip = self.calculate_tip(opportunity.expected_profit_lamports);
-        instructions.push(self.build_tip_instruction(tip));
-
-        // Build versioned message
-        let message = v0::Message::try_compile(
-            &payer_pubkey,
-            &instructions,
-            &self.lookup_tables,
-            blockhash,
-        )?;
-
-        let versioned_message = VersionedMessage::V0(message);
-        let tx = VersionedTransaction::try_new(versioned_message, &[self.payer.as_ref()])?;
-
-        Ok(tx)
-    }
-
-    /// Build a swap instruction for sandwich (uses pool_state from opportunity)
-    fn build_sandwich_swap_instruction(
-        &self,
-        opportunity: &SandwichOpportunity,
-        amount_in: u64,
-        min_out: u64,
-        input_ata: Pubkey,
-        output_ata: Pubkey,
-        same_direction_as_victim: bool,
-    ) -> Result<Instruction> {
-        let state = &opportunity.pool_state;
-        
-        // Determine input/output mints based on direction
-        let (input_mint, output_mint) = if same_direction_as_victim {
-            (opportunity.victim_input_mint, opportunity.victim_output_mint)
-        } else {
-            (opportunity.victim_output_mint, opportunity.victim_input_mint)
-        };
-
-        // Create a temporary ArbLeg for the swap instruction builder
-        let leg = ArbLeg {
-            pool: opportunity.pool,
-            dex: opportunity.dex,
-            input_mint,
-            output_mint,
-            estimated_output: if same_direction_as_victim {
-                opportunity.frontrun_output
-            } else {
-                opportunity.backrun_output
-            },
-            pool_state: state.clone(),
-        };
-
-        // Reuse the existing swap instruction builders
-        match opportunity.dex {
-            DexType::RaydiumAmm => {
-                self.build_raydium_amm_swap(&leg, amount_in, min_out, input_ata, output_ata)
-            }
-            DexType::RaydiumClmm => {
-                self.build_raydium_clmm_swap(&leg, amount_in, min_out, input_ata, output_ata)
-            }
-            DexType::OrcaWhirlpool => {
-                self.build_orca_whirlpool_swap(&leg, amount_in, min_out, input_ata, output_ata)
-            }
-            DexType::MeteoraDlmm => {
-                self.build_meteora_dlmm_swap(&leg, amount_in, min_out, input_ata, output_ata)
-            }
-            DexType::MeteoraDamm => {
-                self.build_meteora_damm_swap(&leg, amount_in, min_out, input_ata, output_ata)
-            }
-            DexType::PancakeSwapClmm => {
-                self.build_pancake_clmm_swap(&leg, amount_in, min_out, input_ata, output_ata)
-            }
-        }
     }
 
     /// Validate the victim transaction before including in bundle
@@ -507,6 +182,9 @@ impl BackrunBundleBuilder {
     }
 
     /// Build the arbitrage transaction
+    ///
+    /// OPTIMIZATION: Pre-allocate vector capacity to avoid reallocations.
+    /// Typical bundle has: 2 compute budget + 2 ATA creates + 1 borrow + 2 swaps + 1 repay + 1 tip = 9 instructions
     fn build_arb_transaction(
         &self,
         opportunity: &MevOpportunity,
@@ -515,7 +193,9 @@ impl BackrunBundleBuilder {
         blockhash: Hash,
     ) -> Result<VersionedTransaction> {
         let payer_pubkey = self.payer.pubkey();
-        let mut instructions = Vec::new();
+
+        // Pre-allocate with capacity for typical bundle (avoids reallocations)
+        let mut instructions = Vec::with_capacity(10);
 
         // 1. Compute budget
         instructions.push(ComputeBudgetInstruction::set_compute_unit_limit(
@@ -554,18 +234,13 @@ impl BackrunBundleBuilder {
         ));
 
         // 4. Swap leg 1: borrow_mint -> intermediate
-        let swap1 = self.build_swap_instruction(
-            &opportunity.arb_route.leg1,
-            opportunity.borrow_amount,
-        )?;
+        let swap1 =
+            self.build_swap_instruction(&opportunity.arb_route.leg1, opportunity.borrow_amount)?;
         instructions.push(swap1);
 
         // 5. Swap leg 2: intermediate -> borrow_mint
         let leg2_input = opportunity.arb_route.leg1.estimated_output;
-        let swap2 = self.build_swap_instruction(
-            &opportunity.arb_route.leg2,
-            leg2_input,
-        )?;
+        let swap2 = self.build_swap_instruction(&opportunity.arb_route.leg2, leg2_input)?;
         instructions.push(swap2);
 
         // 6. Flash repay
@@ -581,12 +256,8 @@ impl BackrunBundleBuilder {
         instructions.push(self.build_tip_instruction(tip));
 
         // Build versioned message
-        let message = v0::Message::try_compile(
-            &payer_pubkey,
-            &instructions,
-            &self.lookup_tables,
-            blockhash,
-        )?;
+        let message =
+            v0::Message::try_compile(&payer_pubkey, &instructions, &self.lookup_tables, blockhash)?;
 
         let versioned_message = VersionedMessage::V0(message);
         let tx = VersionedTransaction::try_new(versioned_message, &[self.payer.as_ref()])?;
@@ -644,19 +315,29 @@ impl BackrunBundleBuilder {
         // Raydium AMM V4 swap_base_in_v2 (instruction index 16)
         // Source: raydium-amm/program/src/processor.rs
         let state = &leg.pool_state;
-        
+
         // Determine swap direction: coin->pc or pc->coin
         let is_coin_to_pc = leg.input_mint == state.token_mint_a;
         let (user_source, user_dest, coin_vault, pc_vault) = if is_coin_to_pc {
-            (input_ata, output_ata, state.token_vault_a, state.token_vault_b)
+            (
+                input_ata,
+                output_ata,
+                state.token_vault_a,
+                state.token_vault_b,
+            )
         } else {
-            (input_ata, output_ata, state.token_vault_b, state.token_vault_a)
+            (
+                input_ata,
+                output_ata,
+                state.token_vault_b,
+                state.token_vault_a,
+            )
         };
-        
-        let amm_authority = state.amm_authority.ok_or_else(|| {
-            anyhow!("Raydium AMM swap requires amm_authority in pool_state")
-        })?;
-        
+
+        let amm_authority = state
+            .amm_authority
+            .ok_or_else(|| anyhow!("Raydium AMM swap requires amm_authority in pool_state"))?;
+
         let accounts = vec![
             AccountMeta::new_readonly(TOKEN_PROGRAM, false),
             AccountMeta::new(leg.pool, false),
@@ -667,13 +348,13 @@ impl BackrunBundleBuilder {
             AccountMeta::new(user_dest, false),
             AccountMeta::new_readonly(self.payer.pubkey(), true),
         ];
-        
+
         // Data: [instruction_index(1), amount_in(8), min_out(8)]
         let mut data = Vec::with_capacity(17);
         data.push(16u8); // swap_base_in_v2
         data.extend_from_slice(&amount_in.to_le_bytes());
         data.extend_from_slice(&min_out.to_le_bytes());
-        
+
         Ok(Instruction {
             program_id: *super::programs::RAYDIUM_AMM,
             accounts,
@@ -692,14 +373,14 @@ impl BackrunBundleBuilder {
         // Raydium CLMM swap (Anchor discriminator)
         // Source: raydium-clmm/programs/amm/src/instructions/swap.rs
         let state = &leg.pool_state;
-        
-        let amm_config = state.amm_config.ok_or_else(|| {
-            anyhow!("Raydium CLMM swap requires amm_config in pool_state")
-        })?;
-        let observation_state = state.observation_state.ok_or_else(|| {
-            anyhow!("Raydium CLMM swap requires observation_state in pool_state")
-        })?;
-        
+
+        let amm_config = state
+            .amm_config
+            .ok_or_else(|| anyhow!("Raydium CLMM swap requires amm_config in pool_state"))?;
+        let observation_state = state
+            .observation_state
+            .ok_or_else(|| anyhow!("Raydium CLMM swap requires observation_state in pool_state"))?;
+
         // Determine direction: zero_for_one = swap token0 for token1
         let zero_for_one = leg.input_mint == state.token_mint_a;
         let (input_vault, output_vault) = if zero_for_one {
@@ -707,7 +388,7 @@ impl BackrunBundleBuilder {
         } else {
             (state.token_vault_b, state.token_vault_a)
         };
-        
+
         // Recompute tick arrays dynamically based on current tick
         let tick_arrays = if state.spacing > 0 {
             derive_raydium_clmm_tick_arrays(&leg.pool, state.current_tick_or_bin, state.spacing)
@@ -716,7 +397,7 @@ impl BackrunBundleBuilder {
         } else {
             bail!("Raydium CLMM swap requires tick arrays or spacing to derive them");
         };
-        
+
         let mut accounts = vec![
             AccountMeta::new_readonly(self.payer.pubkey(), true),
             AccountMeta::new_readonly(amm_config, false),
@@ -729,13 +410,13 @@ impl BackrunBundleBuilder {
             AccountMeta::new(observation_state, false),
             AccountMeta::new_readonly(TOKEN_PROGRAM, false),
         ];
-        
+
         // Add additional tick arrays as remaining accounts
         for tick_array in tick_arrays.iter().skip(1) {
             accounts.push(AccountMeta::new(*tick_array, false));
         }
-        
-        // Data: [discriminator(8), amount(8), other_amount_threshold(8), 
+
+        // Data: [discriminator(8), amount(8), other_amount_threshold(8),
         //        sqrt_price_limit_x64(16), is_base_input(1)]
         let mut data = Vec::with_capacity(41);
         data.extend_from_slice(&super::programs::raydium_clmm::SWAP);
@@ -744,7 +425,7 @@ impl BackrunBundleBuilder {
         // sqrt_price_limit: 0 = no limit
         data.extend_from_slice(&0u128.to_le_bytes());
         data.push(1u8); // is_base_input = true
-        
+
         Ok(Instruction {
             program_id: *super::programs::RAYDIUM_CLMM,
             accounts,
@@ -763,11 +444,11 @@ impl BackrunBundleBuilder {
         // Orca Whirlpool swap (Anchor discriminator)
         // Source: whirlpools/programs/whirlpool/src/instructions/swap.rs
         let state = &leg.pool_state;
-        
-        let oracle = state.observation_state.ok_or_else(|| {
-            anyhow!("Orca Whirlpool swap requires oracle in pool_state")
-        })?;
-        
+
+        let oracle = state
+            .observation_state
+            .ok_or_else(|| anyhow!("Orca Whirlpool swap requires oracle in pool_state"))?;
+
         // Recompute tick arrays dynamically based on current tick
         let tick_arrays = if state.spacing > 0 {
             derive_whirlpool_tick_arrays(&leg.pool, state.current_tick_or_bin, state.spacing)
@@ -776,11 +457,14 @@ impl BackrunBundleBuilder {
         } else {
             bail!("Orca Whirlpool swap requires 3 tick_arrays or spacing to derive them");
         };
-        
+
         if tick_arrays.len() < 3 {
-            bail!("Orca Whirlpool swap requires 3 tick_arrays, got {}", tick_arrays.len());
+            bail!(
+                "Orca Whirlpool swap requires 3 tick_arrays, got {}",
+                tick_arrays.len()
+            );
         }
-        
+
         // Direction: a_to_b means swapping token A for token B
         let a_to_b = leg.input_mint == state.token_mint_a;
         let (token_owner_a, token_owner_b) = if a_to_b {
@@ -788,7 +472,7 @@ impl BackrunBundleBuilder {
         } else {
             (output_ata, input_ata)
         };
-        
+
         let accounts = vec![
             AccountMeta::new_readonly(TOKEN_PROGRAM, false),
             AccountMeta::new_readonly(self.payer.pubkey(), true),
@@ -802,7 +486,7 @@ impl BackrunBundleBuilder {
             AccountMeta::new(tick_arrays[2], false),
             AccountMeta::new_readonly(oracle, false),
         ];
-        
+
         // Data: [discriminator(8), amount(8), other_amount_threshold(8),
         //        sqrt_price_limit(16), amount_specified_is_input(1), a_to_b(1)]
         let mut data = Vec::with_capacity(42);
@@ -810,11 +494,15 @@ impl BackrunBundleBuilder {
         data.extend_from_slice(&amount_in.to_le_bytes());
         data.extend_from_slice(&min_out.to_le_bytes());
         // sqrt_price_limit: 0 = no limit (use MIN or MAX based on direction)
-        let sqrt_price_limit: u128 = if a_to_b { 4295048016 } else { 79226673515401279992447579055 };
+        let sqrt_price_limit: u128 = if a_to_b {
+            4295048016
+        } else {
+            79226673515401279992447579055
+        };
         data.extend_from_slice(&sqrt_price_limit.to_le_bytes());
         data.push(1u8); // amount_specified_is_input = true
         data.push(if a_to_b { 1u8 } else { 0u8 }); // a_to_b
-        
+
         Ok(Instruction {
             program_id: *super::programs::ORCA_WHIRLPOOL,
             accounts,
@@ -833,18 +521,18 @@ impl BackrunBundleBuilder {
         // Meteora DLMM swap2 (Anchor discriminator)
         // Source: dlmm-sdk/programs/lb_clmm/src/instructions/swap.rs
         let state = &leg.pool_state;
-        
+
         // Determine direction: x_to_y
         let x_to_y = leg.input_mint == state.token_mint_a;
         let (user_token_in, user_token_out) = (input_ata, output_ata);
-        
+
         // Recompute bin arrays dynamically based on current active bin
         let bin_arrays = if !state.bin_arrays.is_empty() {
             state.bin_arrays.clone()
         } else {
             derive_dlmm_bin_arrays(&leg.pool, state.current_tick_or_bin)
         };
-        
+
         let mut accounts = vec![
             AccountMeta::new(leg.pool, false), // lb_pair
             AccountMeta::new(state.bin_array_bitmap_extension.unwrap_or(leg.pool), false),
@@ -854,29 +542,33 @@ impl BackrunBundleBuilder {
             AccountMeta::new_readonly(state.token_mint_b, false), // token_y_mint
             AccountMeta::new_readonly(TOKEN_PROGRAM, false), // token_x_program
             AccountMeta::new_readonly(TOKEN_PROGRAM, false), // token_y_program
-            AccountMeta::new(self.payer.pubkey(), true), // user
+            AccountMeta::new(self.payer.pubkey(), true),  // user
             AccountMeta::new(user_token_in, false),
             AccountMeta::new(user_token_out, false),
             AccountMeta::new_readonly(state.observation_state.unwrap_or(leg.pool), false), // oracle
             AccountMeta::new_readonly(leg.pool, false), // host_fee_in (optional, use lb_pair as placeholder)
-            AccountMeta::new_readonly(Pubkey::find_program_address(
-                &[b"__event_authority"],
-                &super::programs::METEORA_DLMM,
-            ).0, false), // event_authority
+            AccountMeta::new_readonly(
+                Pubkey::find_program_address(
+                    &[b"__event_authority"],
+                    &super::programs::METEORA_DLMM,
+                )
+                .0,
+                false,
+            ), // event_authority
             AccountMeta::new_readonly(*super::programs::METEORA_DLMM, false), // program
         ];
-        
+
         // Add bin arrays as remaining accounts
         for bin_array in &bin_arrays {
             accounts.push(AccountMeta::new(*bin_array, false));
         }
-        
+
         // Data: [discriminator(8), amount_in(8), min_amount_out(8)]
         let mut data = Vec::with_capacity(24);
         data.extend_from_slice(&super::programs::meteora_dlmm::SWAP2);
         data.extend_from_slice(&amount_in.to_le_bytes());
         data.extend_from_slice(&min_out.to_le_bytes());
-        
+
         Ok(Instruction {
             program_id: *super::programs::METEORA_DLMM,
             accounts,
@@ -895,15 +587,15 @@ impl BackrunBundleBuilder {
         // Meteora DAMM v2 (CP-AMM) swap (Anchor discriminator)
         // Source: damm-v2/programs/cp-amm/src/instructions/swap.rs
         let state = &leg.pool_state;
-        
-        let pool_authority = state.pool_authority.ok_or_else(|| {
-            anyhow!("Meteora DAMM swap requires pool_authority in pool_state")
-        })?;
-        
+
+        let pool_authority = state
+            .pool_authority
+            .ok_or_else(|| anyhow!("Meteora DAMM swap requires pool_authority in pool_state"))?;
+
         // Determine direction
         let a_to_b = leg.input_mint == state.token_mint_a;
         let (input_token_account, output_token_account) = (input_ata, output_ata);
-        
+
         let accounts = vec![
             AccountMeta::new_readonly(pool_authority, false),
             AccountMeta::new(leg.pool, false),
@@ -916,15 +608,15 @@ impl BackrunBundleBuilder {
             AccountMeta::new(self.payer.pubkey(), true),
             AccountMeta::new_readonly(TOKEN_PROGRAM, false), // token_a_program
             AccountMeta::new_readonly(TOKEN_PROGRAM, false), // token_b_program
-            AccountMeta::new_readonly(leg.pool, false), // referral_token_account (optional)
+            AccountMeta::new_readonly(leg.pool, false),      // referral_token_account (optional)
         ];
-        
+
         // Data: [discriminator(8), amount_in(8), minimum_amount_out(8)]
         let mut data = Vec::with_capacity(24);
         data.extend_from_slice(&super::programs::meteora_damm::SWAP);
         data.extend_from_slice(&amount_in.to_le_bytes());
         data.extend_from_slice(&min_out.to_le_bytes());
-        
+
         Ok(Instruction {
             program_id: *super::programs::METEORA_DAMM,
             accounts,
@@ -942,21 +634,21 @@ impl BackrunBundleBuilder {
     ) -> Result<Instruction> {
         // PancakeSwap CLMM - nearly identical to Raydium CLMM
         let state = &leg.pool_state;
-        
-        let amm_config = state.amm_config.ok_or_else(|| {
-            anyhow!("PancakeSwap CLMM swap requires amm_config in pool_state")
-        })?;
+
+        let amm_config = state
+            .amm_config
+            .ok_or_else(|| anyhow!("PancakeSwap CLMM swap requires amm_config in pool_state"))?;
         let observation_state = state.observation_state.ok_or_else(|| {
             anyhow!("PancakeSwap CLMM swap requires observation_state in pool_state")
         })?;
-        
+
         let zero_for_one = leg.input_mint == state.token_mint_a;
         let (input_vault, output_vault) = if zero_for_one {
             (state.token_vault_a, state.token_vault_b)
         } else {
             (state.token_vault_b, state.token_vault_a)
         };
-        
+
         // Recompute tick arrays dynamically (PancakeSwap uses same layout as Raydium CLMM)
         let tick_arrays = if state.spacing > 0 {
             derive_raydium_clmm_tick_arrays(&leg.pool, state.current_tick_or_bin, state.spacing)
@@ -965,7 +657,7 @@ impl BackrunBundleBuilder {
         } else {
             bail!("PancakeSwap CLMM swap requires tick arrays or spacing to derive them");
         };
-        
+
         let mut accounts = vec![
             AccountMeta::new_readonly(self.payer.pubkey(), true),
             AccountMeta::new_readonly(amm_config, false),
@@ -978,18 +670,18 @@ impl BackrunBundleBuilder {
             AccountMeta::new(observation_state, false),
             AccountMeta::new_readonly(TOKEN_PROGRAM, false),
         ];
-        
+
         for tick_array in tick_arrays.iter().skip(1) {
             accounts.push(AccountMeta::new(*tick_array, false));
         }
-        
+
         let mut data = Vec::with_capacity(41);
         data.extend_from_slice(&super::programs::pancakeswap_clmm::SWAP);
         data.extend_from_slice(&amount_in.to_le_bytes());
         data.extend_from_slice(&min_out.to_le_bytes());
         data.extend_from_slice(&0u128.to_le_bytes()); // sqrt_price_limit
         data.push(1u8); // is_base_input
-        
+
         Ok(Instruction {
             program_id: *super::programs::PANCAKESWAP_CLMM,
             accounts,
@@ -1063,36 +755,71 @@ impl BackrunBundleBuilder {
     }
 
     /// Calculate dynamic tip based on expected profit
-    /// 
+    ///
     /// Uses tip floor data from Jito if available, otherwise falls back
-    /// to profit-share calculation. When floor data is available, we use
-    /// floor * multiplier which is competitive but much cheaper than profit-sharing.
+    /// Profit-tiered tipping strategy for maximum competitiveness.
+    ///
+    /// Key insight: In NY with good infra, you'll tie other top searchers on latency.
+    /// The bundle auction is won by TIP, so we tip aggressively based on profit tier.
+    ///
+    /// Strategy:
+    /// - Small profits (<0.01 SOL): Tip 85% - these are competitive, guarantee the win
+    /// - Medium profits (0.01-0.1 SOL): Tip 75% - still aggressive
+    /// - Large profits (>0.1 SOL): Tip 65% - keep more, still competitive
+    ///
+    /// Always use MAX(floor-based, profit-share) to handle different market conditions.
     fn calculate_tip(&self, expected_profit: u64) -> u64 {
         // Sanity cap: max tip is 10 SOL even for huge profits
         const MAX_TIP: u64 = 10_000_000_000; // 10 SOL
 
-        // If we have tip floor data, use floor * multiplier (much cheaper)
-        // Otherwise fall back to profit-share
-        let tip = if let Some(cache) = &self.tip_floor_cache {
-            let p75 = cache.get_p75();
-            if p75 > 0 {
-                // Use floor-based tip: competitive but cheap
-                ((p75 as f64) * self.config.tip_floor_multiplier) as u64
-            } else {
-                // Floor data unavailable, fall back to profit share
-                (expected_profit as u128 * self.config.tip_profit_share_bps as u128 / 10000) as u64
-            }
+        // Profit-tiered tip percentage (in bps)
+        // Small profits: tip more aggressively to guarantee win
+        // Large profits: can afford to keep more, still competitive
+        let tier_bps = if expected_profit < 10_000_000 {
+            // < 0.01 SOL: small profit, tip 85%
+            8500
+        } else if expected_profit < 100_000_000 {
+            // 0.01 - 0.1 SOL: medium profit, tip 75%
+            7500
         } else {
-            // No tip floor cache, use profit share
-            (expected_profit as u128 * self.config.tip_profit_share_bps as u128 / 10000) as u64
+            // > 0.1 SOL: large profit, tip 65%
+            6500
         };
 
+        // Calculate profit-share tip
+        let profit_share_tip = (expected_profit as u128 * tier_bps as u128 / 10000) as u64;
+
+        // Calculate floor-based tip (if available)
+        let floor_tip = if let Some(cache) = &self.tip_floor_cache {
+            let p75 = cache.get_p75();
+            let p95 = cache.get_p95();
+            if p75 > 0 {
+                // Use P95 for small profits (guarantee win), P75*3 for larger
+                if expected_profit < 10_000_000 {
+                    // Small profit: use P95 * 2 to dominate
+                    p95.saturating_mul(2)
+                } else {
+                    // Larger profit: P75 * multiplier
+                    ((p75 as f64) * self.config.tip_floor_multiplier) as u64
+                }
+            } else {
+                0
+            }
+        } else {
+            0
+        };
+
+        // Use MAX of floor-based and profit-share
+        // This ensures competitiveness in both high-activity and low-activity periods
+        let tip = profit_share_tip.max(floor_tip);
+
         // Cap at max_tip_profit_bps of profit and absolute MAX_TIP
-        let max_tip_pct = (expected_profit as u128 * self.config.max_tip_profit_bps as u128 / 10000) as u64;
+        let max_tip_pct =
+            (expected_profit as u128 * self.config.max_tip_profit_bps as u128 / 10000) as u64;
 
         tip.min(max_tip_pct)
-           .min(MAX_TIP)
-           .max(self.config.base_tip_lamports)
+            .min(MAX_TIP)
+            .max(self.config.base_tip_lamports)
     }
 }
 
@@ -1149,12 +876,7 @@ mod tests {
     fn test_tip_calculation() {
         let config = BundleBuilderConfig::default();
         let payer = Arc::new(Keypair::new());
-        let builder = BackrunBundleBuilder::new(
-            config.clone(),
-            payer,
-            HashMap::new(),
-            Vec::new(),
-        );
+        let builder = BackrunBundleBuilder::new(config.clone(), payer, HashMap::new(), Vec::new());
 
         // Test minimum tip
         assert_eq!(builder.calculate_tip(0), config.base_tip_lamports);

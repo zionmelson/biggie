@@ -156,16 +156,19 @@ Logs are written to `/tmp/tre-arb.log`. Press `Ctrl+C` to stop.
 1. **Geyser Connection:** Connects to local validator's Geyser plugin and subscribes to `TransactionUpdates`.
 
 2. **Transaction Parsing:** For each transaction:
+
    - Identifies DEX swap instructions (Raydium, Orca, Meteora, PancakeSwap)
    - Extracts pool address, input/output mints and amounts
    - Determines swap direction
 
 3. **MEV Evaluation:** Filters opportunities based on:
+
    - Minimum swap amount threshold
    - Available pool state data
    - Expected profit after fees and tips
 
 4. **Bundle Construction:** For profitable opportunities:
+
    - Builds flash loan borrow instruction (Solend)
    - Constructs backrun swap instruction
    - Adds flash loan repay instruction
@@ -181,21 +184,23 @@ src/
 ├── lib.rs               # Library exports
 ├── config.rs            # Configuration parsing
 ├── geyser.rs            # Geyser gRPC client
-├── pool_discovery.rs    # Dynamic pool discovery
-├── amm_math.rs          # AMM price calculations
-├── clmm_price_map.rs    # CLMM tick/price utilities
+├── pool_discovery.rs    # Dynamic pool discovery (replaces static JSON maps)
+├── predictive_state.rs  # Unified state manager (ShredStream + Geyser)
+├── amm_math.rs          # AMM swap math (constant product, slippage)
+├── clmm_math.rs         # CLMM tick/sqrt_price math
+├── dlmm_math.rs         # DLMM bin math (Meteora)
 ├── executor.rs          # Transaction building
 ├── jito.rs              # Jito bundle submission
+├── tip_monitor.rs       # Jito tip floor monitoring
 ├── constants.rs         # Program IDs and constants
 └── shredstream/
     ├── mod.rs           # Module exports
-    ├── geyser_pipeline.rs  # Main Geyser processing loop
+    ├── unified_pipeline.rs  # Main pipeline (ShredStream + Geyser)
     ├── parser.rs        # Transaction → ParsedSwap
     ├── evaluator.rs     # MEV opportunity evaluation
     ├── backrun.rs       # Bundle construction
     ├── programs.rs      # DEX program IDs
-    ├── types.rs         # Shared types
-    └── pipeline.rs      # Legacy shredstream pipeline
+    └── types.rs         # Shared types
 
 geyser/                  # Geyser protobuf definitions
 jito/                    # Jito protobuf definitions

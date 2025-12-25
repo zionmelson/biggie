@@ -192,6 +192,42 @@ pub fn is_dex_program(program_id: &Pubkey) -> bool {
     PROGRAM_TO_DEX.contains_key(program_id)
 }
 
+// ============================================================================
+// Pool Address Extraction
+// ============================================================================
+
+/// Get the account index where the pool address is located for swap instructions.
+///
+/// This centralizes the knowledge of pool address location across all DEXs:
+/// - Raydium AMM: account[1] is the AMM pool
+/// - Raydium CLMM: account[2] is the pool state  
+/// - Orca Whirlpool: account[2] is the whirlpool
+/// - Meteora DLMM: account[1] is the lb_pair (verified from parser.rs layout)
+/// - Meteora DAMM: account[1] is the pool (verified from parser.rs layout)
+/// - PancakeSwap CLMM: account[2] is the pool state (similar to Raydium CLMM)
+pub fn pool_account_index(dex: DexType) -> usize {
+    match dex {
+        DexType::RaydiumAmm => 1,
+        DexType::RaydiumClmm => 2,
+        DexType::OrcaWhirlpool => 2,
+        DexType::MeteoraDlmm => 1,
+        DexType::MeteoraDamm => 1,
+        DexType::PancakeSwapClmm => 2,
+    }
+}
+
+/// Extract pool address from instruction account indices
+///
+/// Generic helper that works with any account lookup mechanism.
+/// Returns the pool address if valid, None otherwise.
+pub fn extract_pool_address<F>(dex: DexType, get_account: F) -> Option<Pubkey>
+where
+    F: Fn(usize) -> Option<Pubkey>,
+{
+    let idx = pool_account_index(dex);
+    get_account(idx)
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;

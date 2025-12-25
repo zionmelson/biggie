@@ -9,7 +9,7 @@ use solana_sdk::pubkey::Pubkey;
 use solana_sdk::transaction::VersionedTransaction;
 use std::time::Instant;
 
-use super::programs::{get_dex_type, is_swap_instruction, DexType};
+use super::programs::{get_dex_type, is_swap_instruction, pool_account_index, DexType};
 
 /// Direction of a swap
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
@@ -122,6 +122,17 @@ fn get_account_keys(
     }
 }
 
+/// Extract pool address from instruction using the centralized pool_account_index
+fn get_pool_from_instruction(
+    instruction: &CompiledInstruction,
+    account_keys: &[Pubkey],
+    dex: DexType,
+) -> Option<Pubkey> {
+    let pool_idx = pool_account_index(dex);
+    let account_idx = *instruction.accounts.get(pool_idx)? as usize;
+    account_keys.get(account_idx).copied()
+}
+
 /// Parse a single instruction for swap information
 fn parse_instruction(
     instruction: &CompiledInstruction,
@@ -167,8 +178,8 @@ fn parse_raydium_amm_swap(
     user: &Pubkey,
     instruction_index: usize,
 ) -> Option<ParsedSwap> {
-    // amm_id is at index 1
-    let pool = *account_keys.get(*instruction.accounts.get(1)? as usize)?;
+    // Use centralized pool extraction
+    let pool = get_pool_from_instruction(instruction, account_keys, DexType::RaydiumAmm)?;
     
     // Parse amount from instruction data
     // Format: [instruction_type(1), amount_in(8), min_amount_out(8)]
@@ -219,8 +230,8 @@ fn parse_raydium_clmm_swap(
     user: &Pubkey,
     instruction_index: usize,
 ) -> Option<ParsedSwap> {
-    // pool_state is at index 2
-    let pool = *account_keys.get(*instruction.accounts.get(2)? as usize)?;
+    // Use centralized pool extraction
+    let pool = get_pool_from_instruction(instruction, account_keys, DexType::RaydiumClmm)?;
     
     // Parse Anchor instruction data: [discriminator(8), amount(8), other_amount_threshold(8), sqrt_price_limit(16), is_base_input(1)]
     let data = &instruction.data;
@@ -276,8 +287,8 @@ fn parse_orca_whirlpool_swap(
     user: &Pubkey,
     instruction_index: usize,
 ) -> Option<ParsedSwap> {
-    // whirlpool is at index 2
-    let pool = *account_keys.get(*instruction.accounts.get(2)? as usize)?;
+    // Use centralized pool extraction
+    let pool = get_pool_from_instruction(instruction, account_keys, DexType::OrcaWhirlpool)?;
     
     // Parse instruction data: [discriminator(8), amount(8), other_amount_threshold(8), sqrt_price_limit(16), amount_specified_is_input(1), a_to_b(1)]
     let data = &instruction.data;
@@ -338,8 +349,8 @@ fn parse_meteora_dlmm_swap(
     user: &Pubkey,
     instruction_index: usize,
 ) -> Option<ParsedSwap> {
-    // lb_pair (pool) is at index 1 typically
-    let pool = *account_keys.get(*instruction.accounts.get(1)? as usize)?;
+    // Use centralized pool extraction
+    let pool = get_pool_from_instruction(instruction, account_keys, DexType::MeteoraDlmm)?;
     
     let data = &instruction.data;
     let amount_in = if data.len() >= 16 {
@@ -377,8 +388,8 @@ fn parse_meteora_damm_swap(
     user: &Pubkey,
     instruction_index: usize,
 ) -> Option<ParsedSwap> {
-    // pool is typically at index 1 or 2
-    let pool = *account_keys.get(*instruction.accounts.get(1)? as usize)?;
+    // Use centralized pool extraction
+    let pool = get_pool_from_instruction(instruction, account_keys, DexType::MeteoraDamm)?;
     
     let data = &instruction.data;
     let amount_in = if data.len() >= 16 {
@@ -416,8 +427,8 @@ fn parse_pancakeswap_clmm_swap(
     user: &Pubkey,
     instruction_index: usize,
 ) -> Option<ParsedSwap> {
-    // pool_state is at index 2 (same as Raydium CLMM)
-    let pool = *account_keys.get(*instruction.accounts.get(2)? as usize)?;
+    // Use centralized pool extraction
+    let pool = get_pool_from_instruction(instruction, account_keys, DexType::PancakeSwapClmm)?;
     
     let data = &instruction.data;
     let amount_in = if data.len() >= 16 {

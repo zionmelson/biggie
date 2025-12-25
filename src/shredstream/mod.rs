@@ -1,28 +1,27 @@
-//! Shredstream/Geyser MEV pipeline modules
+//! ShredStream + Geyser Unified MEV Pipeline
 //!
-//! This module provides transaction parsing and MEV detection for
-//! low-latency backrunning from shredstream or Geyser data.
+//! # Architecture
 //!
-//! Architecture:
 //! ```text
-//! Geyser TransactionUpdates → Parser → Evaluator → Bundle Builder → Jito Submitter
-//! (or legacy: Shredstream Proxy → Parser → ...)
+//! ShredStream (early TX) ──┐
+//!                          ├──► PredictiveStateManager ──► MEV Evaluator ──► Bundle Builder ──► Jito
+//! Geyser (ground truth) ───┘
 //! ```
+//!
+//! The unified pipeline uses:
+//! - **ShredStream** for early transaction detection (before confirmation)
+//! - **Geyser** for ground truth state confirmation
+//! - **PredictiveStateManager** to bridge the gap between early detection and confirmation
 
 pub mod backrun;
 pub mod evaluator;
-pub mod geyser_pipeline;
 pub mod parser;
-pub mod pipeline;
 pub mod programs;
-pub mod types;
+pub mod unified_pipeline;
 
 // Core parsing types
 pub use parser::{ParsedSwap, SwapDirection, TransactionSwaps};
 pub use programs::{get_dex_type, is_swap_instruction, DexType};
-
-// Shredstream client types (legacy)
-pub use types::{ShredstreamConfig, ShredstreamMonitor, ShredstreamStats, ShredTransaction};
 
 // MEV evaluation
 pub use evaluator::{MevEvaluator, MevOpportunity, PoolInfo};
@@ -30,10 +29,7 @@ pub use evaluator::{MevEvaluator, MevOpportunity, PoolInfo};
 // Bundle building
 pub use backrun::{BackrunBundle, BackrunBundleBuilder, BundleBuilderConfig};
 
-// Geyser pipeline (preferred)
-pub use geyser_pipeline::{
-    spawn_geyser_pipeline, GeyserMevPipeline, GeyserPipelineConfig, GeyserPipelineStats,
+// Unified pipeline
+pub use unified_pipeline::{
+    spawn_unified_pipeline, UnifiedMevPipeline, UnifiedPipelineConfig, UnifiedPipelineStats,
 };
-
-// Main pipeline
-pub use pipeline::{spawn_pipeline, BlockhashUpdate, MevPipeline, PipelineConfig, PipelineStats};
