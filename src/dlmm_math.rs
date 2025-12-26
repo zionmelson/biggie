@@ -14,6 +14,12 @@
 //! - Each bin has a fixed price; slippage only from crossing bins
 
 use std::collections::BTreeMap;
+use uint::construct_uint;
+
+// Define U256 for high-precision intermediate calculations
+construct_uint! {
+    pub struct U256(4);
+}
 
 // =============================================================================
 // CONSTANTS
@@ -54,6 +60,7 @@ pub fn get_price_from_id(bin_id: i32, bin_step: u16) -> Option<u128> {
 
 /// Fixed-point exponentiation: base^exp where base is Q64.64
 /// Handles negative exponents by computing 1/base^|exp|
+/// Uses U256 for intermediate calculations to avoid overflow.
 fn pow_fixed(base: u128, exp: i32) -> Option<u128> {
     if exp == 0 {
         return Some(Q64); // base^0 = 1
@@ -65,30 +72,31 @@ fn pow_fixed(base: u128, exp: i32) -> Option<u128> {
         (exp as u32, false)
     };
     
-    // Binary exponentiation
-    let mut result: u128 = Q64;
-    let mut current_base = base;
+    let q64_256 = U256::from(Q64);
+    
+    // Binary exponentiation using U256
+    let mut result = U256::from(Q64);
+    let mut current_base = U256::from(base);
     let mut remaining_exp = exp_abs;
     
     while remaining_exp > 0 {
         if remaining_exp & 1 == 1 {
             // result = result * current_base / Q64
-            result = (result as u128)
-                .checked_mul(current_base)?
-                .checked_div(Q64)?;
+            result = result * current_base / q64_256;
         }
         // current_base = current_base * current_base / Q64
-        current_base = (current_base as u128)
-            .checked_mul(current_base)?
-            .checked_div(Q64)?;
+        current_base = current_base * current_base / q64_256;
         remaining_exp >>= 1;
     }
     
+    // Convert back to u128
     if is_negative {
         // For negative exponents: 1/result = Q64^2 / result
-        Some(Q64.checked_mul(Q64)?.checked_div(result)?)
+        let q64_squared = q64_256 * q64_256;
+        let inv = q64_squared / result;
+        Some(inv.try_into().ok()?)
     } else {
-        Some(result)
+        Some(result.try_into().ok()?)
     }
 }
 

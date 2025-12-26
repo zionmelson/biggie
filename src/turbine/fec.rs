@@ -281,8 +281,12 @@ impl FecSet {
 /// Configuration for the FEC assembler
 #[derive(Debug, Clone)]
 pub struct FecAssemblerConfig {
-    /// Maximum age before expiring an incomplete FEC set
+    /// Maximum age before expiring an incomplete FEC set (same as fec_set_ttl)
     pub fec_set_timeout: Duration,
+    /// Alias for fec_set_timeout for API compatibility
+    pub fec_set_ttl: Duration,
+    /// Maximum number of tracked FEC sets (total across all slots)
+    pub max_tracked_fec_sets: usize,
     /// Maximum number of tracked FEC sets per slot
     pub max_fec_sets_per_slot: usize,
     /// Maximum number of tracked slots
@@ -293,6 +297,8 @@ impl Default for FecAssemblerConfig {
     fn default() -> Self {
         Self {
             fec_set_timeout: Duration::from_secs(5),
+            fec_set_ttl: Duration::from_secs(5),
+            max_tracked_fec_sets: 4096,
             max_fec_sets_per_slot: 1024,
             max_slots: 4,
         }

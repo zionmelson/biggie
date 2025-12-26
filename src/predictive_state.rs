@@ -37,15 +37,17 @@
 //! t=6ms   Future evaluations use fresh ground truth
 //! ```
 
-use crate::amm_math::{calculate_stable_swap, CurveType, VirtualPoolState};
+use crate::amm_math::{CurveType, PoolSimulator, VirtualPoolState};
+use crate::bin_array_cache::BinArrayCache;
 use crate::clmm_math::ClmmPoolState;
-// use crate::dlmm_math::DlmmPoolState;  // TODO: Enable when DLMM support is added
+use crate::dlmm_math::DlmmPoolState;
 use crate::shredstream::parser::{ParsedSwap, SwapDirection};
 use crate::shredstream::programs::DexType;
+use crate::tick_array_cache::{ClmmPoolType, TickArrayCache};
 use solana_sdk::pubkey::Pubkey;
 use solana_sdk::signature::Signature;
 use std::collections::{HashMap, VecDeque};
-use std::sync::RwLock;
+use std::sync::{Arc, RwLock};
 use std::time::{Duration, Instant};
 
 // =============================================================================
@@ -143,10 +145,6 @@ pub struct PoolPredictiveState {
     /// Active liquidity in current range
     pub active_liquidity: Option<u128>,
 
-    // === STABLESWAP-SPECIFIC STATE ===
-    /// Amplification factor for StableSwap curves (Saber, etc.)
-    pub amp_factor: Option<u64>,
-
     // === POOL METADATA (for swap instruction building) ===
     /// Token A vault
     pub token_vault_a: Pubkey,
@@ -229,7 +227,6 @@ impl PoolPredictiveState {
             bin_arrays: Vec::new(),
             pool_authority: None,
             active_liquidity: None,
-            amp_factor: None,
             pending_swaps: VecDeque::new(),
             predicted_base_reserve: base_reserve,
             predicted_quote_reserve: quote_reserve,
@@ -386,7 +383,7 @@ impl PoolPredictiveState {
     /// Uses curve-specific math:
     /// - ConstantProduct: VirtualPoolState (x * y = k)
     /// - ConcentratedLiquidity: ClmmPoolState (tick-based, from Raydium CLMM)
-    /// - StableSwap: calculate_stable_swap (Curve/Saber formula)
+    /// - Dlmm: Uses constant product approximation (full bin simulation requires bin data)
     fn recalculate_prediction(&mut self) {
         // Collect pending swaps data (clone to avoid borrow issues)
         let pending: Vec<(u64, bool)> = self
@@ -408,14 +405,13 @@ impl PoolPredictiveState {
         }
 
         match self.curve {
-            CurveType::ConstantProduct => {
+            CurveType::ConstantProduct | CurveType::Dlmm => {
+                // DLMM uses constant product approximation for pending swap prediction
+                // Full bin-based simulation requires cached bin data
                 self.recalculate_constant_product(&pending);
             }
             CurveType::ConcentratedLiquidity => {
                 self.recalculate_clmm(&pending);
-            }
-            CurveType::StableSwap => {
-                self.recalculate_stable_swap(&pending);
             }
         }
 
@@ -524,44 +520,6 @@ impl PoolPredictiveState {
         self.predicted_tick_or_bin = Some(clmm_state.tick);
     }
 
-    /// Recalculate using StableSwap math (Curve/Saber).
-    /// Reference: saber-hq/stable-swap swap.rs::swap_to
-    fn recalculate_stable_swap(&mut self, pending: &[(u64, bool)]) {
-        // Default amp factor if not set (100 is common for stablecoins)
-        let amp = self.amp_factor.unwrap_or(100);
-
-        let mut base_reserve = self.confirmed_base_reserve;
-        let mut quote_reserve = self.confirmed_quote_reserve;
-
-        for &(amount_in, base_to_quote) in pending {
-            // Apply fee first (consistent with other curves)
-            let fee_amount = (amount_in as u128 * self.fee_bps as u128 / 10_000) as u64;
-            let input_after_fee = amount_in.saturating_sub(fee_amount);
-
-            let (input_reserve, output_reserve) = if base_to_quote {
-                (base_reserve, quote_reserve)
-            } else {
-                (quote_reserve, base_reserve)
-            };
-
-            // StableSwap calculation (fee already applied)
-            let (output_amount, _price_impact) =
-                calculate_stable_swap(input_after_fee, input_reserve, output_reserve, amp);
-
-            // Update reserves
-            if base_to_quote {
-                base_reserve = base_reserve.saturating_add(input_after_fee);
-                quote_reserve = quote_reserve.saturating_sub(output_amount);
-            } else {
-                quote_reserve = quote_reserve.saturating_add(input_after_fee);
-                base_reserve = base_reserve.saturating_sub(output_amount);
-            }
-        }
-
-        self.predicted_base_reserve = base_reserve;
-        self.predicted_quote_reserve = quote_reserve;
-    }
-
     /// Get a VirtualPoolState for simulation using PREDICTED reserves
     pub fn predicted_virtual_state(&self) -> VirtualPoolState {
         VirtualPoolState::new(
@@ -569,6 +527,56 @@ impl PoolPredictiveState {
             self.predicted_quote_reserve,
             self.fee_bps,
         )
+    }
+
+    /// Get a PoolSimulator using PREDICTED state with curve-specific math.
+    ///
+    /// This is the preferred method for accurate simulation:
+    /// - ConstantProduct pools → VirtualPoolState
+    /// - ConcentratedLiquidity pools → ClmmPoolState  
+    /// - DLMM pools → DlmmPoolState (via DEX type detection)
+    pub fn predicted_simulator(&self) -> PoolSimulator {
+        match self.curve {
+            CurveType::ConcentratedLiquidity => {
+                // Build CLMM state from predicted values
+                if let (Some(sqrt_price), Some(tick), Some(spacing), Some(liquidity)) = (
+                    self.predicted_sqrt_price.or(self.confirmed_sqrt_price),
+                    self.predicted_tick_or_bin.or(self.confirmed_tick_or_bin),
+                    self.spacing,
+                    self.active_liquidity,
+                ) {
+                    let fee_rate = (self.fee_bps as u32) * 100; // bps to millionths
+                    let clmm = ClmmPoolState::new(sqrt_price, tick, spacing, liquidity, fee_rate);
+                    return PoolSimulator::Clmm(clmm);
+                }
+                // Fallback to constant product if CLMM data incomplete
+                tracing::warn!(
+                    pool = %self.address,
+                    "CLMM pool missing data, using constant product fallback"
+                );
+                PoolSimulator::ConstantProduct(self.predicted_virtual_state())
+            }
+            CurveType::Dlmm => {
+                // Build DLMM state from predicted values
+                if let (Some(bin_id), Some(spacing)) = (
+                    self.predicted_tick_or_bin.or(self.confirmed_tick_or_bin),
+                    self.spacing,
+                ) {
+                    let fee_rate = (self.fee_bps as u32) * 100_000; // bps to millionths
+                    let dlmm = DlmmPoolState::new(spacing, bin_id, fee_rate);
+                    return PoolSimulator::Dlmm(dlmm);
+                }
+                // Fallback to constant product if DLMM data incomplete
+                tracing::warn!(
+                    pool = %self.address,
+                    "DLMM pool missing data, using constant product fallback"
+                );
+                PoolSimulator::ConstantProduct(self.predicted_virtual_state())
+            }
+            CurveType::ConstantProduct => {
+                PoolSimulator::ConstantProduct(self.predicted_virtual_state())
+            }
+        }
     }
 
     /// Get a VirtualPoolState for simulation using CONFIRMED reserves
@@ -596,7 +604,15 @@ impl PoolPredictiveState {
                 // Fallback to predicted reserve ratio (less accurate for CLMM)
                 None
             }
-            CurveType::ConstantProduct | CurveType::StableSwap => {
+            CurveType::Dlmm => {
+                // DLMM uses bin_id directly for price: price = 1.0001^bin_id
+                if let Some(bin_id) = self.predicted_tick_or_bin {
+                    let price = 1.0001_f64.powi(bin_id);
+                    return Some(price);
+                }
+                None
+            }
+            CurveType::ConstantProduct => {
                 Some(self.predicted_quote_reserve as f64 / self.predicted_base_reserve as f64)
             }
         }
@@ -635,6 +651,12 @@ pub struct PredictiveStateManager {
     last_cleanup: RwLock<Instant>,
     /// Statistics
     pub stats: RwLock<PredictiveStateStats>,
+    /// Tick array cache for accurate CLMM simulation
+    /// Populated via Geyser subscriptions to tick array accounts
+    tick_cache: Arc<TickArrayCache>,
+    /// Bin array cache for accurate DLMM simulation
+    /// Populated via Geyser subscriptions to bin array accounts
+    bin_cache: Arc<BinArrayCache>,
 }
 
 #[derive(Debug, Default, Clone)]
@@ -651,6 +673,14 @@ pub struct PredictiveStateStats {
     pub signature_index_hits: u64,
     /// Signature index misses (had to use fallback)
     pub signature_index_misses: u64,
+    /// Vault account updates received from Geyser
+    pub vault_updates_received: u64,
+    /// Vault reserves successfully updated
+    pub vault_reserves_updated: u64,
+    /// CLMM pools that fell back to constant product (missing tick data)
+    pub clmm_fallbacks: u64,
+    /// DLMM pools that fell back to constant product (missing bin data)
+    pub dlmm_fallbacks: u64,
 }
 
 impl PredictiveStateManager {
@@ -662,7 +692,19 @@ impl PredictiveStateManager {
             signature_to_pools: RwLock::new(HashMap::new()),
             last_cleanup: RwLock::new(Instant::now()),
             stats: RwLock::new(PredictiveStateStats::default()),
+            tick_cache: Arc::new(TickArrayCache::new()),
+            bin_cache: Arc::new(BinArrayCache::new()),
         }
+    }
+
+    /// Get the tick array cache for external access (Geyser subscription)
+    pub fn tick_cache(&self) -> Arc<TickArrayCache> {
+        Arc::clone(&self.tick_cache)
+    }
+
+    /// Get the bin array cache for external access (Geyser subscription)
+    pub fn bin_cache(&self) -> Arc<BinArrayCache> {
+        Arc::clone(&self.bin_cache)
     }
 
     // =========================================================================
@@ -676,6 +718,10 @@ impl PredictiveStateManager {
         let quote_mint = state.quote_mint;
         let vault_a = state.token_vault_a;
         let vault_b = state.token_vault_b;
+        let dex = state.dex;
+        let tick_arrays = state.tick_arrays.clone();
+        let bin_arrays = state.bin_arrays.clone();
+        let spacing = state.spacing.unwrap_or(64);
 
         // Add to pools map
         {
@@ -703,6 +749,22 @@ impl PredictiveStateManager {
             vault_idx.insert(vault_b, (address, false)); // is_base = false
         }
 
+        // Register tick arrays for CLMM pools
+        if !tick_arrays.is_empty() {
+            let pool_type = match dex {
+                DexType::OrcaWhirlpool => ClmmPoolType::OrcaWhirlpool,
+                DexType::RaydiumClmm | DexType::PancakeSwapClmm => ClmmPoolType::RaydiumClmm,
+                _ => ClmmPoolType::RaydiumClmm, // fallback
+            };
+            self.tick_cache
+                .register_pool(address, &tick_arrays, spacing, pool_type);
+        }
+
+        // Register bin arrays for DLMM pools
+        if !bin_arrays.is_empty() {
+            self.bin_cache.register_pool(address, &bin_arrays, spacing);
+        }
+
         // Update stats
         {
             let mut stats = self.stats.write().unwrap();
@@ -724,6 +786,12 @@ impl PredictiveStateManager {
         bin_arrays: Vec<Pubkey>,
         pool_authority: Option<Pubkey>,
     ) {
+        // Get pool info for cache registration
+        let (dex, spacing) = {
+            let pools = self.pools.read().unwrap();
+            pools.get(pool).map(|s| (s.dex, s.spacing.unwrap_or(64))).unwrap_or((DexType::RaydiumAmm, 64))
+        };
+
         // Update pool state
         {
             let mut pools = self.pools.write().unwrap();
@@ -734,9 +802,9 @@ impl PredictiveStateManager {
                     amm_authority,
                     amm_config,
                     observation_state,
-                    tick_arrays,
+                    tick_arrays.clone(),
                     bin_array_bitmap_extension,
-                    bin_arrays,
+                    bin_arrays.clone(),
                     pool_authority,
                 );
             }
@@ -747,6 +815,21 @@ impl PredictiveStateManager {
             let mut vault_idx = self.vault_index.write().unwrap();
             vault_idx.insert(token_vault_a, (*pool, true));
             vault_idx.insert(token_vault_b, (*pool, false));
+        }
+
+        // Register tick arrays for CLMM pools (re-register if arrays changed)
+        if !tick_arrays.is_empty() {
+            let pool_type = match dex {
+                DexType::OrcaWhirlpool => ClmmPoolType::OrcaWhirlpool,
+                DexType::RaydiumClmm | DexType::PancakeSwapClmm => ClmmPoolType::RaydiumClmm,
+                _ => ClmmPoolType::RaydiumClmm,
+            };
+            self.tick_cache.register_pool(*pool, &tick_arrays, spacing, pool_type);
+        }
+
+        // Register bin arrays for DLMM pools (re-register if arrays changed)
+        if !bin_arrays.is_empty() {
+            self.bin_cache.register_pool(*pool, &bin_arrays, spacing);
         }
     }
 
@@ -764,7 +847,41 @@ impl PredictiveStateManager {
     // GEYSER INTEGRATION
     // =========================================================================
 
-    /// Handle Geyser AccountUpdate for a pool's vault
+    /// Handle Geyser AccountUpdate for a vault address
+    /// Looks up the pool from vault_index and updates the appropriate reserve side.
+    /// Returns true if the vault was tracked and updated.
+    pub fn on_geyser_vault_address_update(
+        &self,
+        vault_address: &Pubkey,
+        balance: u64,
+        slot: u64,
+    ) -> bool {
+        self.stats.write().unwrap().vault_updates_received += 1;
+
+        // Look up which pool this vault belongs to
+        let pool_info = self.vault_index.read().unwrap().get(vault_address).cloned();
+        let Some((pool, is_base)) = pool_info else {
+            return false;
+        };
+
+        // Get current reserves and update just one side
+        let mut pools = self.pools.write().unwrap();
+        let Some(state) = pools.get_mut(&pool) else {
+            return false;
+        };
+
+        let (base_reserve, quote_reserve) = if is_base {
+            (balance, state.confirmed_quote_reserve)
+        } else {
+            (state.confirmed_base_reserve, balance)
+        };
+
+        state.update_confirmed_reserves(base_reserve, quote_reserve, slot);
+        self.stats.write().unwrap().vault_reserves_updated += 1;
+        true
+    }
+
+    /// Handle Geyser AccountUpdate for a pool's vault (by pool address)
     pub fn on_geyser_vault_update(
         &self,
         pool: &Pubkey,
@@ -941,6 +1058,72 @@ impl PredictiveStateManager {
         self.maybe_run_cleanup();
         let pools = self.pools.read().unwrap();
         pools.get(pool).map(|s| s.predicted_virtual_state())
+    }
+
+    /// Get PREDICTED simulator with curve-specific math
+    ///
+    /// This returns a PoolSimulator that uses the correct math for the pool type:
+    /// - CLMM pools use tick-based simulation (with cached tick data)
+    /// - DLMM pools use bin-based simulation (with cached bin data)
+    /// - AMM pools use constant product
+    pub fn get_predicted_simulator(&self, pool: &Pubkey) -> Option<PoolSimulator> {
+        self.maybe_run_cleanup();
+        let pools = self.pools.read().unwrap();
+        let state = pools.get(pool)?;
+
+        // Build simulator with cached tick/bin data if available
+        match state.curve {
+            CurveType::ConcentratedLiquidity => {
+                if let (Some(sqrt_price), Some(tick), Some(spacing), Some(liquidity)) = (
+                    state.predicted_sqrt_price.or(state.confirmed_sqrt_price),
+                    state.predicted_tick_or_bin.or(state.confirmed_tick_or_bin),
+                    state.spacing,
+                    state.active_liquidity,
+                ) {
+                    let fee_rate = (state.fee_bps as u32) * 100; // bps to millionths
+                    let mut clmm =
+                        ClmmPoolState::new(sqrt_price, tick, spacing, liquidity, fee_rate);
+
+                    // Populate ticks from cache
+                    let cached_ticks = self.tick_cache.get_pool_ticks(pool);
+                    for tick_info in cached_ticks {
+                        clmm.add_tick(tick_info.tick, tick_info.liquidity_net);
+                    }
+
+                    return Some(PoolSimulator::Clmm(clmm));
+                }
+                // Fallback to constant product if CLMM data incomplete
+                self.stats.write().unwrap().clmm_fallbacks += 1;
+                Some(PoolSimulator::ConstantProduct(state.predicted_virtual_state()))
+            }
+            CurveType::Dlmm => {
+                if let (Some(bin_id), Some(spacing)) = (
+                    state.predicted_tick_or_bin.or(state.confirmed_tick_or_bin),
+                    state.spacing,
+                ) {
+                    let fee_rate = (state.fee_bps as u32) * 100_000; // bps to millionths
+                    let mut dlmm = DlmmPoolState::new(spacing, bin_id, fee_rate);
+
+                    // Populate bins from cache
+                    let cached_bins = self.bin_cache.get_pool_bins_for_simulation(pool, spacing);
+                    if cached_bins.is_empty() {
+                        // Track DLMM fallback when no bin data available
+                        self.stats.write().unwrap().dlmm_fallbacks += 1;
+                    }
+                    for bin in cached_bins {
+                        dlmm.bins.insert(bin.id, bin);
+                    }
+
+                    return Some(PoolSimulator::Dlmm(dlmm));
+                }
+                // Fallback to constant product if DLMM data incomplete
+                self.stats.write().unwrap().dlmm_fallbacks += 1;
+                Some(PoolSimulator::ConstantProduct(state.predicted_virtual_state()))
+            }
+            CurveType::ConstantProduct => {
+                Some(PoolSimulator::ConstantProduct(state.predicted_virtual_state()))
+            }
+        }
     }
 
     /// Get CONFIRMED virtual state (ground truth, no pending)

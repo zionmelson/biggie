@@ -14,9 +14,7 @@
 use anyhow::{Context, Result};
 use solana_sdk::hash::Hash;
 use solana_sdk::pubkey::Pubkey;
-use std::sync::Arc;
 use std::time::Duration;
-use tokio::sync::mpsc;
 use tonic::transport::Channel;
 
 // Generated protobuf types from geyser protos
@@ -44,6 +42,7 @@ pub mod proto {
 }
 
 use proto::geyser::geyser_client::GeyserClient as GeyserGrpcClient;
+#[allow(unused_imports)] // SlotUpdateStatus used only in unified_pipeline
 use proto::geyser::{
     EmptyRequest, SubscribeSlotUpdateRequest, SubscribeTransactionUpdatesRequest,
     SubscribeBlockUpdatesRequest, SubscribeProgramsUpdatesRequest, SubscribeAccountUpdatesRequest,
@@ -238,107 +237,6 @@ impl GeyserClient {
         let response = client.subscribe_account_updates(request).await?;
         Ok(response.into_inner())
     }
-}
-
-/// Spawn a background task that streams blockhash updates
-pub async fn spawn_blockhash_stream(
-    config: GeyserConfig,
-    tx: mpsc::Sender<BlockhashUpdate>,
-) -> Result<()> {
-    tokio::spawn(async move {
-        loop {
-            match run_blockhash_stream(&config, &tx).await {
-                Ok(()) => {
-                    tracing::info!("Blockhash stream ended normally");
-                    break;
-                }
-                Err(e) => {
-                    tracing::warn!("Blockhash stream error: {}, reconnecting in 3s...", e);
-                    tokio::time::sleep(Duration::from_secs(3)).await;
-                }
-            }
-        }
-    });
-    Ok(())
-}
-
-async fn run_blockhash_stream(
-    config: &GeyserConfig,
-    tx: &mpsc::Sender<BlockhashUpdate>,
-) -> Result<()> {
-    let client = GeyserClient::new(config.clone()).await?;
-    let mut stream = client.subscribe_blocks().await?;
-
-    tracing::info!("Geyser blockhash stream connected");
-
-    while let Some(update) = stream.message().await? {
-        if let Some(block) = update.block_update {
-            // Parse blockhash from base58 string
-            if let Ok(hash) = block.blockhash.parse::<Hash>() {
-                let update = BlockhashUpdate {
-                    hash,
-                    slot: block.slot,
-                };
-                if tx.send(update).await.is_err() {
-                    tracing::warn!("Blockhash channel closed");
-                    break;
-                }
-            }
-        }
-    }
-
-    Ok(())
-}
-
-/// Spawn a background task that streams transaction updates
-pub async fn spawn_transaction_stream(
-    config: GeyserConfig,
-    tx: mpsc::Sender<TransactionUpdate>,
-    skip_votes: bool,
-) -> Result<()> {
-    tokio::spawn(async move {
-        loop {
-            match run_transaction_stream(&config, &tx, skip_votes).await {
-                Ok(()) => {
-                    tracing::info!("Transaction stream ended normally");
-                    break;
-                }
-                Err(e) => {
-                    tracing::warn!("Transaction stream error: {}, reconnecting in 3s...", e);
-                    tokio::time::sleep(Duration::from_secs(3)).await;
-                }
-            }
-        }
-    });
-    Ok(())
-}
-
-async fn run_transaction_stream(
-    config: &GeyserConfig,
-    tx: &mpsc::Sender<TransactionUpdate>,
-    skip_votes: bool,
-) -> Result<()> {
-    let client = GeyserClient::new(config.clone()).await?;
-    let mut stream = client.subscribe_transactions().await?;
-
-    tracing::info!("Geyser transaction stream connected (skip_votes={})", skip_votes);
-
-    while let Some(update) = stream.message().await? {
-        if let Some(tx_update) = update.transaction {
-            // Skip vote transactions if requested (they're ~90% of traffic)
-            if skip_votes && tx_update.is_vote {
-                continue;
-            }
-
-            let converted = TransactionUpdate::from(tx_update);
-            if tx.send(converted).await.is_err() {
-                tracing::warn!("Transaction channel closed");
-                break;
-            }
-        }
-    }
-
-    Ok(())
 }
 
 /// Helper to parse a Geyser ConfirmedTransaction into account keys

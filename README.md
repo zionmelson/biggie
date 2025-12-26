@@ -83,11 +83,67 @@ Logs are written to `/tmp/tre-arb.log`. Press `Ctrl+C` to stop.
 
 ## Configuration (`config.json`)
 
-### ShredStream Settings (Early TX Detection)
+### Turbine UDP Settings (Ultra-Low-Latency TX Detection - DEFAULT)
+
+Direct Turbine UDP reception bypasses the ShredStream proxy for minimum latency (~0.5-2ms vs ~5-10ms).
 
 ```json
 {
   "shredstream": {
+    "turbine": {
+      "enabled": true,
+      "bind_addr": "0.0.0.0:8011",
+      "receiver_threads": 2,
+      "recv_buffer_size": 134217728,
+      "shred_channel_size": 10000,
+      "max_fec_sets": 1000,
+      "fec_timeout_ms": 2000
+    },
+    "mev": {
+      "backrun_enabled": true,
+      "min_swap_amount": 10000000,
+      "min_profit_lamports": 50000,
+      "min_victim_slippage_bps": 30,
+      "compute_units": 400000,
+      "compute_unit_price": 1000,
+      "tip_profit_share_bps": 5000
+    }
+  }
+}
+```
+
+**System Tuning Required for Turbine UDP:**
+```bash
+# Increase UDP receive buffer max (as root)
+sudo sysctl -w net.core.rmem_max=134217728
+sudo sysctl -w net.core.rmem_default=134217728
+
+# Make persistent in /etc/sysctl.conf
+echo "net.core.rmem_max=134217728" | sudo tee -a /etc/sysctl.conf
+echo "net.core.rmem_default=134217728" | sudo tee -a /etc/sysctl.conf
+```
+
+**Validator Configuration for Turbine Forwarding:**
+
+To receive shreds directly, configure your validator to forward shreds to the bot:
+```bash
+# Option 1: Use iptables to mirror UDP traffic from validator's TVU
+sudo iptables -t mangle -A PREROUTING -p udp --dport 8002 -j TEE --gateway 127.0.0.1 --port 8011
+
+# Option 2: Run bot on same machine and configure validator's TVU broadcast
+# Add to validator startup: --tvu-receive-threads 2
+```
+
+### ShredStream Settings (Fallback - Higher Latency)
+
+To use ShredStream proxy instead of direct Turbine UDP, disable Turbine:
+
+```json
+{
+  "shredstream": {
+    "turbine": {
+      "enabled": false
+    },
     "endpoint": "http://127.0.0.1:10000",
     "mev": {
       "backrun_enabled": true,

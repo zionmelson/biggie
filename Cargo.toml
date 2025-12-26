@@ -7,9 +7,6 @@ description = "Ultra-light Solana arbitrage executor focused on latency-sensitiv
 license = "Apache-2.0"
 repository = "https://github.com/ye/tre"
 
-[workspace]
-members = [".", "solend"]
-
 [dependencies]
 anyhow = "1"
 bytes = "1"
@@ -57,7 +54,6 @@ sha2 = "0.10"
 prometheus-client = "0.22"
 csv = "1"
 rand = "0.8"
-solend = { path = "solend" }
 ratatui = "0.26"
 crossterm = "0.27"
 spl-memo = "4"

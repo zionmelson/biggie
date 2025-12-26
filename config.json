@@ -1,0 +1,269 @@
+{
+  "shredstream": {
+    "turbine": {
+      "enabled": true,
+      "bind_addr": "0.0.0.0:8011",
+      "receiver_threads": 2,
+      "recv_buffer_size": 134217728,
+      "shred_channel_size": 10000,
+      "max_fec_sets": 1000,
+      "fec_timeout_ms": 2000
+    },
+    "endpoint": "http://127.0.0.1:10000",
+    "mev": {
+      "backrun_enabled": true,
+      "min_swap_amount": 10000000,
+      "min_profit_lamports": 50000,
+      "min_victim_slippage_bps": 30,
+      "compute_units": 400000,
+      "compute_unit_price": 1000,
+      "tip_profit_share_bps": 5000
+    }
+  },
+  "geyser": {
+    "enabled": true,
+    "endpoint": "http://localhost:10000",
+    "skip_votes": true,
+    "connect_timeout_ms": 10000,
+    "request_timeout_ms": 30000
+  },
+  "local_rpc": {
+    "enabled": true,
+    "url": "http://localhost:8899",
+    "ws_url": "ws://localhost:8900"
+  },
+  "jito": {
+    "endpoints": ["https://ny.mainnet.block-engine.jito.wtf"]
+  },
+  "wallets": {
+    "auth": { "path": "/home/ubuntu/jit.json" },
+    "payer": { "path": "/home/ubuntu/id.json" }
+  },
+  "solend_flash_loans": {
+    "sol": {
+      "program_id": "So1endDq2YkqhipRh3WViPa8hdiSpxWy6z3Z6tMCpAo",
+      "lending_market": "4UpD2fh7xH3VP9QQaXtsS1YY3bxzWhtfpks7FatyKvdY",
+      "reserve": "8PbodeaosQP19SjYFx855UMqWxH2HynZLdBXmsrbac36",
+      "reserve_liquidity_mint": "So11111111111111111111111111111111111111112",
+      "borrow": { "reserve_liquidity_supply": "8UviNr47S8eL6J3WfDxMRa3hvLta1VDJwNWqsDgtN3Cv" },
+      "repay": {
+        "reserve_liquidity_supply": "8UviNr47S8eL6J3WfDxMRa3hvLta1VDJwNWqsDgtN3Cv",
+        "reserve_liquidity_fee_receiver": "5wo1tFpi4HaVKnemqaXeQnBEpezrJXcXvuztYaPhvgC7",
+        "host_fee_receiver": "5wo1tFpi4HaVKnemqaXeQnBEpezrJXcXvuztYycLVtLT"
+      },
+      "max_borrow": 100000000000,
+      "min_borrow": 100000000
+    },
+    "usdc": {
+      "program_id": "So1endDq2YkqhipRh3WViPa8hdiSpxWy6z3Z6tMCpAo",
+      "lending_market": "4UpD2fh7xH3VP9QQaXtsS1YY3bxzWhtfpks7FatyKvdY",
+      "reserve": "BgxfHJDzm44T7XG68MYKx7YisTjZu73tVovyZSjJMpmw",
+      "reserve_liquidity_mint": "EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v",
+      "borrow": { "reserve_liquidity_supply": "8SheGtsopRUDzdiD6v6BR9a6bqZ9QwywYQY99Fp5meNf" },
+      "repay": {
+        "reserve_liquidity_supply": "8SheGtsopRUDzdiD6v6BR9a6bqZ9QwywYQY99Fp5meNf",
+        "reserve_liquidity_fee_receiver": "5Gdxn4yquneifE6uk9tK8X4CqHfWKjW2BvYU25hAykwP",
+        "host_fee_receiver": "5wo1tFpi4HaVKnemqaXeQnBEpezrJXcXvuztYycLVtLT"
+      },
+      "max_borrow": 100000000000,
+      "min_borrow": 100000
+    },
+    "usdt": {
+      "program_id": "So1endDq2YkqhipRh3WViPa8hdiSpxWy6z3Z6tMCpAo",
+      "lending_market": "4UpD2fh7xH3VP9QQaXtsS1YY3bxzWhtfpks7FatyKvdY",
+      "reserve": "8K9WC8xoh2rtQNY7iEGXtPvfbDCi563SdWhCAhuMP2xE",
+      "reserve_liquidity_mint": "Es9vMFrzaCERmJfrF4H2FYD4KCoNkY11McCe8BenwNYB",
+      "borrow": { "reserve_liquidity_supply": "3CdpSW5dxM7RTxBgxeyt8nnnjqoDbZe48tsBs9QUrmuN" },
+      "repay": {
+        "reserve_liquidity_supply": "3CdpSW5dxM7RTxBgxeyt8nnnjqoDbZe48tsBs9QUrmuN",
+        "reserve_liquidity_fee_receiver": "Cpyk5WRGmdK2yFGTJCrmgyABPiNEF5eCyCMMZLxpdkXu",
+        "host_fee_receiver": "5wo1tFpi4HaVKnemqaXeQnBEpezrJXcXvuztYycLVtLT"
+      },
+      "max_borrow": 100000000000,
+      "min_borrow": 100000
+    },
+    "msol": {
+      "program_id": "So1endDq2YkqhipRh3WViPa8hdiSpxWy6z3Z6tMCpAo",
+      "lending_market": "4UpD2fh7xH3VP9QQaXtsS1YY3bxzWhtfpks7FatyKvdY",
+      "reserve": "CCpirWrgNuBVLdkP2haxLTbD6XqEgaYuVXixbbpxUB6",
+      "reserve_liquidity_mint": "mSoLzYCxHdYgdzU16g5QSh3i5K3z3KZK7ytfqcJm7So",
+      "borrow": { "reserve_liquidity_supply": "3R5SVe3qABRUYozgeMNVkSotVoa4HhTFFgWgx2G2QMov" },
+      "repay": {
+        "reserve_liquidity_supply": "3R5SVe3qABRUYozgeMNVkSotVoa4HhTFFgWgx2G2QMov",
+        "reserve_liquidity_fee_receiver": "83r2poRUiqaghyymPtfhhRtHdReFAKbgGGCQajkczW5w",
+        "host_fee_receiver": "5wo1tFpi4HaVKnemqaXeQnBEpezrJXcXvuztYycLVtLT"
+      },
+      "max_borrow": 50000000000,
+      "min_borrow": 100000000
+    },
+    "jitosol": {
+      "program_id": "So1endDq2YkqhipRh3WViPa8hdiSpxWy6z3Z6tMCpAo",
+      "lending_market": "4UpD2fh7xH3VP9QQaXtsS1YY3bxzWhtfpks7FatyKvdY",
+      "reserve": "BRsz1xVQMuVLbc4YjLP1FXhEx1LxSYig2nLqRgJEzR9r",
+      "reserve_liquidity_mint": "J1toso1uCk3RLmjorhTtrVwY9HJ7X8V9yYac6Y7kGCPn",
+      "borrow": { "reserve_liquidity_supply": "2Khz77qDAL4yY1wG6mTLhLnKiN7sDjQCtrFDEEUFPpiB" },
+      "repay": {
+        "reserve_liquidity_supply": "2Khz77qDAL4yY1wG6mTLhLnKiN7sDjQCtrFDEEUFPpiB",
+        "reserve_liquidity_fee_receiver": "HQWqKfdgJXGXGggdUcM1Xp3S39kwsd83boBvfrnqauzA",
+        "host_fee_receiver": "5wo1tFpi4HaVKnemqaXeQnBEpezrJXcXvuztYycLVtLT"
+      },
+      "max_borrow": 50000000000,
+      "min_borrow": 100000000
+    },
+    "bsol": {
+      "program_id": "So1endDq2YkqhipRh3WViPa8hdiSpxWy6z3Z6tMCpAo",
+      "lending_market": "4UpD2fh7xH3VP9QQaXtsS1YY3bxzWhtfpks7FatyKvdY",
+      "reserve": "3DjAsrew4ZmBwcLjp2wUmjqvSKs4vpJ43ZKxaCjjEdur",
+      "reserve_liquidity_mint": "bSo13r4TkiE4KumL71LsHTPpL2euBYLFx6h9HP3piy1",
+      "borrow": { "reserve_liquidity_supply": "8STS7KeeoKsA8oBD2TwEEeNrYHQJh9dyKSLFhVUhGk4z" },
+      "repay": {
+        "reserve_liquidity_supply": "8STS7KeeoKsA8oBD2TwEEeNrYHQJh9dyKSLFhVUhGk4z",
+        "reserve_liquidity_fee_receiver": "AiTxuQoUyy4Rk9edTfrhezMkix4bTmCNvM8uBXEjcaoo",
+        "host_fee_receiver": "5wo1tFpi4HaVKnemqaXeQnBEpezrJXcXvuztYycLVtLT"
+      },
+      "max_borrow": 50000000000,
+      "min_borrow": 100000000
+    },
+    "jupsol": {
+      "program_id": "So1endDq2YkqhipRh3WViPa8hdiSpxWy6z3Z6tMCpAo",
+      "lending_market": "4UpD2fh7xH3VP9QQaXtsS1YY3bxzWhtfpks7FatyKvdY",
+      "reserve": "Aj3MjwEeAcT5Phan6unxbpKYR8Jx1bNZUoWxA59yg1cF",
+      "reserve_liquidity_mint": "jupSoLaHXQiZZTSfEWMTRRgpnyFm8f6sZdosWBjx93v",
+      "borrow": { "reserve_liquidity_supply": "9AhGbhV7L98mzkMurV8Zcz5WJvvJeRDSQhvH3Wem73QM" },
+      "repay": {
+        "reserve_liquidity_supply": "9AhGbhV7L98mzkMurV8Zcz5WJvvJeRDSQhvH3Wem73QM",
+        "reserve_liquidity_fee_receiver": "3aVQHgp5fFBxvTTmi5Zt2qKVEggJL5oANXBYjtBRZsb9",
+        "host_fee_receiver": "5wo1tFpi4HaVKnemqaXeQnBEpezrJXcXvuztYycLVtLT"
+      },
+      "max_borrow": 50000000000,
+      "min_borrow": 100000000
+    },
+    "stsol": {
+      "program_id": "So1endDq2YkqhipRh3WViPa8hdiSpxWy6z3Z6tMCpAo",
+      "lending_market": "4UpD2fh7xH3VP9QQaXtsS1YY3bxzWhtfpks7FatyKvdY",
+      "reserve": "5sjkv6HD8wycocJ4tC4U36HHbvgcXYqcyiPRUkncnwWs",
+      "reserve_liquidity_mint": "7dHbWXmci3dT8UFYWYZweBLXgycu7Y3iL6trKn1Y7ARj",
+      "borrow": { "reserve_liquidity_supply": "7ma18yBbX37RbFHQXiq1XhP6c561nDnYSmF84mwiY7Wo" },
+      "repay": {
+        "reserve_liquidity_supply": "7ma18yBbX37RbFHQXiq1XhP6c561nDnYSmF84mwiY7Wo",
+        "reserve_liquidity_fee_receiver": "6N5JTX3hXRwudgbVxbAbMvnrW1GB4QdpFGQgYonaWj4C",
+        "host_fee_receiver": "5wo1tFpi4HaVKnemqaXeQnBEpezrJXcXvuztYycLVtLT"
+      },
+      "max_borrow": 50000000000,
+      "min_borrow": 100000000
+    },
+    "eth": {
+      "program_id": "So1endDq2YkqhipRh3WViPa8hdiSpxWy6z3Z6tMCpAo",
+      "lending_market": "4UpD2fh7xH3VP9QQaXtsS1YY3bxzWhtfpks7FatyKvdY",
+      "reserve": "CPDiKagfozERtJ33p7HHhEfJERjvfk1VAjMXAFLrvrKP",
+      "reserve_liquidity_mint": "7vfCXTUXx5WJV5JADk17DUJ4ksgau7utNKj4b963voxs",
+      "borrow": { "reserve_liquidity_supply": "8HAaZSiCbVqrLDQHxg3yey8JWuGbeyC2tNTEmzgmt4C4" },
+      "repay": {
+        "reserve_liquidity_supply": "8HAaZSiCbVqrLDQHxg3yey8JWuGbeyC2tNTEmzgmt4C4",
+        "reserve_liquidity_fee_receiver": "86FvZEpX1y6pK5E6JPLbhoBvp6P2n1givZiikFGgi6Lj",
+        "host_fee_receiver": "5wo1tFpi4HaVKnemqaXeQnBEpezrJXcXvuztYycLVtLT"
+      },
+      "max_borrow": 10000000000,
+      "min_borrow": 1000000
+    },
+    "jto": {
+      "program_id": "So1endDq2YkqhipRh3WViPa8hdiSpxWy6z3Z6tMCpAo",
+      "lending_market": "4UpD2fh7xH3VP9QQaXtsS1YY3bxzWhtfpks7FatyKvdY",
+      "reserve": "ASR6ULAZqTEFAfE3EQi5LpEo2iyR5YvC3tfeNqDp1wmn",
+      "reserve_liquidity_mint": "jtojtomepa8beP8AuQc6eXt5FriJwfFMwQx2v2f9mCL",
+      "borrow": { "reserve_liquidity_supply": "9nbeqZZnL21hqHKQRsqFK4A7hGHLrkNpiuanHK7c7KPD" },
+      "repay": {
+        "reserve_liquidity_supply": "9nbeqZZnL21hqHKQRsqFK4A7hGHLrkNpiuanHK7c7KPD",
+        "reserve_liquidity_fee_receiver": "8hXY9a7r8GwqrY3GK3k5Uy7P9qACKQ8geJk5j49AQdbh",
+        "host_fee_receiver": "5wo1tFpi4HaVKnemqaXeQnBEpezrJXcXvuztYycLVtLT"
+      },
+      "max_borrow": 50000000000,
+      "min_borrow": 100000000
+    },
+    "jup": {
+      "program_id": "So1endDq2YkqhipRh3WViPa8hdiSpxWy6z3Z6tMCpAo",
+      "lending_market": "4UpD2fh7xH3VP9QQaXtsS1YY3bxzWhtfpks7FatyKvdY",
+      "reserve": "HPDFoSZskyUGzo14oTuqMmoGNzavsLtU2WnPkzxAk6Sb",
+      "reserve_liquidity_mint": "JUPyiwrYJFskUPiHa7hkeR8VUtAeFoSYbKedZNsDvCN",
+      "borrow": { "reserve_liquidity_supply": "3m5UiPrmtqzZsTxHdJ6DNfagXZVVqC3Eq6xugJN4wDWJ" },
+      "repay": {
+        "reserve_liquidity_supply": "3m5UiPrmtqzZsTxHdJ6DNfagXZVVqC3Eq6xugJN4wDWJ",
+        "reserve_liquidity_fee_receiver": "7KK7MTYa1dXTXXPtPEp2RDxzdVksdVvD3gPyYsyPY4Ht",
+        "host_fee_receiver": "5wo1tFpi4HaVKnemqaXeQnBEpezrJXcXvuztYycLVtLT"
+      },
+      "max_borrow": 50000000000,
+      "min_borrow": 100000
+    },
+    "pyth": {
+      "program_id": "So1endDq2YkqhipRh3WViPa8hdiSpxWy6z3Z6tMCpAo",
+      "lending_market": "4UpD2fh7xH3VP9QQaXtsS1YY3bxzWhtfpks7FatyKvdY",
+      "reserve": "AfsmTSxAqXtKAje5oU8vCDupiRgPPJutBMX6WHfWopn2",
+      "reserve_liquidity_mint": "HZ1JovNiVvGrGNiiYvEozEVgZ58xaU3RKwX8eACQBCt3",
+      "borrow": { "reserve_liquidity_supply": "RwRnfrLihpJqua8sCim884Rkxe2NVyFWnJr3t2oomiZ" },
+      "repay": {
+        "reserve_liquidity_supply": "RwRnfrLihpJqua8sCim884Rkxe2NVyFWnJr3t2oomiZ",
+        "reserve_liquidity_fee_receiver": "EsT2dmQZNGc5FjWBGSkcNcehb3ssmxSdCjjQqxy5Vfb5",
+        "host_fee_receiver": "5wo1tFpi4HaVKnemqaXeQnBEpezrJXcXvuztYycLVtLT"
+      },
+      "max_borrow": 50000000000,
+      "min_borrow": 100000
+    },
+    "bonk": {
+      "program_id": "So1endDq2YkqhipRh3WViPa8hdiSpxWy6z3Z6tMCpAo",
+      "lending_market": "4UpD2fh7xH3VP9QQaXtsS1YY3bxzWhtfpks7FatyKvdY",
+      "reserve": "5Pf253eBRevFYCoXfekcR2PEcHeq4Du6Ke83U3paE1cz",
+      "reserve_liquidity_mint": "DezXAZ8z7PnrnRJjz3wXBoRgixCa6xjnB7YaB1pPB263",
+      "borrow": { "reserve_liquidity_supply": "5dNAJAxSjv9bYXHzZWuVm7MbobcygSk2Zo76S7mu8GcQ" },
+      "repay": {
+        "reserve_liquidity_supply": "5dNAJAxSjv9bYXHzZWuVm7MbobcygSk2Zo76S7mu8GcQ",
+        "reserve_liquidity_fee_receiver": "CHAFVixXKBgvXi8mMSfjLvDFdXqtp3zEeJbukCwcwnVx",
+        "host_fee_receiver": "5wo1tFpi4HaVKnemqaXeQnBEpezrJXcXvuztYycLVtLT"
+      },
+      "max_borrow": 1000000000000000,
+      "min_borrow": 100000000000
+    },
+    "wen": {
+      "program_id": "So1endDq2YkqhipRh3WViPa8hdiSpxWy6z3Z6tMCpAo",
+      "lending_market": "4UpD2fh7xH3VP9QQaXtsS1YY3bxzWhtfpks7FatyKvdY",
+      "reserve": "9jC8My4C9WCNWHmBnnAGqpCbbNU1FVEs2B7PNbQPb1U6",
+      "reserve_liquidity_mint": "WENWENvqqNya429ubCdR81ZmD69brwQaaBYY6p3LCpk",
+      "borrow": { "reserve_liquidity_supply": "9EZcsjerzUDBiqhsyxznrdnJKMtbPGsVL5LmucLywekQ" },
+      "repay": {
+        "reserve_liquidity_supply": "9EZcsjerzUDBiqhsyxznrdnJKMtbPGsVL5LmucLywekQ",
+        "reserve_liquidity_fee_receiver": "6WxN8bGrNZzmgpzapCKiGo7ZvEEVJbtvc7y8yjmb9LQm",
+        "host_fee_receiver": "5wo1tFpi4HaVKnemqaXeQnBEpezrJXcXvuztYycLVtLT"
+      },
+      "max_borrow": 1000000000000,
+      "min_borrow": 100000000
+    },
+    "popcat": {
+      "program_id": "So1endDq2YkqhipRh3WViPa8hdiSpxWy6z3Z6tMCpAo",
+      "lending_market": "4UpD2fh7xH3VP9QQaXtsS1YY3bxzWhtfpks7FatyKvdY",
+      "reserve": "BTzJ9wLyHAZFAqGoWRAwZetRiGRgkpBuL85wXKXZF8Hx",
+      "reserve_liquidity_mint": "7GCihgDB8fe6KNjn2MYtkzZcRjQy3t9GHdC8uHYmW2hr",
+      "borrow": { "reserve_liquidity_supply": "3JwBHnX3sd9bd25xf6Aa3ZViTf4arkxVEvhrTGcRnRnC" },
+      "repay": {
+        "reserve_liquidity_supply": "3JwBHnX3sd9bd25xf6Aa3ZViTf4arkxVEvhrTGcRnRnC",
+        "reserve_liquidity_fee_receiver": "ERQqeYMXPPcfWfzs3TYqYpghKmx7mkcBdsZB7FuJaa7T",
+        "host_fee_receiver": "5wo1tFpi4HaVKnemqaXeQnBEpezrJXcXvuztYycLVtLT"
+      },
+      "max_borrow": 1000000000000,
+      "min_borrow": 100000000
+    },
+    "trump": {
+      "program_id": "So1endDq2YkqhipRh3WViPa8hdiSpxWy6z3Z6tMCpAo",
+      "lending_market": "4UpD2fh7xH3VP9QQaXtsS1YY3bxzWhtfpks7FatyKvdY",
+      "reserve": "FbmGHM3dT8jicwLYSNY8eKmyKAzqd6s81x5i4AHSgVhd",
+      "reserve_liquidity_mint": "6p6xgHyF7AeE6TZkSmFsko444wqoP15icUSqi2jfGiPN",
+      "borrow": { "reserve_liquidity_supply": "69khDpj7ZuLc5C3dG7x76ZnTa639HChEkoKKDMaqqv9x" },
+      "repay": {
+        "reserve_liquidity_supply": "69khDpj7ZuLc5C3dG7x76ZnTa639HChEkoKKDMaqqv9x",
+        "reserve_liquidity_fee_receiver": "FAAzkhEx8i98bW6JJXcZdC4oPFWw21yH4LT9GdK798AK",
+        "host_fee_receiver": "5wo1tFpi4HaVKnemqaXeQnBEpezrJXcXvuztYycLVtLT"
+      },
+      "max_borrow": 50000000000,
+      "min_borrow": 100000
+    }
+  },
+  "lookup_tables": []
+}

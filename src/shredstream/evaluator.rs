@@ -6,10 +6,11 @@
 use super::parser::{ParsedSwap, TransactionSwaps};
 use super::programs::DexType;
 use crate::amm_math::{
-    find_optimal_cross_pool_borrow, simulate_cross_pool_backrun, VirtualPoolState,
+    find_optimal_borrow_unified, simulate_cross_pool_backrun_unified, PoolSimulator,
 };
 use crate::constants::{
-    anchor_mints, MIN_PROFIT_LAMPORTS, MIN_SWAP_AMOUNT_LAMPORTS, MIN_VICTIM_SLIPPAGE_BPS,
+    calculate_flash_loan_fee, MIN_PROFIT_LAMPORTS, MIN_SWAP_AMOUNT_LAMPORTS,
+    MIN_VICTIM_SLIPPAGE_BPS,
 };
 use crate::predictive_state::PredictiveStateManager;
 use solana_sdk::pubkey::Pubkey;
@@ -190,20 +191,28 @@ impl MevEvaluator {
     ///
     /// The PredictiveStateManager is THE source of truth for all pool state.
     /// It contains confirmed reserves (from Geyser) plus pending swaps (from ShredStream).
-    pub fn new(predictive_state: Arc<PredictiveStateManager>) -> Self {
+    ///
+    /// `anchor_mints` should be the set of mints for which flash loans are configured.
+    /// This is typically derived from `flash_loan_reserves.keys()` at startup.
+    pub fn new(predictive_state: Arc<PredictiveStateManager>, anchor_mints: Vec<Pubkey>) -> Self {
+        tracing::info!(
+            "MevEvaluator initialized with {} anchor mints: {:?}",
+            anchor_mints.len(),
+            anchor_mints.iter().map(|m| m.to_string()).collect::<Vec<_>>()
+        );
         Self {
             predictive_state,
-            anchor_mints: anchor_mints(), // Use centralized anchor mints
+            anchor_mints,
             stats: EvaluatorStats::default(),
         }
     }
 
-    /// Get a VirtualPoolState for the given pool using PREDICTED state
+    /// Get a PoolSimulator for the given pool using PREDICTED state
     ///
-    /// This includes pending swaps detected via ShredStream, giving accurate
-    /// state for MEV evaluation even before transactions confirm.
-    fn get_virtual_pool_state(&self, pool: &Pubkey) -> Option<VirtualPoolState> {
-        self.predictive_state.get_predicted_virtual_state(pool)
+    /// This uses curve-specific math (CLMM, DLMM, or constant product)
+    /// and includes pending swaps detected via ShredStream.
+    fn get_pool_simulator(&self, pool: &Pubkey) -> Option<PoolSimulator> {
+        self.predictive_state.get_predicted_simulator(pool)
     }
 
     /// Get pool reserves (base, quote) using PREDICTED state
@@ -337,7 +346,8 @@ impl MevEvaluator {
 
             // CRITICAL: Verify leg2 output after slippage covers flash loan repay
             // Flash loan repay = borrow_amount + 0.3% fee
-            let flash_loan_repay = borrow_amount.saturating_add(borrow_amount / 333); // ~0.3% fee
+            let flash_loan_repay =
+                borrow_amount.saturating_add(calculate_flash_loan_fee(borrow_amount));
             let leg2_after_slippage =
                 arb_route.leg2.estimated_output.saturating_mul(10000 - 300) / 10000; // 3% slippage on leg2
 
@@ -514,17 +524,17 @@ impl MevEvaluator {
         // Determine swap directions
         let victim_base_to_quote = *victim_input == victim_base_mint;
 
-        // Create virtual states from PredictiveStateManager
-        // This ensures pending swaps are factored into the simulation
-        let pool_x = self.get_virtual_pool_state(victim_pool)?;
-        let pool_y = alt_pool_state.predicted_virtual_state();
+        // Get PoolSimulators with curve-specific math (CLMM, DLMM, or constant product)
+        // This ensures accurate profit estimation for all pool types
+        let pool_x = self.get_pool_simulator(victim_pool)?;
+        let pool_y = alt_pool_state.predicted_simulator();
 
         // Determine if we borrow base or quote relative to pool Y
         let borrow_is_base_on_y = borrow_mint == alt_base_mint;
 
-        // Find optimal borrow amount (use binary search from amm_math)
+        // Find optimal borrow amount using unified simulation (curve-aware)
         let max_borrow = victim_amount * 2; // Up to 2x victim size
-        let (optimal_borrow, expected_profit) = find_optimal_cross_pool_borrow(
+        let (optimal_borrow, expected_profit) = find_optimal_borrow_unified(
             &pool_x,
             &pool_y,
             victim_amount,
@@ -539,8 +549,8 @@ impl MevEvaluator {
             return None;
         }
 
-        // Simulate the arb to get leg outputs
-        let simulation = simulate_cross_pool_backrun(
+        // Simulate the arb to get leg outputs (using unified curve-aware simulation)
+        let simulation = simulate_cross_pool_backrun_unified(
             &pool_x,
             &pool_y,
             victim_amount,
@@ -584,84 +594,6 @@ impl MevEvaluator {
             optimal_borrow,
             expected_profit,
         })
-    }
-
-    /// Estimate swap output using pool state
-    fn estimate_swap_output(
-        &self,
-        pool: &Pubkey,
-        input_mint: &Pubkey,
-        _output_mint: &Pubkey,
-        amount_in: u64,
-    ) -> Option<u64> {
-        // Use VirtualPoolState for simulation (from PredictiveStateManager)
-        // This gives us constant product estimation with proper fee handling
-        let virtual_state = self.get_virtual_pool_state(pool)?;
-        let (base_mint, _) = self.predictive_state.get_pool_mints(pool)?;
-
-        // Determine swap direction
-        let base_to_quote = *input_mint == base_mint;
-
-        // Simulate the swap
-        let (output, _) = virtual_state.simulate_swap(amount_in, base_to_quote);
-
-        if output == 0 {
-            return None;
-        }
-
-        Some(output)
-    }
-
-    /// Estimate profit from the arb route
-    /// The route already contains properly simulated outputs from VirtualPoolState,
-    /// so we just need to calculate the net profit after flash loan fees
-    fn estimate_profit(&self, route: &ArbRoute, borrow_amount: u64) -> u64 {
-        let final_output = route.leg2.estimated_output;
-
-        // Sanity check: if final_output is impossibly large, the calculation is broken
-        // Max realistic output is ~10,000 SOL (10e12 lamports)
-        const MAX_REALISTIC_OUTPUT: u64 = 10_000_000_000_000; // 10,000 SOL
-        if final_output > MAX_REALISTIC_OUTPUT || borrow_amount > MAX_REALISTIC_OUTPUT {
-            tracing::warn!(
-                "PROFIT CALC: unrealistic values - final_output={} borrow={}",
-                final_output,
-                borrow_amount
-            );
-            return 0;
-        }
-
-        // Log for debugging
-        tracing::debug!(
-            "PROFIT CALC: leg1_out={} leg2_out={} borrow={}",
-            route.leg1.estimated_output,
-            final_output,
-            borrow_amount
-        );
-
-        // Profit = final_output - borrow_amount - flash_loan_fee
-        // Flash loan fee is ~0.3% = 30 bps
-        let flash_fee = borrow_amount * 30 / 10000;
-        let total_cost = borrow_amount.saturating_add(flash_fee);
-
-        if final_output > total_cost {
-            let profit = final_output - total_cost;
-            // Cap profit at 100 SOL max (anything higher is likely a bug)
-            const MAX_PROFIT: u64 = 100_000_000_000; // 100 SOL
-            let capped = profit.min(MAX_PROFIT);
-
-            tracing::info!(
-                "PROFIT: {} lamports ({:.6} SOL) from borrow={} -> leg1={} -> leg2={}",
-                capped,
-                capped as f64 / 1e9,
-                borrow_amount,
-                route.leg1.estimated_output,
-                final_output
-            );
-
-            capped
-        } else {
-            0
-        }
     }
 
     /// Build PoolSwapState directly from a PoolPredictiveState (from PSM)
@@ -722,6 +654,7 @@ impl MevEvaluator {
 #[cfg(test)]
 mod tests {
     use super::*;
+    use crate::constants::{USDC_MINT, WSOL_MINT};
 
     fn create_test_predictive_state() -> Arc<PredictiveStateManager> {
         Arc::new(PredictiveStateManager::new())
@@ -730,8 +663,9 @@ mod tests {
     #[test]
     fn test_evaluator_creation() {
         let predictive_state = create_test_predictive_state();
-        let evaluator = MevEvaluator::new(predictive_state);
-        // WSOL and USDC are always added as anchor mints
-        assert!(evaluator.anchor_mints.len() >= 2);
+        // Test with SOL and USDC as anchor mints
+        let anchor_mints = vec![WSOL_MINT, USDC_MINT];
+        let evaluator = MevEvaluator::new(predictive_state, anchor_mints);
+        assert_eq!(evaluator.anchor_mints.len(), 2);
     }
 }

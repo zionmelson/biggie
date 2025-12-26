@@ -52,15 +52,21 @@
 use crate::amm_math::CurveType;
 use crate::geyser::{GeyserClient, GeyserConfig, SlotStatus};
 use crate::jito::{BundleStatus, JitoClient};
-use crate::pool_discovery::{parse_pool_account, VaultSide, VaultTracker};
+use crate::pool_discovery::parse_pool_account;
 use crate::predictive_state::{PoolPredictiveState, PredictiveStateManager};
 use crate::shredstream::backrun::{BackrunBundleBuilder, BundleBuilderConfig};
 use crate::shredstream::evaluator::{MevEvaluator, MevOpportunity};
 use crate::shredstream::parser::{parse_transaction, TransactionSwaps};
 use crate::shredstream::programs::{
-    METEORA_DAMM, METEORA_DLMM, ORCA_WHIRLPOOL, PANCAKESWAP_CLMM, RAYDIUM_AMM, RAYDIUM_CLMM,
+    DexType, METEORA_DAMM, METEORA_DLMM, ORCA_WHIRLPOOL, PANCAKESWAP_CLMM, RAYDIUM_AMM, RAYDIUM_CLMM,
 };
 use crate::tip_monitor::TipFloorCache;
+use crate::turbine::{
+    TurbineReceiver, TurbineConfig, TurbineStatsSnapshot,
+    AssembledEntries, run_entry_assembler,
+    fec::FecAssemblerConfig,
+};
+use crate::config::TurbineUdpConfig;
 
 use anyhow::{Context, Result};
 use bincode::Options;
@@ -71,14 +77,15 @@ use solana_sdk::pubkey::Pubkey;
 use solana_sdk::signature::{Keypair, Signature};
 use solana_sdk::transaction::VersionedTransaction;
 use std::collections::HashMap;
-use std::sync::atomic::{AtomicU64, Ordering};
+use std::net::SocketAddr;
+use std::sync::atomic::{AtomicU64, AtomicBool, Ordering};
 use std::sync::Arc;
 use std::time::{Duration, Instant};
 use tokio::sync::mpsc;
 use tokio::sync::RwLock;
 use tonic::transport::Channel;
 
-// Import shredstream proxy client
+// Import shredstream proxy client (used as fallback when Turbine disabled)
 use crate::jito::shredstream::{
     shredstream_proxy_client::ShredstreamProxyClient, SubscribeEntriesRequest,
 };
@@ -90,8 +97,14 @@ use crate::jito::shredstream::{
 /// Configuration for the unified pipeline
 #[derive(Clone, Debug)]
 pub struct UnifiedPipelineConfig {
-    // === Shredstream settings ===
-    /// ShredStream proxy gRPC endpoint
+    // === Turbine UDP settings (primary - lowest latency) ===
+    /// Whether to use direct Turbine UDP (true) or ShredStream proxy (false)
+    pub use_turbine_udp: bool,
+    /// Turbine UDP configuration
+    pub turbine_config: TurbineUdpConfig,
+    
+    // === ShredStream settings (fallback) ===
+    /// ShredStream proxy gRPC endpoint (only used if use_turbine_udp = false)
     pub shredstream_endpoint: String,
 
     // === Geyser settings ===
@@ -115,6 +128,8 @@ pub struct UnifiedPipelineConfig {
 impl Default for UnifiedPipelineConfig {
     fn default() -> Self {
         Self {
+            use_turbine_udp: true, // Default to Turbine UDP for lowest latency
+            turbine_config: TurbineUdpConfig::default(),
             shredstream_endpoint: "http://127.0.0.1:10000".to_string(),
             geyser_endpoint: "http://localhost:10000".to_string(),
             connect_timeout: Duration::from_secs(10),
@@ -134,7 +149,14 @@ impl Default for UnifiedPipelineConfig {
 /// Comprehensive statistics for the unified pipeline
 #[derive(Debug, Default)]
 pub struct UnifiedPipelineStats {
-    // === ShredStream stats ===
+    // === Turbine UDP stats (primary source) ===
+    pub turbine_packets_received: AtomicU64,
+    pub turbine_data_shreds: AtomicU64,
+    pub turbine_coding_shreds: AtomicU64,
+    pub turbine_fec_completed: AtomicU64,
+    pub turbine_entries_assembled: AtomicU64,
+    
+    // === ShredStream stats (fallback) ===
     pub shredstream_entries_received: AtomicU64,
     pub shredstream_txs_parsed: AtomicU64,
     pub shredstream_swaps_detected: AtomicU64,
@@ -165,15 +187,33 @@ pub struct UnifiedPipelineStats {
     // === General ===
     pub last_slot: AtomicU64,
     pub current_pending_swaps: AtomicU64,
+    pub tx_source_turbine: AtomicU64,
+    pub tx_source_shredstream: AtomicU64,
 }
 
 impl UnifiedPipelineStats {
     pub fn summary(&self) -> String {
+        let turbine_pkts = self.turbine_packets_received.load(Ordering::Relaxed);
+        let shred_entries = self.shredstream_entries_received.load(Ordering::Relaxed);
+        
+        // Determine active source
+        let source_str = if turbine_pkts > 0 {
+            format!("TURBINE[pkts={} data={} code={} fec={} entries={}]",
+                turbine_pkts,
+                self.turbine_data_shreds.load(Ordering::Relaxed),
+                self.turbine_coding_shreds.load(Ordering::Relaxed),
+                self.turbine_fec_completed.load(Ordering::Relaxed),
+                self.turbine_entries_assembled.load(Ordering::Relaxed))
+        } else {
+            format!("SHRED[entries={} txs={} swaps={}]",
+                shred_entries,
+                self.shredstream_txs_parsed.load(Ordering::Relaxed),
+                self.shredstream_swaps_detected.load(Ordering::Relaxed))
+        };
+        
         format!(
-            "SHRED[entries={} txs={} swaps={}] GEYSER[txs={} accts={}] PENDING[add={} conf={} exp={} cur={}] MEV[opps={} submitted={} accepted={}] profit={:.6} SOL",
-            self.shredstream_entries_received.load(Ordering::Relaxed),
-            self.shredstream_txs_parsed.load(Ordering::Relaxed),
-            self.shredstream_swaps_detected.load(Ordering::Relaxed),
+            "{} GEYSER[txs={} accts={}] PENDING[add={} conf={} exp={} cur={}] MEV[opps={} submitted={} accepted={}] profit={:.6} SOL",
+            source_str,
             self.geyser_txs_received.load(Ordering::Relaxed),
             self.geyser_account_updates.load(Ordering::Relaxed),
             self.pending_swaps_added.load(Ordering::Relaxed),
@@ -202,9 +242,8 @@ pub struct UnifiedMevPipeline {
 
     // === Shared State (the coupling point) ===
     /// Predictive state manager - THE SINGLE SOURCE OF TRUTH for pool state
+    /// Also handles vault→pool mapping internally via vault_index
     predictive_state: Arc<PredictiveStateManager>,
-    /// Vault tracker for mapping vault accounts to pools
-    vault_tracker: Option<Arc<VaultTracker>>,
 
     // === Components ===
     evaluator: RwLock<MevEvaluator>,
@@ -223,7 +262,6 @@ pub struct UnifiedMevPipeline {
 impl UnifiedMevPipeline {
     pub fn new(
         config: UnifiedPipelineConfig,
-        vault_tracker: Option<Arc<VaultTracker>>,
         tip_floor_cache: Option<Arc<TipFloorCache>>,
         payer: Arc<Keypair>,
         flash_loan_reserves: HashMap<Pubkey, crate::executor::FlashLoanReserve>,
@@ -233,8 +271,16 @@ impl UnifiedMevPipeline {
     ) -> Self {
         let predictive_state = Arc::new(PredictiveStateManager::new());
 
+        // Derive anchor mints from configured flash loan reserves
+        // This ensures we only try to flash loan tokens we have reserves for
+        let anchor_mints: Vec<Pubkey> = flash_loan_reserves.keys().copied().collect();
+        tracing::info!(
+            "Derived {} anchor mints from flash loan reserves",
+            anchor_mints.len()
+        );
+
         // Create evaluator with PredictiveStateManager as the single source of truth
-        let evaluator = MevEvaluator::new(Arc::clone(&predictive_state));
+        let evaluator = MevEvaluator::new(Arc::clone(&predictive_state), anchor_mints);
 
         let mut bundle_builder = BackrunBundleBuilder::new(
             config.bundle_config.clone(),
@@ -251,7 +297,6 @@ impl UnifiedMevPipeline {
         Self {
             config,
             predictive_state,
-            vault_tracker,
             evaluator: RwLock::new(evaluator),
             bundle_builder: RwLock::new(bundle_builder),
             jito_client,
@@ -282,11 +327,6 @@ impl UnifiedMevPipeline {
     /// Get the predictive state manager (for external integration)
     pub fn predictive_state(&self) -> Arc<PredictiveStateManager> {
         Arc::clone(&self.predictive_state)
-    }
-
-    /// Get the vault tracker (if available)
-    pub fn vault_tracker(&self) -> Option<Arc<VaultTracker>> {
-        self.vault_tracker.clone()
     }
 
     /// Get pipeline statistics
@@ -439,45 +479,14 @@ impl UnifiedMevPipeline {
             .on_geyser_reserves_update(&pool, base_reserve, quote_reserve, slot);
     }
 
-    /// Handle Geyser vault account update - updates pool reserves via vault tracker
+    /// Handle Geyser vault account update - updates pool reserves via PSM's vault_index
     ///
     /// This is called when we receive an account update for a tracked vault.
-    /// We look up which pool this vault belongs to and update the reserves accordingly.
+    /// PSM looks up which pool this vault belongs to and updates the reserves accordingly.
     pub fn handle_geyser_vault_update(&self, vault_address: &Pubkey, balance: u64, slot: u64) {
-        let Some(ref vault_tracker) = self.vault_tracker else {
-            return;
-        };
-
-        let Some(vault_info) = vault_tracker.get(vault_address) else {
-            return;
-        };
-
-        vault_tracker
-            .updates_received
-            .fetch_add(1, Ordering::Relaxed);
-
-        // Get current reserves from predictive state and update just one side
-        if let Some((current_base, current_quote)) = self
-            .predictive_state
-            .get_pool_reserves(&vault_info.pool_address)
-        {
-            let (base_reserve, quote_reserve) = match vault_info.side {
-                VaultSide::A => (balance, current_quote),
-                VaultSide::B => (current_base, balance),
-            };
-
-            // Update predictive state (single source of truth)
-            self.predictive_state.on_geyser_reserves_update(
-                &vault_info.pool_address,
-                base_reserve,
-                quote_reserve,
-                slot,
-            );
-
-            vault_tracker
-                .reserves_updated
-                .fetch_add(1, Ordering::Relaxed);
-        }
+        // PSM handles the vault→pool lookup and reserve update internally
+        self.predictive_state
+            .on_geyser_vault_address_update(vault_address, balance, slot);
     }
 
     /// Handle Geyser slot update
@@ -498,6 +507,11 @@ impl UnifiedMevPipeline {
     ///
     /// This replaces the separate `run_pool_state_updater` task, consolidating all Geyser
     /// subscriptions into the unified pipeline's single connection.
+    ///
+    /// Handles three types of accounts:
+    /// 1. Pool accounts → updates pool state in PredictiveStateManager
+    /// 2. Tick array accounts (CLMM) → updates TickArrayCache
+    /// 3. Bin array accounts (DLMM) → updates BinArrayCache
     pub fn handle_geyser_pool_update(
         &self,
         address: Pubkey,
@@ -509,16 +523,30 @@ impl UnifiedMevPipeline {
             .geyser_pool_updates
             .fetch_add(1, Ordering::Relaxed);
 
+        // First, try to process as a tick/bin array (fast path for cached accounts)
+        // These are smaller and more frequently updated than pool accounts
+        let tick_cache = self.predictive_state.tick_cache();
+        if tick_cache.process_account_update(&address, data, slot) {
+            return; // Was a registered tick array
+        }
+
+        let bin_cache = self.predictive_state.bin_cache();
+        if bin_cache.process_account_update(&address, data, slot) {
+            return; // Was a registered bin array
+        }
+
         // Try to parse as a pool account
         let Some(pool) = parse_pool_account(address, program_id, data) else {
             return;
         };
 
-        // Determine curve type using is_clmm()
-        let curve = if pool.dex.is_clmm() {
-            CurveType::ConcentratedLiquidity
-        } else {
-            CurveType::ConstantProduct
+        // Determine curve type from DEX type
+        let curve = match pool.dex {
+            DexType::OrcaWhirlpool | DexType::RaydiumClmm | DexType::PancakeSwapClmm => {
+                CurveType::ConcentratedLiquidity
+            }
+            DexType::MeteoraDlmm => CurveType::Dlmm,
+            _ => CurveType::ConstantProduct,
         };
 
         let fee_bps = pool.fee_bps.unwrap_or(25);
@@ -571,10 +599,8 @@ impl UnifiedMevPipeline {
             );
         }
 
-        // Register vaults via VaultTracker
-        if let Some(ref vault_tracker) = self.vault_tracker {
-            vault_tracker.register_pool_vaults(&pool);
-        }
+        // Note: Vault registration is handled automatically by PSM during
+        // register_pool() and update_pool_metadata() via vault_index
 
         // Update CLMM state if available (for both new and existing pools)
         if pool.spacing > 0 {
@@ -685,14 +711,17 @@ impl UnifiedMevPipeline {
 // SPAWN UNIFIED PIPELINE
 // =============================================================================
 
-/// Spawn the unified pipeline with ShredStream + Geyser tasks
+/// Spawn the unified pipeline with Turbine UDP (or ShredStream fallback) + Geyser tasks
 ///
-/// Both ShredStream and Geyser run together:
-/// - ShredStream provides early TX detection for predictive state
+/// Primary mode (Turbine UDP enabled):
+/// - Turbine provides ultra-low-latency TX detection (~0.5-2ms)
 /// - Geyser provides ground truth confirmation and account updates
+///
+/// Fallback mode (Turbine disabled):
+/// - ShredStream proxy provides early TX detection (~5-10ms)
+/// - Geyser provides ground truth confirmation
 pub async fn spawn_unified_pipeline(
     config: UnifiedPipelineConfig,
-    vault_tracker: Option<Arc<VaultTracker>>,
     tip_floor_cache: Option<Arc<TipFloorCache>>,
     payer: Arc<Keypair>,
     flash_loan_reserves: HashMap<Pubkey, crate::executor::FlashLoanReserve>,
@@ -704,7 +733,6 @@ pub async fn spawn_unified_pipeline(
 
     let pipeline = Arc::new(UnifiedMevPipeline::new(
         config.clone(),
-        vault_tracker,
         tip_floor_cache,
         payer,
         flash_loan_reserves,
@@ -722,12 +750,32 @@ pub async fn spawn_unified_pipeline(
         run_bundle_submission_task(pipeline_for_submit, opportunity_rx, submit_config).await;
     });
 
-    // Spawn ShredStream task - early TX detection for predictive state
-    let pipeline_for_shred = Arc::clone(&pipeline);
-    let shred_config = config.clone();
-    tokio::spawn(async move {
-        run_shredstream_task(pipeline_for_shred, shred_config).await;
-    });
+    // Spawn TX source task - either Turbine UDP (primary) or ShredStream (fallback)
+    if config.use_turbine_udp {
+        tracing::info!(
+            bind_addr = %config.turbine_config.bind_addr,
+            threads = config.turbine_config.receiver_threads,
+            "Starting Turbine UDP receiver (ultra-low-latency mode)"
+        );
+        
+        let pipeline_for_turbine = Arc::clone(&pipeline);
+        let turbine_config = config.turbine_config.clone();
+        let stats_for_turbine = Arc::clone(&stats);
+        tokio::spawn(async move {
+            run_turbine_task(pipeline_for_turbine, turbine_config, stats_for_turbine).await;
+        });
+    } else {
+        tracing::info!(
+            endpoint = %config.shredstream_endpoint,
+            "Starting ShredStream proxy client (fallback mode)"
+        );
+        
+        let pipeline_for_shred = Arc::clone(&pipeline);
+        let shred_config = config.clone();
+        tokio::spawn(async move {
+            run_shredstream_task(pipeline_for_shred, shred_config).await;
+        });
+    }
 
     // Spawn Geyser tasks - ground truth for state confirmation
     let pipeline_for_geyser = Arc::clone(&pipeline);
@@ -881,6 +929,128 @@ async fn run_bundle_submission_task(
     tracing::warn!("Bundle submission task ended (channel closed)");
 }
 
+// =============================================================================
+// TURBINE UDP TASK (Primary - Ultra-Low-Latency)
+// =============================================================================
+
+/// Turbine UDP task - receives shreds directly from validator for ultra-low-latency TX detection
+async fn run_turbine_task(
+    pipeline: Arc<UnifiedMevPipeline>,
+    turbine_config: TurbineUdpConfig,
+    stats: Arc<UnifiedPipelineStats>,
+) {
+    tracing::info!(
+        bind_addr = %turbine_config.bind_addr,
+        threads = turbine_config.receiver_threads,
+        buffer_mb = turbine_config.recv_buffer_size / (1024 * 1024),
+        "Starting Turbine UDP receiver"
+    );
+
+    // Convert config to TurbineConfig
+    let bind_addr: SocketAddr = match turbine_config.bind_addr.parse() {
+        Ok(addr) => addr,
+        Err(e) => {
+            tracing::error!("Invalid Turbine bind address '{}': {}", turbine_config.bind_addr, e);
+            return;
+        }
+    };
+
+    let config = TurbineConfig {
+        bind_addr,
+        validator_tvu_addr: None,
+        recv_buffer_size: turbine_config.recv_buffer_size,
+        num_receiver_threads: turbine_config.receiver_threads,
+        fec_config: FecAssemblerConfig {
+            max_tracked_fec_sets: turbine_config.max_fec_sets,
+            fec_set_ttl: Duration::from_millis(turbine_config.fec_timeout_ms),
+            ..Default::default()
+        },
+        min_slot: None,
+        enable_dedup: true,
+        shred_channel_size: turbine_config.shred_channel_size,
+        fec_channel_size: 1000,
+    };
+
+    let mut receiver = TurbineReceiver::new(config);
+
+    loop {
+        match run_turbine_loop(&pipeline, &mut receiver, &stats).await {
+            Ok(()) => {
+                tracing::info!("Turbine task ended normally");
+                break;
+            }
+            Err(e) => {
+                tracing::warn!("Turbine error: {}, restarting in 3s...", e);
+                tokio::time::sleep(Duration::from_secs(3)).await;
+            }
+        }
+    }
+}
+
+async fn run_turbine_loop(
+    pipeline: &Arc<UnifiedMevPipeline>,
+    receiver: &mut TurbineReceiver,
+    stats: &Arc<UnifiedPipelineStats>,
+) -> Result<()> {
+    // Start receiver and get FEC completion channel
+    let fec_rx = receiver.start().await?;
+    
+    // Create channel for assembled entries
+    let (entries_tx, mut entries_rx) = mpsc::channel::<AssembledEntries>(1000);
+    
+    // Spawn entry assembler task
+    tokio::spawn(async move {
+        run_entry_assembler(fec_rx, entries_tx).await;
+    });
+    
+    tracing::info!("Turbine UDP receiver started - waiting for shreds from validator TVU");
+
+    // Process assembled entries
+    while let Some(assembled) = entries_rx.recv().await {
+        let slot = assembled.slot;
+        
+        // Update Turbine stats
+        stats.turbine_fec_completed.fetch_add(1, Ordering::Relaxed);
+        stats.turbine_entries_assembled.fetch_add(assembled.entries.len() as u64, Ordering::Relaxed);
+        
+        // Also update receiver stats
+        let turbine_stats = receiver.stats();
+        stats.turbine_packets_received.store(turbine_stats.packets_received, Ordering::Relaxed);
+        stats.turbine_data_shreds.store(turbine_stats.data_shreds, Ordering::Relaxed);
+        stats.turbine_coding_shreds.store(turbine_stats.coding_shreds, Ordering::Relaxed);
+        
+        // Convert AssembledEntries to Vec<SolanaEntry> for pipeline processing
+        // The entries are already SolanaEntry type from the assembler
+        let entries = assembled.entries;
+        
+        if entries.is_empty() {
+            continue;
+        }
+        
+        // Handle entries - this adds pending swaps to predictive state
+        let all_swaps = pipeline.handle_shredstream_entry(slot, entries).await;
+        
+        // Track source
+        stats.tx_source_turbine.fetch_add(assembled.transactions.len() as u64, Ordering::Relaxed);
+
+        // Evaluate opportunities for each TX with swaps
+        for tx_swaps in &all_swaps {
+            let opportunities = pipeline.evaluate_opportunities(tx_swaps).await;
+
+            // Send opportunities to submission task (non-blocking!)
+            for opp in opportunities {
+                pipeline.submit_opportunity(opp).await;
+            }
+        }
+    }
+
+    Ok(())
+}
+
+// =============================================================================
+// SHREDSTREAM TASK (Fallback)
+// =============================================================================
+
 /// ShredStream task - receives entries and detects swaps EARLY
 async fn run_shredstream_task(pipeline: Arc<UnifiedMevPipeline>, config: UnifiedPipelineConfig) {
     loop {
@@ -1005,11 +1175,8 @@ async fn run_geyser_loop(
     // Subscribe to slots (for timing)
     let mut slot_stream = client.subscribe_slots().await?;
 
-    // Subscribe to vault accounts (for reserve updates) if vault tracker is available
-    let vault_addresses: Vec<Pubkey> = pipeline
-        .vault_tracker()
-        .map(|vt| vt.all_vaults())
-        .unwrap_or_default();
+    // Subscribe to vault accounts (for reserve updates) using PSM's vault_index
+    let vault_addresses: Vec<Pubkey> = pipeline.predictive_state.all_vaults();
 
     let has_vault_subscription = !vault_addresses.is_empty();
     let mut account_stream = if has_vault_subscription {
@@ -1110,8 +1277,11 @@ async fn run_geyser_loop(
             // Account updates - vault balances for reserve tracking
             account_result = async {
                 match &mut account_stream {
-                    Some(stream) => stream.message().await,
-                    None => std::future::pending().await,
+                    Some(stream) => {
+                        let result: Result<Option<crate::geyser::proto::geyser::TimestampedAccountUpdate>, tonic::Status> = stream.message().await;
+                        result
+                    }
+                    None => std::future::pending::<Result<Option<crate::geyser::proto::geyser::TimestampedAccountUpdate>, tonic::Status>>().await,
                 }
             } => {
                 match account_result {

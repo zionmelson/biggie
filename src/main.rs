@@ -15,7 +15,6 @@ use std::time::Duration;
 use tre_arb_bot::config::Config;
 use tre_arb_bot::executor::{load_lookup_tables, FlashLoanReserve};
 use tre_arb_bot::jito::{JitoClient, JitoConfig as JitoClientConfig};
-use tre_arb_bot::pool_discovery::VaultTracker;
 use tre_arb_bot::shredstream::{
     spawn_unified_pipeline, BundleBuilderConfig, UnifiedPipelineConfig,
 };
@@ -96,14 +95,21 @@ async fn run_mev_pipeline(config: Config) -> Result<(), Box<dyn std::error::Erro
         load_lookup_tables(&rpc_client, &config.lookup_tables, &payer_pubkey).await?;
     tracing::info!("Loaded {} address lookup tables", lookup_tables.len());
 
-    // Initialize vault tracker
-    let vault_tracker = Arc::new(VaultTracker::new());
-
     // Build unified pipeline config from MEV settings
     let mev_config = &config.shredstream.mev;
+    let turbine_config = &config.shredstream.turbine;
 
-    tracing::info!("=== ShredStream + Geyser Unified Pipeline ===");
-    tracing::info!("ShredStream endpoint: {}", config.shredstream.endpoint);
+    // Log the TX source mode
+    if turbine_config.enabled {
+        tracing::info!("=== Turbine UDP + Geyser Unified Pipeline ===");
+        tracing::info!("TX Source: Direct Turbine UDP (ultra-low-latency ~0.5-2ms)");
+        tracing::info!("Turbine bind address: {}", turbine_config.bind_addr);
+        tracing::info!("Turbine receiver threads: {}", turbine_config.receiver_threads);
+    } else {
+        tracing::info!("=== ShredStream + Geyser Unified Pipeline ===");
+        tracing::info!("TX Source: ShredStream proxy (fallback ~5-10ms)");
+        tracing::info!("ShredStream endpoint: {}", config.shredstream.endpoint);
+    }
     tracing::info!("Geyser endpoint: {}", config.geyser.endpoint);
     tracing::info!(
         "MEV config: backrun={} min_profit={} lamports",
@@ -112,6 +118,8 @@ async fn run_mev_pipeline(config: Config) -> Result<(), Box<dyn std::error::Erro
     );
 
     let pipeline_config = UnifiedPipelineConfig {
+        use_turbine_udp: turbine_config.enabled,
+        turbine_config: turbine_config.clone(),
         shredstream_endpoint: config.shredstream.endpoint.clone(),
         geyser_endpoint: config.geyser.endpoint.clone(),
         connect_timeout: Duration::from_millis(config.geyser.connect_timeout_ms),
@@ -133,7 +141,6 @@ async fn run_mev_pipeline(config: Config) -> Result<(), Box<dyn std::error::Erro
     // Spawn unified pipeline - ShredStream + Geyser running together
     let (pipeline, stats) = spawn_unified_pipeline(
         pipeline_config,
-        Some(vault_tracker.clone()),
         Some(tip_floor_cache),
         payer_keypair,
         flash_loan_reserves,

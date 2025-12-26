@@ -16,7 +16,7 @@ use std::str::FromStr;
 // Re-export for backward compatibility
 pub use crate::constants::{
     calculate_flash_loan_fee, flash_loan_repay_amount, min_output_for_flash_loan, AVG_SWAP_FEE_BPS,
-    BASE_TIP_LAMPORTS, DEFAULT_SLIPPAGE_BPS, MAX_TIP_PROFIT_BPS, MIN_TIP_LAMPORTS,
+    BASE_TIP_LAMPORTS, MAX_TIP_PROFIT_BPS, MIN_TIP_LAMPORTS,
     SOLEND_FLASH_LOAN_BPS, TIP_PROFIT_SHARE_BPS, WSOL_MINT,
 };
 
@@ -24,7 +24,7 @@ pub use crate::constants::{
 pub mod fees {
     pub use crate::constants::{
         calculate_flash_loan_fee, flash_loan_repay_amount, min_output_for_flash_loan,
-        AVG_SWAP_FEE_BPS, BASE_TIP_LAMPORTS, DEFAULT_SLIPPAGE_BPS, MAX_TIP_PROFIT_BPS,
+        AVG_SWAP_FEE_BPS, BASE_TIP_LAMPORTS, MAX_TIP_PROFIT_BPS,
         MIN_TIP_LAMPORTS, SOLEND_FLASH_LOAN_BPS, TIP_PROFIT_SHARE_BPS,
     };
 }

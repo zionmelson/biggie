@@ -16,9 +16,6 @@ use crate::shredstream::programs::{
     RAYDIUM_CLMM,
 };
 use solana_sdk::pubkey::Pubkey;
-use std::collections::HashMap;
-use std::sync::atomic::AtomicU64;
-use std::sync::RwLock;
 
 // ============================================================================
 // Account Layout Offsets (verified from IDLs/source)
@@ -285,104 +282,6 @@ pub struct DiscoveredPool {
     pub bin_arrays: Vec<Pubkey>,
     /// Pool authority PDA (DAMM)
     pub pool_authority: Option<Pubkey>,
-}
-
-// ============================================================================
-// Vault Tracker - Maps vault accounts to pools for reserve updates
-// ============================================================================
-
-/// Which side of the pool this vault represents
-#[derive(Clone, Copy, Debug, PartialEq, Eq)]
-pub enum VaultSide {
-    A, // base/token_0
-    B, // quote/token_1
-}
-
-/// Information about a vault account
-#[derive(Clone, Debug)]
-pub struct VaultInfo {
-    pub pool_address: Pubkey,
-    pub mint: Pubkey,
-    pub side: VaultSide,
-}
-
-/// Tracks vault accounts and their relationship to pools
-/// Used to update PredictiveStateManager reserves when vault balances change
-pub struct VaultTracker {
-    /// Vault address → VaultInfo
-    vaults: RwLock<HashMap<Pubkey, VaultInfo>>,
-    /// Statistics
-    pub updates_received: AtomicU64,
-    pub reserves_updated: AtomicU64,
-}
-
-impl VaultTracker {
-    pub fn new() -> Self {
-        Self {
-            vaults: RwLock::new(HashMap::new()),
-            updates_received: AtomicU64::new(0),
-            reserves_updated: AtomicU64::new(0),
-        }
-    }
-
-    /// Register a vault for tracking
-    pub fn register_vault(
-        &self,
-        vault_address: Pubkey,
-        pool_address: Pubkey,
-        mint: Pubkey,
-        side: VaultSide,
-    ) {
-        let mut vaults = self.vaults.write().unwrap();
-        vaults.insert(
-            vault_address,
-            VaultInfo {
-                pool_address,
-                mint,
-                side,
-            },
-        );
-    }
-
-    /// Register both vaults from a discovered pool
-    pub fn register_pool_vaults(&self, pool: &DiscoveredPool) {
-        self.register_vault(
-            pool.token_vault_a,
-            pool.address,
-            pool.token_mint_a,
-            VaultSide::A,
-        );
-        self.register_vault(
-            pool.token_vault_b,
-            pool.address,
-            pool.token_mint_b,
-            VaultSide::B,
-        );
-    }
-
-    /// Get vault info for a given vault address
-    pub fn get(&self, vault_address: &Pubkey) -> Option<VaultInfo> {
-        self.vaults.read().unwrap().get(vault_address).cloned()
-    }
-
-    /// Check if this account is a tracked vault
-    pub fn is_vault(&self, account: &Pubkey) -> bool {
-        self.vaults.read().unwrap().contains_key(account)
-    }
-
-    /// Get all tracked vault addresses
-    pub fn all_vaults(&self) -> Vec<Pubkey> {
-        self.vaults.read().unwrap().keys().cloned().collect()
-    }
-
-    /// Number of tracked vaults
-    pub fn len(&self) -> usize {
-        self.vaults.read().unwrap().len()
-    }
-
-    pub fn is_empty(&self) -> bool {
-        self.vaults.read().unwrap().is_empty()
-    }
 }
 
 // ============================================================================

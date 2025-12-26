@@ -7178,13 +7178,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "solend"
-version = "0.1.0"
-dependencies = [
- "solana-sdk",
-]
-
-[[package]]
 name = "spinning_top"
 version = "0.3.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -8285,7 +8278,6 @@ dependencies = [
  "solana-packet",
  "solana-sdk",
  "solana-system-interface 3.0.0",
- "solend",
  "spl-memo 4.0.3",
  "spl-pod 0.5.1",
  "spl-tlv-account-resolution",

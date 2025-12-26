@@ -6,8 +6,7 @@ use std::time::Duration;
 
 #[derive(Clone, Debug, Serialize, Deserialize)]
 pub struct Config {
-    #[serde(default)]
-    pub anchor_tokens: Vec<AnchorToken>,
+    // NOTE: anchor_tokens removed - anchor mints are now derived from solend_flash_loans keys
     #[serde(default)]
     pub solend_flash_loans: HashMap<String, SolendFlashLoan>,
     #[serde(default)]
@@ -70,12 +69,7 @@ pub struct FlashLoanRepay {
     pub host_fee_receiver: String,
 }
 
-#[derive(Clone, Debug, Serialize, Deserialize)]
-pub struct AnchorToken {
-    pub mint: String,
-    pub flash_loan_provider: String, // e.g., "solend"
-    pub max_borrow: u64,
-}
+// NOTE: AnchorToken struct removed - anchor mints are now derived from solend_flash_loans keys
 
 #[derive(Clone, Debug, Default, Serialize, Deserialize)]
 pub struct JitoConfig {
@@ -99,11 +93,80 @@ impl JitoConfig {
 #[derive(Clone, Debug, Serialize, Deserialize)]
 pub struct ShredstreamConfig {
     /// gRPC endpoint URL for the local shredstream proxy (e.g., "http://127.0.0.1:10000")
+    /// Only used if turbine.enabled = false
     #[serde(default = "default_shredstream_endpoint")]
     pub endpoint: String,
     /// MEV strategy settings
     #[serde(default)]
     pub mev: MevConfig,
+    /// Direct Turbine UDP configuration (bypasses shredstream proxy for lower latency)
+    #[serde(default)]
+    pub turbine: TurbineUdpConfig,
+}
+
+/// Direct Turbine UDP configuration for ultra-low-latency shred reception
+/// Receives shreds directly from validator's TVU broadcast (0.5-2ms vs 5-10ms with proxy)
+#[derive(Clone, Debug, Serialize, Deserialize)]
+pub struct TurbineUdpConfig {
+    /// Whether to use direct Turbine UDP instead of ShredStream proxy
+    #[serde(default = "default_true")]
+    pub enabled: bool,
+    /// UDP bind address for receiving shreds (e.g., "0.0.0.0:8002")
+    #[serde(default = "default_turbine_bind_addr")]
+    pub bind_addr: String,
+    /// Number of UDP receiver threads
+    #[serde(default = "default_receiver_threads")]
+    pub receiver_threads: usize,
+    /// UDP receive buffer size in bytes (requires system tuning: sysctl -w net.core.rmem_max=134217728)
+    #[serde(default = "default_recv_buffer_size")]
+    pub recv_buffer_size: usize,
+    /// Channel buffer size for shreds
+    #[serde(default = "default_shred_channel_size")]
+    pub shred_channel_size: usize,
+    /// Maximum number of FEC sets to track (memory management)
+    #[serde(default = "default_max_fec_sets")]
+    pub max_fec_sets: usize,
+    /// FEC set timeout in milliseconds
+    #[serde(default = "default_fec_timeout_ms")]
+    pub fec_timeout_ms: u64,
+}
+
+fn default_turbine_bind_addr() -> String {
+    "0.0.0.0:8011".to_string() // Use 8011 to avoid conflict with validator's TVU (8002)
+}
+
+fn default_receiver_threads() -> usize {
+    2
+}
+
+fn default_recv_buffer_size() -> usize {
+    128 * 1024 * 1024 // 128MB
+}
+
+fn default_shred_channel_size() -> usize {
+    10_000
+}
+
+fn default_max_fec_sets() -> usize {
+    1000
+}
+
+fn default_fec_timeout_ms() -> u64 {
+    2000 // 2 seconds
+}
+
+impl Default for TurbineUdpConfig {
+    fn default() -> Self {
+        Self {
+            enabled: true, // Default to Turbine UDP for lowest latency
+            bind_addr: default_turbine_bind_addr(),
+            receiver_threads: default_receiver_threads(),
+            recv_buffer_size: default_recv_buffer_size(),
+            shred_channel_size: default_shred_channel_size(),
+            max_fec_sets: default_max_fec_sets(),
+            fec_timeout_ms: default_fec_timeout_ms(),
+        }
+    }
 }
 
 /// MEV strategy configuration
@@ -177,6 +240,7 @@ impl Default for ShredstreamConfig {
         Self {
             endpoint: default_shredstream_endpoint(),
             mev: MevConfig::default(),
+            turbine: TurbineUdpConfig::default(),
         }
     }
 }
@@ -321,30 +385,13 @@ pub fn load_keypair_from_file(path: &str) -> Result<Keypair, Box<dyn std::error:
 impl Config {
     pub fn load(path: &std::path::Path) -> Result<Self, Box<dyn std::error::Error>> {
         let content = std::fs::read_to_string(path)?;
-        let mut config: serde_json::Value = serde_json::from_str(&content)?;
-
-        // Extract anchor tokens from solend_flash_loans
-        let mut anchor_tokens = Vec::new();
-        if let Some(solend_loans) = config.get("solend_flash_loans").and_then(|v| v.as_object()) {
-            for (_token_name, loan_config) in solend_loans {
-                if let Some(mint) = loan_config
-                    .get("reserve_liquidity_mint")
-                    .and_then(|v| v.as_str())
-                {
-                    anchor_tokens.push(AnchorToken {
-                        mint: mint.to_string(),
-                        flash_loan_provider: "solend".to_string(),
-                        max_borrow: 1_000_000_000, // 1000 USDC/SOL etc, adjust as needed
-                    });
-                }
-            }
-        }
-
-        // Add anchor_tokens to the config
-        let anchor_tokens_value = serde_json::to_value(&anchor_tokens)?;
-        config["anchor_tokens"] = anchor_tokens_value;
-
-        let config: Config = serde_json::from_value(config)?;
+        let config: Config = serde_json::from_str(&content)?;
+        
+        tracing::info!(
+            "Loaded config with {} flash loan reserves",
+            config.solend_flash_loans.len()
+        );
+        
         Ok(config)
     }
 }

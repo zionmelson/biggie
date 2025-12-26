@@ -10,6 +10,11 @@ pub mod shredstream;
 // Geyser client - primary data source for local validator
 pub mod geyser;
 
+// Tick/Bin array caches for accurate CLMM/DLMM simulation
+// Populated via Geyser subscriptions to tick/bin array accounts
+pub mod tick_array_cache;
+pub mod bin_array_cache;
+
 // Dynamic pool discovery from Geyser (replaces static JSON maps)
 pub mod pool_discovery;
 

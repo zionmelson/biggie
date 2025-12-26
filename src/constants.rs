@@ -50,8 +50,6 @@ pub const SYSTEM_PROGRAM: Pubkey = solana_sdk::pubkey!("111111111111111111111111
 pub const SOLEND_FLASH_LOAN_BPS: u64 = 30;
 /// Average DEX swap fee: ~0.25% = 25 bps (varies by pool)
 pub const AVG_SWAP_FEE_BPS: u64 = 25;
-/// Slippage tolerance: 0.5% = 50 bps
-pub const DEFAULT_SLIPPAGE_BPS: u64 = 50;
 /// Jito tip minimum in lamports (absolute floor)
 pub const MIN_TIP_LAMPORTS: u64 = 1_000;
 /// Default base tip - 75th percentile of recent landed tips
@@ -99,13 +97,11 @@ pub fn min_output_for_flash_loan(borrow_amount: u64, buffer_bps: u64) -> u64 {
 }
 
 // =============================================================================
-// ANCHOR MINTS (tokens we can flash loan)
+// ANCHOR MINTS
 // =============================================================================
-
-/// Get the list of anchor mints as Pubkeys
-pub fn anchor_mints() -> Vec<Pubkey> {
-    vec![WSOL_MINT, USDC_MINT, USDT_MINT, MSOL_MINT, JITOSOL_MINT]
-}
+// NOTE: Anchor mints are now derived dynamically from configured flash loan reserves
+// at startup in UnifiedMevPipeline::new(). This ensures we only attempt flash loans
+// for tokens where Solend reserves are configured in config.json.
 
 // =============================================================================
 // SUPPORTED MINTS

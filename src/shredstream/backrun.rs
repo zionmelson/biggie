@@ -862,6 +862,7 @@ fn create_ata_idempotent(
 #[cfg(test)]
 mod tests {
     use super::*;
+    use crate::constants::WSOL_MINT;
 
     #[test]
     fn test_ata_derivation() {
@@ -878,12 +879,22 @@ mod tests {
         let payer = Arc::new(Keypair::new());
         let builder = BackrunBundleBuilder::new(config.clone(), payer, HashMap::new(), Vec::new());
 
-        // Test minimum tip
+        // Test minimum tip (base_tip_lamports is returned for 0 profit)
         assert_eq!(builder.calculate_tip(0), config.base_tip_lamports);
 
-        // Test proportional tip (50% of profit)
-        let profit = 100_000;
-        let expected = profit * 5000 / 10000; // 50%
-        assert_eq!(builder.calculate_tip(profit), expected);
+        // Test small profit tier (< 0.01 SOL = 10_000_000 lamports): 85% tip
+        let small_profit = 100_000;
+        let expected_small = small_profit * 8500 / 10000; // 85%
+        assert_eq!(builder.calculate_tip(small_profit), expected_small);
+
+        // Test medium profit tier (0.01-0.1 SOL): 75% tip
+        let medium_profit = 50_000_000; // 0.05 SOL
+        let expected_medium = medium_profit * 7500 / 10000; // 75%
+        assert_eq!(builder.calculate_tip(medium_profit), expected_medium);
+
+        // Test large profit tier (> 0.1 SOL): 65% tip
+        let large_profit = 200_000_000; // 0.2 SOL
+        let expected_large = large_profit * 6500 / 10000; // 65%
+        assert_eq!(builder.calculate_tip(large_profit), expected_large);
     }
 }

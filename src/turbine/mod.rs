@@ -93,7 +93,7 @@ pub mod receiver;
 pub mod shred;
 
 pub use assembler::{run_entry_assembler, AssembledEntries, EntryAssembler};
-pub use fec::{CompleteFecSet, ErasureSetId, FecSet, FecSetAssembler};
+pub use fec::{CompleteFecSet, ErasureSetId, FecSet, FecSetAssembler, FecAssemblerConfig};
 pub use integration::{
     HybridPipeline, HybridPipelineConfig, SourcedTransaction, TransactionSource, TxDeduplicator,
 };

@@ -1,20 +1,22 @@
 //! AMM math for calculating expected swap outputs with slippage.
 //!
 //! Supports multiple curve types:
-//! - Constant Product (x * y = k): Raydium AMM, Orca Legacy
-//! - Concentrated Liquidity: Raydium CLMM, Orca Whirlpool (approximated)
-//! - Stable Swap: Saber, Mercurial (approximated)
+//! - Constant Product (x * y = k): Raydium AMM, Orca Legacy, Meteora DAMM
+//! - Concentrated Liquidity (tick-based): Raydium CLMM, Orca Whirlpool, PancakeSwap CLMM
+//! - Discrete Liquidity (bin-based): Meteora DLMM
+
+use crate::clmm_math::ClmmPoolState;
+use crate::dlmm_math::DlmmPoolState;
 
 /// Curve types with their swap math
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
 pub enum CurveType {
     /// x * y = k (Raydium AMM, Orca Legacy, Meteora DAMM)
     ConstantProduct,
-    /// Concentrated liquidity - use constant product as approximation
-    /// Real CLMM requires tick data which we approximate
+    /// Concentrated liquidity (Raydium CLMM, Orca Whirlpool, PancakeSwap CLMM)
     ConcentratedLiquidity,
-    /// Stable swap curve for pegged assets (lower slippage)
-    StableSwap,
+    /// Discrete liquidity bins (Meteora DLMM)
+    Dlmm,
 }
 
 impl Default for CurveType {
@@ -163,204 +165,18 @@ pub fn max_input_for_slippage(
 pub fn curve_type_from_protocol(protocol: &str) -> CurveType {
     let protocol_lower = protocol.to_lowercase();
 
-    if protocol_lower.contains("clmm")
+    if protocol_lower.contains("dlmm") {
+        CurveType::Dlmm
+    } else if protocol_lower.contains("clmm")
         || protocol_lower.contains("whirlpool")
-        || protocol_lower.contains("dlmm")
         || protocol_lower.contains("amm_v3")
     // Raydium CLMM is called amm_v3
     {
         CurveType::ConcentratedLiquidity
-    } else if protocol_lower.contains("stable")
-        || protocol_lower.contains("saber")
-        || protocol_lower.contains("mercurial")
-    {
-        CurveType::StableSwap
     } else {
         // Default: Raydium AMM, Orca Legacy, Meteora DAMM, etc.
         CurveType::ConstantProduct
     }
-}
-
-// =============================================================================
-// StableSwap Math (Curve Finance / Saber invariant)
-// =============================================================================
-
-/// Number of coins in a stable swap pool (always 2 for Saber)
-const STABLE_N_COINS: u64 = 2;
-
-/// Default amplification coefficient for stable pools
-/// Saber typically uses A=100 to A=1000 depending on the pair
-const DEFAULT_AMP_FACTOR: u64 = 100;
-
-/// Compute the StableSwap invariant D using Newton's method.
-///
-/// The invariant equation is:
-/// A * n^n * sum(x_i) + D = A * D * n^n + D^(n+1) / (n^n * prod(x_i))
-///
-/// This is derived from the Curve Finance StableSwap paper.
-fn stable_compute_d(amount_a: u64, amount_b: u64, amp_factor: u64) -> Option<u128> {
-    let sum_x = (amount_a as u128).checked_add(amount_b as u128)?;
-    if sum_x == 0 {
-        return Some(0);
-    }
-
-    let ann = amp_factor as u128 * STABLE_N_COINS as u128; // A * n
-
-    // Newton's method to find D
-    let mut d = sum_x;
-    let mut d_prev: u128;
-
-    for _ in 0..256 {
-        // d_prod = D^n / (n^n * prod(x_i))
-        // For n=2: d_prod = D * D / (4 * amount_a * amount_b)
-        let mut d_prod = d;
-        d_prod = d_prod
-            .checked_mul(d)?
-            .checked_div((amount_a as u128).checked_mul(STABLE_N_COINS as u128)?)?;
-        d_prod = d_prod
-            .checked_mul(d)?
-            .checked_div((amount_b as u128).checked_mul(STABLE_N_COINS as u128)?)?;
-
-        d_prev = d;
-
-        // d = (ann * sum_x + d_prod * n) * d / ((ann - 1) * d + (n + 1) * d_prod)
-        let leverage = sum_x.checked_mul(ann)?;
-        let numerator = d.checked_mul(
-            d_prod
-                .checked_mul(STABLE_N_COINS as u128)?
-                .checked_add(leverage)?,
-        )?;
-        let denominator = d
-            .checked_mul(ann.checked_sub(1)?)?
-            .checked_add(d_prod.checked_mul(STABLE_N_COINS as u128 + 1)?)?;
-
-        d = numerator.checked_div(denominator)?;
-
-        // Check convergence
-        if d > d_prev {
-            if d.checked_sub(d_prev)? <= 1 {
-                break;
-            }
-        } else if d_prev.checked_sub(d)? <= 1 {
-            break;
-        }
-    }
-
-    Some(d)
-}
-
-/// Compute y given x and D for StableSwap.
-///
-/// Solve for y in:
-/// y^2 + y * (sum' - (A*n^n - 1) * D / (A * n^n)) = D^(n+1) / (n^(2n) * prod' * A)
-///
-/// Which simplifies to: y^2 + b*y = c
-fn stable_compute_y(x: u64, d: u128, amp_factor: u64) -> Option<u64> {
-    let ann = amp_factor as u128 * STABLE_N_COINS as u128;
-
-    // c = D^(n+1) / (n^(2n) * x * A) for n=2: c = D^3 / (8 * x * A * n)
-    // Simplified: c = D * D / (x * 2) then c = c * D / (ann * 2)
-    let mut c = d
-        .checked_mul(d)?
-        .checked_div((x as u128).checked_mul(STABLE_N_COINS as u128)?)?;
-    c = c
-        .checked_mul(d)?
-        .checked_div(ann.checked_mul(STABLE_N_COINS as u128)?)?;
-
-    // b = x + D / ann (we subtract D later in the iteration)
-    let b = (x as u128).checked_add(d.checked_div(ann)?)?;
-
-    // Newton's method to find y
-    let mut y = d;
-    let mut y_prev: u128;
-
-    for _ in 0..256 {
-        y_prev = y;
-        // y = (y^2 + c) / (2*y + b - d)
-        let y_numerator = y.checked_mul(y)?.checked_add(c)?;
-        let y_denominator = y.checked_mul(2)?.checked_add(b)?.checked_sub(d)?;
-        y = y_numerator.checked_div(y_denominator)?;
-
-        // Check convergence
-        if y > y_prev {
-            if y.checked_sub(y_prev)? <= 1 {
-                break;
-            }
-        } else if y_prev.checked_sub(y)? <= 1 {
-            break;
-        }
-    }
-
-    // Convert to u64, clamping to max
-    if y > u64::MAX as u128 {
-        Some(u64::MAX)
-    } else {
-        Some(y as u64)
-    }
-}
-
-/// Calculate StableSwap output amount.
-///
-/// This implements the Curve Finance / Saber swap formula:
-/// 1. Compute D (invariant) from current reserves
-/// 2. Compute new y given new x after trade
-/// 3. Output = old_y - new_y - 1 (subtract 1 for rounding)
-///
-/// # Arguments
-/// * `input_amount` - Amount of input token (after fee deduction)
-/// * `input_reserve` - Current reserve of input token
-/// * `output_reserve` - Current reserve of output token
-/// * `amp_factor` - Amplification factor (A) for the stable curve
-///
-/// # Returns
-/// * `(output_amount, price_impact_bps)` - Output amount and price impact in basis points
-pub fn calculate_stable_swap(
-    input_amount: u64,
-    input_reserve: u64,
-    output_reserve: u64,
-    amp_factor: u64,
-) -> (u64, u64) {
-    if input_reserve == 0 || output_reserve == 0 || input_amount == 0 {
-        return (0, 0);
-    }
-
-    // Compute current invariant D
-    let d = match stable_compute_d(input_reserve, output_reserve, amp_factor) {
-        Some(d) => d,
-        None => return (0, 0),
-    };
-
-    // New input reserve after swap
-    let new_input = match input_reserve.checked_add(input_amount) {
-        Some(v) => v,
-        None => return (0, 0),
-    };
-
-    // Compute new output reserve (y) given new input (x) and invariant D
-    let new_output = match stable_compute_y(new_input, d, amp_factor) {
-        Some(y) => y,
-        None => return (0, 0),
-    };
-
-    // Output amount = old_output - new_output - 1 (for rounding)
-    let output_amount = output_reserve.saturating_sub(new_output).saturating_sub(1);
-
-    // Calculate price impact
-    // Spot price for stable = output_reserve / input_reserve (should be ~1 for pegged)
-    let spot_price = output_reserve as f64 / input_reserve as f64;
-    let effective_price = if input_amount > 0 {
-        output_amount as f64 / input_amount as f64
-    } else {
-        spot_price
-    };
-
-    let price_impact_bps = if spot_price > 0.0 {
-        ((spot_price - effective_price).abs() / spot_price * 10_000.0) as u64
-    } else {
-        0
-    };
-
-    (output_amount, price_impact_bps)
 }
 
 // =============================================================================
@@ -746,6 +562,200 @@ pub fn find_optimal_sandwich_amount(
     (best_amount, best_profit)
 }
 
+// =============================================================================
+// UNIFIED POOL SIMULATOR (dispatches to correct curve math)
+// =============================================================================
+
+/// Unified pool simulator that dispatches to the correct curve math.
+///
+/// This allows cross-pool arbitrage simulation to work correctly across
+/// different DEX types (AMM, CLMM, DLMM) rather than forcing constant product.
+#[derive(Clone, Debug)]
+pub enum PoolSimulator {
+    /// Constant product AMM (Raydium AMM, Meteora DAMM)
+    ConstantProduct(VirtualPoolState),
+    /// Concentrated liquidity (Raydium CLMM, Orca Whirlpool)
+    Clmm(ClmmPoolState),
+    /// Dynamic liquidity market maker (Meteora DLMM)
+    Dlmm(DlmmPoolState),
+}
+
+impl PoolSimulator {
+    /// Simulate a swap and return (output_amount, new_state)
+    ///
+    /// # Arguments
+    /// * `amount_in` - Input amount
+    /// * `base_to_quote` - true = swap base for quote, false = swap quote for base
+    ///
+    /// # Returns
+    /// * `(output_amount, new_state)` - The output and updated simulator state
+    pub fn simulate_swap(&self, amount_in: u64, base_to_quote: bool) -> (u64, PoolSimulator) {
+        match self {
+            PoolSimulator::ConstantProduct(state) => {
+                let (output, new_state) = state.simulate_swap(amount_in, base_to_quote);
+                (output, PoolSimulator::ConstantProduct(new_state))
+            }
+            PoolSimulator::Clmm(state) => {
+                // zero_for_one = base_to_quote (selling token0 for token1)
+                let zero_for_one = base_to_quote;
+                let (amount_in_used, amount_out, new_state) = state.simulate_swap(
+                    amount_in,
+                    zero_for_one,
+                    true, // is_base_input (exact input)
+                    0,    // no price limit
+                );
+                // Only count as successful if we consumed input
+                let output = if amount_in_used > 0 { amount_out } else { 0 };
+                (output, PoolSimulator::Clmm(new_state))
+            }
+            PoolSimulator::Dlmm(state) => {
+                // swap_for_y = base_to_quote (swapping X for Y)
+                let swap_for_y = base_to_quote;
+                let (_total_in, total_out, new_state) =
+                    state.simulate_swap(amount_in, swap_for_y);
+                (total_out, PoolSimulator::Dlmm(new_state))
+            }
+        }
+    }
+
+    /// Get the fee in basis points
+    pub fn fee_bps(&self) -> u16 {
+        match self {
+            PoolSimulator::ConstantProduct(state) => state.fee_bps,
+            PoolSimulator::Clmm(state) => (state.fee_rate / 100) as u16, // fee_rate in millionths
+            PoolSimulator::Dlmm(state) => (state.total_fee_rate() / 100_000) as u16, // millionths to bps
+        }
+    }
+
+    /// Create from VirtualPoolState (for backwards compatibility)
+    pub fn from_virtual(state: VirtualPoolState) -> Self {
+        PoolSimulator::ConstantProduct(state)
+    }
+}
+
+/// Simulate cross-pool backrun using unified PoolSimulator.
+///
+/// This version works with any pool type (AMM, CLMM, DLMM).
+pub fn simulate_cross_pool_backrun_unified(
+    pool_x: &PoolSimulator,       // Victim's pool
+    pool_y: &PoolSimulator,       // Alternate pool
+    victim_amount: u64,           // Victim's input amount
+    victim_base_to_quote: bool,   // Victim's swap direction
+    borrow_amount: u64,           // How much we borrow
+    borrow_is_base: bool,         // Are we borrowing base token?
+    flash_fee_bps: u16,           // Flash loan fee (typically 30 = 0.3%)
+) -> Option<ArbSimulationResult> {
+    // 1. Simulate victim's swap on Pool X
+    let (_, pool_x_after_victim) = pool_x.simulate_swap(victim_amount, victim_base_to_quote);
+
+    // 2. Our leg 1: Swap on Pool Y (unaffected by victim)
+    //    We swap borrow_token → intermediate_token
+    let leg1_base_to_quote = borrow_is_base;
+    let (leg1_output, _) = pool_y.simulate_swap(borrow_amount, leg1_base_to_quote);
+
+    if leg1_output == 0 {
+        return None;
+    }
+
+    // 3. Our leg 2: Swap intermediate → borrow on Pool X (post-victim)
+    let leg2_base_to_quote = !borrow_is_base;
+    let (leg2_output, _) = pool_x_after_victim.simulate_swap(leg1_output, leg2_base_to_quote);
+
+    if leg2_output == 0 {
+        return None;
+    }
+
+    // 4. Calculate profit
+    let flash_fee = (borrow_amount as u128 * flash_fee_bps as u128 / 10_000) as u64;
+    let total_cost = borrow_amount.saturating_add(flash_fee);
+
+    if leg2_output > total_cost {
+        Some(ArbSimulationResult {
+            profit: leg2_output - total_cost,
+            borrow_amount,
+            leg1_output,
+            leg2_output,
+            flash_loan_fee: flash_fee,
+            is_cross_pool: true,
+        })
+    } else {
+        None
+    }
+}
+
+/// Find optimal borrow amount using unified PoolSimulator.
+pub fn find_optimal_borrow_unified(
+    pool_x: &PoolSimulator,
+    pool_y: &PoolSimulator,
+    victim_amount: u64,
+    victim_base_to_quote: bool,
+    borrow_is_base: bool,
+    max_borrow: u64,
+    flash_fee_bps: u16,
+) -> (u64, u64) {
+    let mut best_profit = 0u64;
+    let mut best_amount = 0u64;
+
+    // Binary search for optimal amount
+    let mut low = max_borrow / 1000;
+    let mut high = max_borrow;
+    low = low.max(10_000); // At least 10k lamports
+
+    while high > low + 10_000 {
+        let mid = (low + high) / 2;
+
+        let profit_at_mid = simulate_cross_pool_backrun_unified(
+            pool_x,
+            pool_y,
+            victim_amount,
+            victim_base_to_quote,
+            mid,
+            borrow_is_base,
+            flash_fee_bps,
+        )
+        .map(|r| r.profit)
+        .unwrap_or(0);
+
+        let profit_at_mid_plus = simulate_cross_pool_backrun_unified(
+            pool_x,
+            pool_y,
+            victim_amount,
+            victim_base_to_quote,
+            mid + 10_000,
+            borrow_is_base,
+            flash_fee_bps,
+        )
+        .map(|r| r.profit)
+        .unwrap_or(0);
+
+        if profit_at_mid_plus > profit_at_mid {
+            low = mid;
+        } else {
+            high = mid;
+        }
+
+        if profit_at_mid > best_profit {
+            best_profit = profit_at_mid;
+            best_amount = mid;
+        }
+    }
+
+    // Check final value
+    if let Some(result) = simulate_cross_pool_backrun_unified(
+        pool_x,
+        pool_y,
+        victim_amount,
+        victim_base_to_quote,
+        best_amount,
+        borrow_is_base,
+        flash_fee_bps,
+    ) {
+        (best_amount, result.profit)
+    } else {
+        (0, 0)
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -769,8 +779,11 @@ mod tests {
             output
         );
 
-        // Reserves should update
-        assert_eq!(new_state.base_reserve, 1_010_000_000_000);
+        // Reserves should update with input_after_fee
+        // Input: 10 SOL, fee: 0.3% = 30M lamports, so input_after_fee = 9.97 SOL
+        let expected_fee = 10_000_000_000u64 * 30 / 10_000; // 30M
+        let input_after_fee = 10_000_000_000u64 - expected_fee;
+        assert_eq!(new_state.base_reserve, 1_000_000_000_000 + input_after_fee);
         assert!(new_state.quote_reserve < 200_000_000_000);
     }
 

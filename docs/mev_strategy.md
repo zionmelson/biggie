@@ -45,39 +45,45 @@ This bot extracts MEV from Solana using a **unified ShredStream + Geyser archite
 
 ## Key Design Principles
 
-1. **ShredStream provides early warning** - Detects victim TXs before execution (~0-5ms)
+1. **Turbine UDP provides ultra-low-latency TX detection** - Receives shreds directly from validator (~0.5-2ms)
 2. **Geyser provides ground truth** - Confirms state after execution
 3. **Predictive state bridges the gap** - Simulates pending swaps for accurate evaluation
-4. **Neither source works alone** - They are tightly coupled and interdependent
+4. **ShredStream as fallback** - Can be used if Turbine is unavailable (~5-10ms)
 
 ## Timing Advantage
 
-With the unified pipeline, we receive transactions via ShredStream before confirmation:
+With direct Turbine UDP, we receive transactions with minimal latency:
 
 ```
-Transaction lifecycle:
-├── t=0ms      TX enters validator mempool
-├── t=0-2ms    ShredStream: Entry received → swap detected
-├── t=0-2ms    PredictiveStateManager: Pending swap added
-├── t=1-3ms    PredictedState recalculated (includes victim's impact)
-├── t=2-5ms    MEV Evaluator uses PredictedState → finds opportunity
-├── t=3-8ms    Bundle built and submitted to Jito
+Transaction lifecycle (Turbine UDP - Primary):
+├── t=0ms      TX enters validator mempool / included in block
+├── t=0.5-1ms  Turbine: Shreds received via UDP → entry assembled
+├── t=0.5-1ms  Swap detected → PredictiveStateManager updated
+├── t=1-2ms    PredictedState recalculated (includes victim's impact)
+├── t=1-3ms    MEV Evaluator uses PredictedState → finds opportunity
+├── t=2-5ms    Bundle built and submitted to Jito
 ├── t=5-15ms   Geyser: Victim TX confirmed → PendingSwap removed
 ├── t=5-15ms   ConfirmedState updated → PredictedState recalculated
 ├── t=400ms    Block finalized
 └── t=500ms    Confirmation propagates
 ```
 
-### Optional: Direct Turbine UDP (Even Lower Latency)
-
-For minimum latency, the bot can receive shreds directly from the validator's Turbine UDP broadcast:
+### Direct Turbine UDP vs ShredStream Proxy
 
 ```
-ShredStream Proxy: Validator → Jito Relay → Proxy → gRPC → Bot (~5-10ms)
-Direct Turbine UDP: Validator TVU → UDP → Bot (~0.5-2ms)
+Direct Turbine UDP: Validator TVU → UDP → Bot (~0.5-2ms) ✅ DEFAULT
+ShredStream Proxy:  Validator → Jito Relay → Proxy → gRPC → Bot (~5-10ms)
 ```
 
-This 5-8ms advantage is critical for winning MEV auctions.
+This 5-8ms advantage is critical for winning MEV auctions. The bot now uses Turbine UDP by default.
+
+### System Requirements for Turbine UDP
+
+```bash
+# Increase UDP buffer size (required for reliable shred reception)
+sudo sysctl -w net.core.rmem_max=134217728
+sudo sysctl -w net.core.rmem_default=134217728
+```
 
 ## Supported DEXes
 
