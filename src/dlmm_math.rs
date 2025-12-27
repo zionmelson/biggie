@@ -66,11 +66,22 @@ fn pow_fixed(base: u128, exp: i32) -> Option<u128> {
         return Some(Q64); // base^0 = 1
     }
     
+    // Sanity check: base should be reasonable
+    if base == 0 {
+        return Some(0);
+    }
+    
     let (exp_abs, is_negative) = if exp < 0 {
         ((-exp) as u32, true)
     } else {
         (exp as u32, false)
     };
+    
+    // Limit exponent to prevent overflow (bin_id typically -443636 to 443636)
+    // For very large exponents, result would overflow or underflow anyway
+    if exp_abs > 500000 {
+        return None;
+    }
     
     let q64_256 = U256::from(Q64);
     
@@ -82,21 +93,38 @@ fn pow_fixed(base: u128, exp: i32) -> Option<u128> {
     while remaining_exp > 0 {
         if remaining_exp & 1 == 1 {
             // result = result * current_base / Q64
-            result = result * current_base / q64_256;
+            result = result.saturating_mul(current_base) / q64_256;
+            // Check for underflow to zero
+            if result.is_zero() {
+                return if is_negative { None } else { Some(0) };
+            }
         }
         // current_base = current_base * current_base / Q64
-        current_base = current_base * current_base / q64_256;
+        current_base = current_base.saturating_mul(current_base) / q64_256;
+        // Check for overflow (value too large for u128)
+        if current_base > U256::from(u128::MAX) {
+            return None;
+        }
         remaining_exp >>= 1;
     }
     
     // Convert back to u128
     if is_negative {
         // For negative exponents: 1/result = Q64^2 / result
-        let q64_squared = q64_256 * q64_256;
+        if result.is_zero() {
+            return None; // Division by zero
+        }
+        let q64_squared = q64_256.saturating_mul(q64_256);
         let inv = q64_squared / result;
-        Some(inv.try_into().ok()?)
+        if inv > U256::from(u128::MAX) {
+            return None;
+        }
+        Some(inv.as_u128())
     } else {
-        Some(result.try_into().ok()?)
+        if result > U256::from(u128::MAX) {
+            return None;
+        }
+        Some(result.as_u128())
     }
 }
 

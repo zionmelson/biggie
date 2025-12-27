@@ -79,8 +79,30 @@ pub fn parse_transaction(
     
     let mut swaps = Vec::new();
     
+    // Log program IDs being called for debugging (sample 1% of txs)
+    static LOG_COUNTER: std::sync::atomic::AtomicU64 = std::sync::atomic::AtomicU64::new(0);
+    let count = LOG_COUNTER.fetch_add(1, std::sync::atomic::Ordering::Relaxed);
+    let should_log = count % 100 == 0;
+    
     // Iterate through instructions looking for swaps
     for (idx, instruction) in message.instructions().iter().enumerate() {
+        // Check if this is a DEX program
+        if let Some(program_id) = account_keys.get(instruction.program_id_index as usize) {
+            if should_log {
+                use super::programs::{get_dex_type, is_swap_instruction};
+                let is_dex = get_dex_type(program_id).is_some();
+                let is_swap = is_swap_instruction(program_id, &instruction.data);
+                if is_dex {
+                    tracing::info!(
+                        program = %program_id,
+                        is_swap,
+                        data_len = instruction.data.len(),
+                        "DEX program called in transaction"
+                    );
+                }
+            }
+        }
+        
         if let Some(swap) = parse_instruction(instruction, &account_keys, &user, idx) {
             swaps.push(swap);
         }

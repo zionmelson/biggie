@@ -112,9 +112,9 @@ fn calculate_constant_product(
     let out_reserve_128 = output_reserve as u128;
 
     // output = (output_reserve * input_amount) / (input_reserve + input_amount)
-    let numerator = out_reserve_128 * input_128;
-    let denominator = in_reserve_128 + input_128;
-    let output_amount = (numerator / denominator) as u64;
+    let numerator = out_reserve_128.saturating_mul(input_128);
+    let denominator = in_reserve_128.saturating_add(input_128);
+    let output_amount = if denominator == 0 { 0 } else { (numerator / denominator) as u64 };
 
     // Effective price after trade
     let effective_price = if input_amount > 0 {

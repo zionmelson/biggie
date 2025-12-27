@@ -266,5 +266,8 @@
       "min_borrow": 100000
     }
   },
-  "lookup_tables": []
+  "lookup_tables": [
+    {"label": "arb_alt_1", "address": "2qn2yW2jimNJhNCfKdFh2asGDZtGiHyNwiM6DAmRy75L"},
+    {"label": "arb_alt_2", "address": "FGXZ1kQm66M8cX8rN5sXgP8hHm3wi96bpnULqLbzAxz5"}
+  ]
 }

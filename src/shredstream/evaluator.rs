@@ -911,13 +911,28 @@ impl ArbEvaluator {
                 continue;
             }
 
-            // Find optimal pure arb
-            let arb_result = find_optimal_pure_arb_unified(
-                &pool_a_sim,
-                &pool_b_sim,
-                max_trade,
-                30, // 0.3% flash loan fee
-            );
+            // Find optimal pure arb (wrapped in catch_unwind to handle math overflows)
+            let arb_result = std::panic::catch_unwind(std::panic::AssertUnwindSafe(|| {
+                find_optimal_pure_arb_unified(
+                    &pool_a_sim,
+                    &pool_b_sim,
+                    max_trade,
+                    30, // 0.3% flash loan fee
+                )
+            }));
+            
+            let arb_result = match arb_result {
+                Ok(result) => result,
+                Err(_) => {
+                    // Math overflow or panic - skip this pair
+                    tracing::trace!(
+                        pool_a = %updated_pool,
+                        pool_b = %alt_pool_addr,
+                        "Pure arb calc panicked (likely math overflow), skipping"
+                    );
+                    continue;
+                }
+            };
 
             if let Some(result) = arb_result {
                 // Apply slippage buffer

@@ -12,8 +12,8 @@
       "fee_bps": 25,
       "spacing": 0,
       "_comment": "Meteora JUP/SOL DAMM",
-      "base_reserve": 4418127659,
-      "quote_reserve": 3312151814
+      "base_reserve": 4414295076,
+      "quote_reserve": 3318868437
     },
     {
       "address": "CGPxT5d1uf9a8cKVJuZaJAU76t2EfLGbTmRbfvLLZp5j",
@@ -27,8 +27,8 @@
       "fee_bps": 25,
       "spacing": 0,
       "_comment": "Meteora SOL/USDC DAMM",
-      "base_reserve": 64256142586,
-      "quote_reserve": 6302684554
+      "base_reserve": 63907381309,
+      "quote_reserve": 6345682393
     },
     {
       "address": "Ft8FD9gg1TdawhWijNzdkpYTiVL8ETfY6gAwS24bwYio",
@@ -42,8 +42,8 @@
       "fee_bps": 25,
       "spacing": 0,
       "_comment": "Meteora SOL/USDC DAMM",
-      "base_reserve": 15596632987,
-      "quote_reserve": 1958223687
+      "base_reserve": 15573647235,
+      "quote_reserve": 1966936677
     },
     {
       "address": "8Pm2kZpnxD3hoMmt4bjStX2Pw2Z9abpbHzZxMPqxPmie",
@@ -57,8 +57,8 @@
       "fee_bps": 25,
       "spacing": 0,
       "_comment": "Meteora SOL/USDC DAMM",
-      "base_reserve": 37080597498293,
-      "quote_reserve": 2493855465801
+      "base_reserve": 36829499204920,
+      "quote_reserve": 2524791421502
     },
     {
       "address": "GW27NDmFXdro5y3XD7FGHcp2KqxdxR5TbjD9zMjLdVus",
@@ -72,8 +72,8 @@
       "fee_bps": 25,
       "spacing": 0,
       "_comment": "Meteora USDT/USDC DAMM",
-      "base_reserve": 1365023021,
-      "quote_reserve": 1335725217
+      "base_reserve": 1359868476,
+      "quote_reserve": 1340891732
     },
     {
       "address": "CcRnVX8whS7GjZuvXdw9SteNMiVszKHVX1AsUC2oC56k",
@@ -87,8 +87,8 @@
       "fee_bps": 25,
       "spacing": 0,
       "_comment": "Meteora jupSOL/USDC DAMM",
-      "base_reserve": 4095961344,
-      "quote_reserve": 578972867
+      "base_reserve": 4084049187,
+      "quote_reserve": 580672423
     },
     {
       "address": "7eexH14UjhNxJe6zTT3f1Vb1E8iACsBMVaWheDEmxdT2",
@@ -103,8 +103,8 @@
       "spacing": 25,
       "current_tick_or_bin": 6653,
       "_comment": "Meteora BONK/SOL DLMM",
-      "base_reserve": 189122483064428,
-      "quote_reserve": 44004208562
+      "base_reserve": 190327639274131,
+      "quote_reserve": 43235188326
     },
     {
       "address": "3L4JX6RrssAHCxuzxosPBKuh6cHt6rXXbQU5hkeEpxku",
@@ -167,8 +167,8 @@
       "spacing": 100,
       "current_tick_or_bin": 25853,
       "_comment": "Meteora BONK/SOL DLMM",
-      "base_reserve": 61646167873370,
-      "quote_reserve": 11758626120
+      "base_reserve": 61675873476362,
+      "quote_reserve": 11739841633
     },
     {
       "address": "6HntXch88ittxUN37tik5avqSPZNXkYhj5T1amfZ3EnJ",
@@ -231,8 +231,8 @@
       "spacing": 8,
       "current_tick_or_bin": 2303,
       "_comment": "Meteora BONK/SOL DLMM",
-      "base_reserve": 562110128537626,
-      "quote_reserve": 107520695614
+      "base_reserve": 604030672049763,
+      "quote_reserve": 81267782593
     },
     {
       "address": "sx7pZ2sFmZpwCZaatYojNKUfTdpb5EjwEAgNEH8KGz3",
@@ -247,8 +247,8 @@
       "spacing": 50,
       "current_tick_or_bin": 13055,
       "_comment": "Meteora BONK/SOL DLMM",
-      "base_reserve": 138257811641137,
-      "quote_reserve": 10379844530
+      "base_reserve": 140678133622314,
+      "quote_reserve": 8831793587
     },
     {
       "address": "59xpmjjPhrotF35kJsD6KMkeySxW5jz2jWtxgsRS217m",
@@ -343,8 +343,8 @@
       "spacing": 80,
       "current_tick_or_bin": 50352383,
       "_comment": "Meteora BONK/USDC DLMM",
-      "base_reserve": 332496968428116,
-      "quote_reserve": 26244814610
+      "base_reserve": 332559728166346,
+      "quote_reserve": 26240062897
     },
     {
       "address": "AJ53ZSqapCBHZnSg6AkLPBoTMHadoKPUbtaDZLVXtyCL",
@@ -375,8 +375,8 @@
       "spacing": 15,
       "current_tick_or_bin": 4090,
       "_comment": "Meteora ETH/SOL DLMM",
-      "base_reserve": 68100094,
-      "quote_reserve": 238224408995
+      "base_reserve": 86254139,
+      "quote_reserve": 222388686085
     },
     {
       "address": "BuAe7hJtwXFa7K1DhRvfULk6eHZk6EVMN55DpiwBjuc3",
@@ -391,8 +391,8 @@
       "spacing": 10,
       "current_tick_or_bin": 2814,
       "_comment": "Meteora ETH/SOL DLMM",
-      "base_reserve": 26119592,
-      "quote_reserve": 12709182567
+      "base_reserve": 30174558,
+      "quote_reserve": 11742030606
     },
     {
       "address": "3potGhhaNyzvCNq1CGh2wLbZLLMjpdPtG1Hpj8q2DDVR",
@@ -407,8 +407,8 @@
       "spacing": 4,
       "current_tick_or_bin": 1279,
       "_comment": "Meteora ETH/SOL DLMM",
-      "base_reserve": 1187918406,
-      "quote_reserve": 1146511161474
+      "base_reserve": 1582143647,
+      "quote_reserve": 1041205882501
     },
     {
       "address": "8CPypcvEBUoqAyjrpKyWa5y1V4xKh3WxUh3K9ZiDCm8u",
@@ -439,8 +439,8 @@
       "spacing": 10,
       "current_tick_or_bin": 2814,
       "_comment": "Meteora ETH/USDC DLMM",
-      "base_reserve": 291821741,
-      "quote_reserve": 5682218180
+      "base_reserve": 294293430,
+      "quote_reserve": 5610671207
     },
     {
       "address": "GjDp2sUpWxgKjpabLkmUcQBENM8iMs7dpDdB9X99zXsP",
@@ -455,8 +455,8 @@
       "spacing": 50,
       "current_tick_or_bin": 13055,
       "_comment": "Meteora ETH/USDC DLMM",
-      "base_reserve": 113475071,
-      "quote_reserve": 34825903557
+      "base_reserve": 113478392,
+      "quote_reserve": 34826067118
     },
     {
       "address": "GZcP3ANuTD15ZrYaF1RacomBKXVCCKvXYyWVDaEDqkKi",
@@ -471,8 +471,8 @@
       "spacing": 125,
       "current_tick_or_bin": 32254,
       "_comment": "Meteora JTO/SOL DLMM",
-      "base_reserve": 16933429787066,
-      "quote_reserve": 16946679244
+      "base_reserve": 16933149520964,
+      "quote_reserve": 16954949103
     },
     {
       "address": "GcpvtppeWvXqxnHgSSqbR5NbUXv5SkVZs7DXi51zkRNS",
@@ -519,8 +519,8 @@
       "spacing": 25,
       "current_tick_or_bin": 6655,
       "_comment": "Meteora JTO/USDC DLMM",
-      "base_reserve": 109433182611246,
-      "quote_reserve": 1962594853
+      "base_reserve": 109230532458591,
+      "quote_reserve": 2808437882
     },
     {
       "address": "GZvFLe5tGb21ftDeCjnSJVwgkPGv9rXRTVeTfLkYfcqY",
@@ -567,8 +567,8 @@
       "spacing": 100,
       "current_tick_or_bin": 50357503,
       "_comment": "Meteora JUP/BONK DLMM",
-      "base_reserve": 491805753,
-      "quote_reserve": 6317923844958
+      "base_reserve": 493255308,
+      "quote_reserve": 6315546757472
     },
     {
       "address": "4UcZrPsyYVaY4Rt4ebCPwEyxn1VAhw5nXhF3e3PGCB4v",
@@ -583,8 +583,8 @@
       "spacing": 200,
       "current_tick_or_bin": 51452,
       "_comment": "Meteora JUP/BONK DLMM",
-      "base_reserve": 395538255139,
-      "quote_reserve": 819627202940432
+      "base_reserve": 378541947473,
+      "quote_reserve": 861112690343334
     },
     {
       "address": "2QrWsSWrGvoAqkDC5XSGqjS752RWLaopqAaGrbugSxBL",
@@ -599,8 +599,8 @@
       "spacing": 200,
       "current_tick_or_bin": 51455,
       "_comment": "Meteora JUP/JitoSOL DLMM",
-      "base_reserve": 928549287971,
-      "quote_reserve": 1861426878457
+      "base_reserve": 928543607773,
+      "quote_reserve": 1861413488100
     },
     {
       "address": "GRTWQB49Ctx1LzsLiYWX22w4quAarDJmjtJ8NFb2f9J1",
@@ -647,8 +647,8 @@
       "spacing": 20,
       "current_tick_or_bin": 5374,
       "_comment": "Meteora JUP/SOL DLMM",
-      "base_reserve": 182647412862,
-      "quote_reserve": 3456228607
+      "base_reserve": 182647908263,
+      "quote_reserve": 3455631828
     },
     {
       "address": "HdsFGjjY46twFKjqHqUyT2bnRS4XCo1HaExts5CSNprU",
@@ -663,8 +663,8 @@
       "spacing": 15,
       "current_tick_or_bin": 4095,
       "_comment": "Meteora JUP/SOL DLMM",
-      "base_reserve": 79573724699,
-      "quote_reserve": 29487448192
+      "base_reserve": 79572992298,
+      "quote_reserve": 29496579527
     },
     {
       "address": "Eio6hAieGTAmKgfvbEfbnXke6o5kfEd74tqHm2Z9SFjf",
@@ -679,8 +679,8 @@
       "spacing": 4,
       "current_tick_or_bin": 1279,
       "_comment": "Meteora JUP/SOL DLMM",
-      "base_reserve": 75358669052,
-      "quote_reserve": 78476741930
+      "base_reserve": 74592555863,
+      "quote_reserve": 119999882123
     },
     {
       "address": "AYodcswHgVL8BVFo78y3jymdhUEYmPop51ksqgSRR6Q6",
@@ -791,8 +791,8 @@
       "spacing": 80,
       "current_tick_or_bin": 20735,
       "_comment": "Meteora JUP/SOL DLMM",
-      "base_reserve": 3078589343073,
-      "quote_reserve": 5110503687258
+      "base_reserve": 2973102958824,
+      "quote_reserve": 5285948710531
     },
     {
       "address": "8EFwNNGbEK5PgzLPL6gS56emh6LDcRmzPGxNPiWdu7wK",
@@ -823,8 +823,8 @@
       "spacing": 80,
       "current_tick_or_bin": 20735,
       "_comment": "Meteora JUP/SOL DLMM",
-      "base_reserve": 8659223297,
-      "quote_reserve": 1463018906
+      "base_reserve": 8659317558,
+      "quote_reserve": 1463174483
     },
     {
       "address": "8ZBbyDGErfqvY65fRZnm6dtQBe3REuAPqzRN7819fzeW",
@@ -903,8 +903,8 @@
       "spacing": 125,
       "current_tick_or_bin": 32255,
       "_comment": "Meteora JUP/SOL DLMM",
-      "base_reserve": 17529519516,
-      "quote_reserve": 13220744882
+      "base_reserve": 17529690525,
+      "quote_reserve": 13221026694
     },
     {
       "address": "7ZW4JsTZeuogmiJHMPtwxZXYYkKYVzYUGUdjbqutRcQK",
@@ -967,8 +967,8 @@
       "spacing": 10,
       "current_tick_or_bin": 2815,
       "_comment": "Meteora JUP/USDC DLMM",
-      "base_reserve": 74310354534,
-      "quote_reserve": 2060063531
+      "base_reserve": 73989043445,
+      "quote_reserve": 2125270123
     },
     {
       "address": "HHMcXebyUakhxnZavV9LBspv8SgsphoEbfhCjz8xPGe1",
@@ -983,8 +983,8 @@
       "spacing": 100,
       "current_tick_or_bin": 25854,
       "_comment": "Meteora JUP/USDC DLMM",
-      "base_reserve": 221040841246,
-      "quote_reserve": 16906878007
+      "base_reserve": 218881757469,
+      "quote_reserve": 17339756463
     },
     {
       "address": "HyhMt7jPKJ1LLXQTm5wjf5f4kWqAeTeKQZvMq8TtZnPV",
@@ -999,8 +999,8 @@
       "spacing": 80,
       "current_tick_or_bin": 20735,
       "_comment": "Meteora JUP/USDC DLMM",
-      "base_reserve": 64185448209,
-      "quote_reserve": 2731281343
+      "base_reserve": 64122745470,
+      "quote_reserve": 2743992080
     },
     {
       "address": "GhZtugCqUskpDPiuB5zJPxabxpZZKuPZmAQtfSDB3jpZ",
@@ -1127,8 +1127,8 @@
       "spacing": 50,
       "current_tick_or_bin": 13053,
       "_comment": "Meteora JUP/USDC DLMM",
-      "base_reserve": 245677268576,
-      "quote_reserve": 25205806810
+      "base_reserve": 243181955481,
+      "quote_reserve": 25809970702
     },
     {
       "address": "Xyb1mSNAtwWWt8nDsg3XX8xuuGtyaq2LHPD2hECbvSo",
@@ -1207,8 +1207,8 @@
       "spacing": 1,
       "current_tick_or_bin": 508,
       "_comment": "Meteora JUP/USDC DLMM",
-      "base_reserve": 1000853281410,
-      "quote_reserve": 435852708
+      "base_reserve": 758560204,
+      "quote_reserve": 420826568
     },
     {
       "address": "BfxJcifavkCgznhvAtLsBHQpyNwaTMs2cR986qbH4fPh",
@@ -1239,8 +1239,8 @@
       "spacing": 200,
       "current_tick_or_bin": 51454,
       "_comment": "Meteora JUP/WEN DLMM",
-      "base_reserve": 38124434904,
-      "quote_reserve": 287212646876672
+      "base_reserve": 34400240414,
+      "quote_reserve": 300177840236256
     },
     {
       "address": "6cDtJkcJKFEsGDhptmgvy3XtbwyRqnW3GoGcmnwVzJ7U",
@@ -1255,8 +1255,8 @@
       "spacing": 200,
       "current_tick_or_bin": 51455,
       "_comment": "Meteora JUP/bSOL DLMM",
-      "base_reserve": 517893063974,
-      "quote_reserve": 987001998317
+      "base_reserve": 517900480733,
+      "quote_reserve": 987011608387
     },
     {
       "address": "67kn7dbRuvaGSnTqdegwFAc9p1yPNN9LMJd4qDuo6kfG",
@@ -1287,8 +1287,8 @@
       "spacing": 1,
       "current_tick_or_bin": 510,
       "_comment": "Meteora JitoSOL/SOL DLMM",
-      "base_reserve": 11542778651146,
-      "quote_reserve": 34106309561487
+      "base_reserve": 11538211395521,
+      "quote_reserve": 34052201101047
     },
     {
       "address": "Fyk231bsexgwpyRF7XNtK5Q4HenXPf8gRxL7fnvkYKg7",
@@ -1303,8 +1303,8 @@
       "spacing": 8,
       "current_tick_or_bin": 2302,
       "_comment": "Meteora JitoSOL/SOL DLMM",
-      "base_reserve": 458007861,
-      "quote_reserve": 18540741850
+      "base_reserve": 457998522,
+      "quote_reserve": 18540758117
     },
     {
       "address": "Dbw9ZAYSm5NKBnQK33y43Si1LGgjQ2i1bTgXPrsUpSff",
@@ -1495,8 +1495,8 @@
       "spacing": 200,
       "current_tick_or_bin": 51452,
       "_comment": "Meteora POPCAT/WEN DLMM",
-      "base_reserve": 375738671858,
-      "quote_reserve": 1002546728864
+      "base_reserve": 357441675910,
+      "quote_reserve": 1028156529939
     },
     {
       "address": "8eMwNC5sVsD3Mp5C1HCCVSGGaphi8riqqxb2XDDi3rHv",
@@ -1607,8 +1607,8 @@
       "spacing": 50,
       "current_tick_or_bin": 13053,
       "_comment": "Meteora PYTH/USDC DLMM",
-      "base_reserve": 22395828242,
-      "quote_reserve": 993152516
+      "base_reserve": 23069199577,
+      "quote_reserve": 953292586
     },
     {
       "address": "7qnkr7EQJjwKbQyemdMKiemXDjyri4C54Z9JMakMWey2",
@@ -1655,8 +1655,8 @@
       "spacing": 50,
       "current_tick_or_bin": 13054,
       "_comment": "Meteora SOL/ETH DLMM",
-      "base_reserve": 208289518415,
-      "quote_reserve": 110491229
+      "base_reserve": 208156696241,
+      "quote_reserve": 111052830
     },
     {
       "address": "8nGw9VHzwTBLcAfxWYnFLWbind4tJPSAXiq8nB89mx9d",
@@ -1703,8 +1703,8 @@
       "spacing": 4,
       "current_tick_or_bin": 1279,
       "_comment": "Meteora SOL/USDC DLMM",
-      "base_reserve": 17571667739760,
-      "quote_reserve": 485301056582
+      "base_reserve": 16659543209296,
+      "quote_reserve": 570130289756
     },
     {
       "address": "8gJ7UWboMeQ6z6AQwFP3cAZwSYG8udVS2UesyCbH79r7",
@@ -1735,8 +1735,8 @@
       "spacing": 80,
       "current_tick_or_bin": 20735,
       "_comment": "Meteora SOL/USDC DLMM",
-      "base_reserve": 7816912432694,
-      "quote_reserve": 375216342369
+      "base_reserve": 8027641320527,
+      "quote_reserve": 387415221800
     },
     {
       "address": "9fjLVCpbHRHtGNyVGiuiq2jitSCc3vzyScAdYRtsRUe6",
@@ -1751,8 +1751,8 @@
       "spacing": 100,
       "current_tick_or_bin": 25855,
       "_comment": "Meteora SOL/USDC DLMM",
-      "base_reserve": 22065624766,
-      "quote_reserve": 489824873
+      "base_reserve": 22057306597,
+      "quote_reserve": 490849352
     },
     {
       "address": "DJJzSUx5gEqDJhTyE8tvZtkkHG7R7v6EoyZXN32aAsXF",
@@ -1767,8 +1767,8 @@
       "spacing": 15,
       "current_tick_or_bin": 4095,
       "_comment": "Meteora SOL/USDC DLMM",
-      "base_reserve": 47501833613,
-      "quote_reserve": 1436702916
+      "base_reserve": 47499801891,
+      "quote_reserve": 1436953726
     },
     {
       "address": "sZxb9vrxJBpFiJBogovhfkYqfapVzveLEU4TmzWv4GN",
@@ -1783,8 +1783,8 @@
       "spacing": 80,
       "current_tick_or_bin": 20735,
       "_comment": "Meteora SOL/USDC DLMM",
-      "base_reserve": 321159421022,
-      "quote_reserve": 3857265106
+      "base_reserve": 321163039616,
+      "quote_reserve": 3857710454
     },
     {
       "address": "5DLLzhC3o53safWkHjkYDVkabBZ1tzfpyXVj1gBrTtr6",
@@ -1799,8 +1799,8 @@
       "spacing": 100,
       "current_tick_or_bin": 25855,
       "_comment": "Meteora SOL/USDC DLMM",
-      "base_reserve": 875998384409,
-      "quote_reserve": 5128435847
+      "base_reserve": 877397628588,
+      "quote_reserve": 5254835903
     },
     {
       "address": "8zzQv7m3M1JaMUCaQGwCTgyzW9BG9RhQ4X9G1hkFekxb",
@@ -1831,8 +1831,8 @@
       "spacing": 30,
       "current_tick_or_bin": 7934,
       "_comment": "Meteora SOL/USDC DLMM",
-      "base_reserve": 1037618496200,
-      "quote_reserve": 4279815311
+      "base_reserve": 1037156210523,
+      "quote_reserve": 4337204170
     },
     {
       "address": "2L47gbUzGsnJZqRzfny4b3VWvKBnMRTMeNH3uzFrj6ko",
@@ -1847,8 +1847,8 @@
       "spacing": 80,
       "current_tick_or_bin": 20735,
       "_comment": "Meteora SOL/USDC DLMM",
-      "base_reserve": 22803651160,
-      "quote_reserve": 530906617
+      "base_reserve": 22802601537,
+      "quote_reserve": 531062162
     },
     {
       "address": "4Q9JruogigCGhDdGyW9ijqpFejq1AjGbB7kRiBaTaicu",
@@ -1863,8 +1863,8 @@
       "spacing": 100,
       "current_tick_or_bin": 25855,
       "_comment": "Meteora SOL/USDC DLMM",
-      "base_reserve": 103196702214,
-      "quote_reserve": 81332497
+      "base_reserve": 101122953799,
+      "quote_reserve": 336930412
     },
     {
       "address": "FK3xj3tMeX7ziVNG7mEDi6Ej6UrQAJ68MaBvbL7qVkUA",
@@ -1911,8 +1911,8 @@
       "spacing": 200,
       "current_tick_or_bin": 51452,
       "_comment": "Meteora SOL/USDC DLMM",
-      "base_reserve": 103194289629,
-      "quote_reserve": 6576777244
+      "base_reserve": 103191465155,
+      "quote_reserve": 6577130505
     },
     {
       "address": "BVRbyLjjfSBcoyiYFuxbgKYnWuiFaF9CSXEa5vdSZ9Hh",
@@ -1927,8 +1927,8 @@
       "spacing": 20,
       "current_tick_or_bin": 5372,
       "_comment": "Meteora SOL/USDC DLMM",
-      "base_reserve": 33518841920756,
-      "quote_reserve": 1526129481021
+      "base_reserve": 32729001622201,
+      "quote_reserve": 1632518777774
     },
     {
       "address": "3DupsT51RJp3z3yoAcwsXoBgFZitFo7fdRfgW6ZqDN3Z",
@@ -1959,8 +1959,8 @@
       "spacing": 80,
       "current_tick_or_bin": 20734,
       "_comment": "Meteora SOL/USDC DLMM",
-      "base_reserve": 422123406253,
-      "quote_reserve": 531260674
+      "base_reserve": 422123482723,
+      "quote_reserve": 531270174
     },
     {
       "address": "DNkZFw1VF36K15yoDvgY2QmrDiwrLP5y1DcMEHEPPa1Q",
@@ -1991,8 +1991,8 @@
       "spacing": 75,
       "current_tick_or_bin": 19455,
       "_comment": "Meteora SOL/USDC DLMM",
-      "base_reserve": 1511608547454,
-      "quote_reserve": 29758651036
+      "base_reserve": 1511466658052,
+      "quote_reserve": 29774631181
     },
     {
       "address": "BGm1tav58oGcsQJehL9WXBFXF7D27vZsKefj4xJKD5Y",
@@ -2007,8 +2007,8 @@
       "spacing": 10,
       "current_tick_or_bin": 2815,
       "_comment": "Meteora SOL/USDC DLMM",
-      "base_reserve": 40568738745224,
-      "quote_reserve": 916448065637
+      "base_reserve": 38756172965860,
+      "quote_reserve": 1069028918211
     },
     {
       "address": "CR2kQQcALb9FpA5y5KA7oa3Kf1kZ63Tz6uSQyG2yzPc6",
@@ -2023,8 +2023,8 @@
       "spacing": 25,
       "current_tick_or_bin": 6654,
       "_comment": "Meteora SOL/USDC DLMM",
-      "base_reserve": 46881095420,
-      "quote_reserve": 1858681084
+      "base_reserve": 45680741857,
+      "quote_reserve": 1816726078
     },
     {
       "address": "4YVLUZGEhsjfsWuxRbo6h18vL297HYRHTrLVE8bwpyCW",
@@ -2039,8 +2039,8 @@
       "spacing": 16,
       "current_tick_or_bin": 4351,
       "_comment": "Meteora SOL/USDC DLMM",
-      "base_reserve": 92673621013,
-      "quote_reserve": 4025077250
+      "base_reserve": 92668039843,
+      "quote_reserve": 4025783466
     },
     {
       "address": "8M6hydDhfZJyaVcsstFUoGD4qae9VUdPrDCr1WXJM9hj",
@@ -2071,8 +2071,8 @@
       "spacing": 8,
       "current_tick_or_bin": 2303,
       "_comment": "Meteora SOL/USDC DLMM",
-      "base_reserve": 131277928605,
-      "quote_reserve": 38701424431
+      "base_reserve": 130639178022,
+      "quote_reserve": 38780108009
     },
     {
       "address": "En2cZdXy71xDqqYRmkA6NdZpSZvVPgsomAspL6Nz7wvB",
@@ -2087,8 +2087,8 @@
       "spacing": 400,
       "current_tick_or_bin": 102655,
       "_comment": "Meteora SOL/USDC DLMM",
-      "base_reserve": 114117123607,
-      "quote_reserve": 1614060646
+      "base_reserve": 114117148361,
+      "quote_reserve": 1614063743
     },
     {
       "address": "3WHNf55iBawfL7U1cC4Htj11KKmC8hvrrbdM31yPUr4C",
@@ -2151,8 +2151,8 @@
       "spacing": 50,
       "current_tick_or_bin": 13055,
       "_comment": "Meteora SOL/USDC DLMM",
-      "base_reserve": 1640402726791,
-      "quote_reserve": 20601302927
+      "base_reserve": 1640166894974,
+      "quote_reserve": 20630466700
     },
     {
       "address": "FFw4E781rX7TV21gw5Au6xrpmjxFsTHvkbpVBPyCGRXe",
@@ -2199,8 +2199,8 @@
       "spacing": 50,
       "current_tick_or_bin": 13054,
       "_comment": "Meteora SOL/USDC DLMM",
-      "base_reserve": 1404048913456,
-      "quote_reserve": 24695426864
+      "base_reserve": 1400729832170,
+      "quote_reserve": 25091733108
     },
     {
       "address": "2sf5NYcY4zUPXUSmG6f66mskb24t5F8S11pC1Nz5nQT3",
@@ -2215,8 +2215,8 @@
       "spacing": 100,
       "current_tick_or_bin": 25855,
       "_comment": "Meteora SOL/USDC DLMM",
-      "base_reserve": 74004998856,
-      "quote_reserve": 2033260733
+      "base_reserve": 73945866910,
+      "quote_reserve": 2037294298
     },
     {
       "address": "HTvjzsfX3yU6BUodCjZ5vZkUrAxMDTrBs3CJaq43ashR",
@@ -2231,8 +2231,8 @@
       "spacing": 1,
       "current_tick_or_bin": 511,
       "_comment": "Meteora SOL/USDC DLMM",
-      "base_reserve": 3625340534361,
-      "quote_reserve": 114411142947
+      "base_reserve": 3378955995400,
+      "quote_reserve": 142568308075
     },
     {
       "address": "3D9MyL5iD9uqbe2FYvivHsywHWr3nJR1krEcEWXUCGzr",
@@ -2247,8 +2247,8 @@
       "spacing": 50,
       "current_tick_or_bin": 50344702,
       "_comment": "Meteora SOL/USDC DLMM",
-      "base_reserve": 322504969669,
-      "quote_reserve": 35123392329
+      "base_reserve": 317701856242,
+      "quote_reserve": 35708325390
     },
     {
       "address": "3msVd34R5KxonDzyNSV5nT19UtUeJ2RF1NaQhvVPNLxL",
@@ -2263,8 +2263,8 @@
       "spacing": 8,
       "current_tick_or_bin": 16779519,
       "_comment": "Meteora SOL/USDC DLMM",
-      "base_reserve": 26008491950,
-      "quote_reserve": 1056665801
+      "base_reserve": 26008511913,
+      "quote_reserve": 1056668220
     },
     {
       "address": "35zLRKDhRYqQaajzcBYp5A9Z3uA7TuEmxpYzyokPoxbf",
@@ -2295,8 +2295,8 @@
       "spacing": 16,
       "current_tick_or_bin": 4351,
       "_comment": "Meteora SOL/USDC DLMM",
-      "base_reserve": 254067533378,
-      "quote_reserve": 9736884170
+      "base_reserve": 241738886984,
+      "quote_reserve": 11077441999
     },
     {
       "address": "627kqiAtYNE4FFKtUcnR9nmDqqCZnQue2ALYRQtnziLR",
@@ -2311,8 +2311,8 @@
       "spacing": 100,
       "current_tick_or_bin": 25854,
       "_comment": "Meteora SOL/USDC DLMM",
-      "base_reserve": 116114598218,
-      "quote_reserve": 3185098923
+      "base_reserve": 115869505376,
+      "quote_reserve": 3215249368
     },
     {
       "address": "DJFoQN5yNVtoEhoXiKqmYFXowQcPJSvB3BAavEcdEi7s",
@@ -2343,8 +2343,8 @@
       "spacing": 5,
       "current_tick_or_bin": 50333182,
       "_comment": "Meteora SOL/USDC DLMM",
-      "base_reserve": 34857121435,
-      "quote_reserve": 3841788755
+      "base_reserve": 34242110961,
+      "quote_reserve": 3917616533
     },
     {
       "address": "EdEU6L2yLbXC78fdpruEFWubK7AQUGSjTNummi5zJRyY",
@@ -2359,8 +2359,8 @@
       "spacing": 125,
       "current_tick_or_bin": 32255,
       "_comment": "Meteora SOL/USDC DLMM",
-      "base_reserve": 276312430720,
-      "quote_reserve": 7982084043
+      "base_reserve": 273266619687,
+      "quote_reserve": 8350128310
     },
     {
       "address": "GGPddKCWYxU9tgatkq3gZqcVBaitdTEi3EWURAXAEoaA",
@@ -2423,8 +2423,8 @@
       "spacing": 50,
       "current_tick_or_bin": 13054,
       "_comment": "Meteora SOL/USDC DLMM",
-      "base_reserve": 1678326346283,
-      "quote_reserve": 15502999300
+      "base_reserve": 1671404808523,
+      "quote_reserve": 16343190310
     },
     {
       "address": "1jw5fDodwGEGBVqNXsx2eqiLgNmgMDEeXWSbrTreLCM",
@@ -2455,8 +2455,8 @@
       "spacing": 200,
       "current_tick_or_bin": 51454,
       "_comment": "Meteora SOL/USDC DLMM",
-      "base_reserve": 112604748026,
-      "quote_reserve": 4467951596
+      "base_reserve": 109673415573,
+      "quote_reserve": 4823632429
     },
     {
       "address": "34tu7kfp9W6qks6h6MAKgMS9wfDk3SsVwXf5H6Z2kd5k",
@@ -2471,8 +2471,8 @@
       "spacing": 50,
       "current_tick_or_bin": 13055,
       "_comment": "Meteora SOL/USDT DLMM",
-      "base_reserve": 100167209864,
-      "quote_reserve": 1399804305
+      "base_reserve": 100112705987,
+      "quote_reserve": 1406579819
     },
     {
       "address": "GjHe4bnJbffBcVmHKqbmRNXo8p2t6SHNQiJhFqnBa65z",
@@ -2503,8 +2503,8 @@
       "spacing": 50,
       "current_tick_or_bin": 13053,
       "_comment": "Meteora SOL/USDT DLMM",
-      "base_reserve": 53811469931,
-      "quote_reserve": 3943155839
+      "base_reserve": 53467871756,
+      "quote_reserve": 3985610593
     },
     {
       "address": "U6SYYQFh51vS47KjVjvk1fyqbS5aihuuEcA6Xz3wzti",
@@ -2551,8 +2551,8 @@
       "spacing": 80,
       "current_tick_or_bin": 20734,
       "_comment": "Meteora SOL/USDT DLMM",
-      "base_reserve": 30827280494,
-      "quote_reserve": 3438558944
+      "base_reserve": 30827523870,
+      "quote_reserve": 3438588898
     },
     {
       "address": "5domNPUHdX2rkiLT1gtYKsHgtz2PTTuBhadQVk2zWqGC",
@@ -2631,8 +2631,8 @@
       "spacing": 20,
       "current_tick_or_bin": 5374,
       "_comment": "Meteora TRUMP/SOL DLMM",
-      "base_reserve": 22338816341,
-      "quote_reserve": 12270065073
+      "base_reserve": 22340022073,
+      "quote_reserve": 12224011613
     },
     {
       "address": "9zDSoj1hm6XEtEqADiJA1FnEjrZpCYERk3uWCdqsRKt4",
@@ -2743,8 +2743,8 @@
       "spacing": 10,
       "current_tick_or_bin": 2815,
       "_comment": "Meteora TRUMP/SOL DLMM",
-      "base_reserve": 14819594131,
-      "quote_reserve": 90352467132
+      "base_reserve": 14583624543,
+      "quote_reserve": 99803475609
     },
     {
       "address": "3DDBu1BGiYTYbCqvKRHJCMQngLNSJCrHffBEFnPUWf2d",
@@ -2791,8 +2791,8 @@
       "spacing": 80,
       "current_tick_or_bin": 20734,
       "_comment": "Meteora TRUMP/SOL DLMM",
-      "base_reserve": 3143334953,
-      "quote_reserve": 6937078009
+      "base_reserve": 3186322916,
+      "quote_reserve": 5230257358
     },
     {
       "address": "5BJpnniJB9rGPYXrv3k3RvdcUbPbqkbkXNWUefCkwKi",
@@ -2871,8 +2871,8 @@
       "spacing": 50,
       "current_tick_or_bin": 13052,
       "_comment": "Meteora TRUMP/USDC DLMM",
-      "base_reserve": 23029306578820,
-      "quote_reserve": 75313898160835
+      "base_reserve": 22743459420640,
+      "quote_reserve": 76720460864705
     },
     {
       "address": "86RyHcpAF5VJhajsnAkaqBZmU6Bg6FVoTDmhgodfJjra",
@@ -2887,8 +2887,8 @@
       "spacing": 100,
       "current_tick_or_bin": 25855,
       "_comment": "Meteora TRUMP/USDC DLMM",
-      "base_reserve": 493781010,
-      "quote_reserve": 816986791
+      "base_reserve": 493786501,
+      "quote_reserve": 817015634
     },
     {
       "address": "A8nPhpCJqtqHdqUk35Uj9Hy2YsGXFkCZGuNwvkD3k7VC",
@@ -2919,8 +2919,8 @@
       "spacing": 10,
       "current_tick_or_bin": 2814,
       "_comment": "Meteora TRUMP/USDC DLMM",
-      "base_reserve": 2093388354943,
-      "quote_reserve": 4205970734044
+      "base_reserve": 2090555234069,
+      "quote_reserve": 4236320706943
     },
     {
       "address": "GXWeNqSoJ7YChXDVG36TCRBZDstwWsNJQpKvdZxp466g",
@@ -3031,8 +3031,8 @@
       "spacing": 80,
       "current_tick_or_bin": 20734,
       "_comment": "Meteora USDC/SOL DLMM",
-      "base_reserve": 671232400,
-      "quote_reserve": 11411238719
+      "base_reserve": 688793260,
+      "quote_reserve": 11784981810
     },
     {
       "address": "7zwc5JuKuyhgc1VELA59KGAY2xmd3HZGwJNLCfHXZP99",
@@ -3063,8 +3063,8 @@
       "spacing": 100,
       "current_tick_or_bin": 25855,
       "_comment": "Meteora USDC/SOL DLMM",
-      "base_reserve": 138856925594,
-      "quote_reserve": 2052772488798
+      "base_reserve": 139491709605,
+      "quote_reserve": 2047561613496
     },
     {
       "address": "6UrLw8KWURomjwnhszvA59mqjzLmbcejNTDFAfQJjq4u",
@@ -3079,8 +3079,8 @@
       "spacing": 200,
       "current_tick_or_bin": 51455,
       "_comment": "Meteora USDC/SOL DLMM",
-      "base_reserve": 655310521,
-      "quote_reserve": 33465724328
+      "base_reserve": 655414768,
+      "quote_reserve": 33464899510
     },
     {
       "address": "7pw8khNqJrs6zf98wQJ4npHpwGaiJxa6p8D9qHiF2S21",
@@ -3095,8 +3095,8 @@
       "spacing": 150,
       "current_tick_or_bin": 38654,
       "_comment": "Meteora USDC/SOL DLMM",
-      "base_reserve": 1938658664,
-      "quote_reserve": 134767054825
+      "base_reserve": 2464341933,
+      "quote_reserve": 130251071201
     },
     {
       "address": "F5Lb1Hamu7SBA3fPDwmajtACqaYNLrk4AQ8h8aL5936g",
@@ -3111,8 +3111,8 @@
       "spacing": 5,
       "current_tick_or_bin": 1535,
       "_comment": "Meteora USDC/SOL DLMM",
-      "base_reserve": 802019505,
-      "quote_reserve": 10023327117
+      "base_reserve": 835470150,
+      "quote_reserve": 9975138751
     },
     {
       "address": "F4eV7X2tk6SEkbg86T36mMbqCzdECKLKiXe3MNBvn7Zy",
@@ -3127,8 +3127,8 @@
       "spacing": 80,
       "current_tick_or_bin": 20731,
       "_comment": "Meteora USDC/SOL DLMM",
-      "base_reserve": 355826844,
-      "quote_reserve": 3917719168
+      "base_reserve": 355887075,
+      "quote_reserve": 3918206228
     },
     {
       "address": "3SFQjmDsi5NsjJeZfz7fgJ6VddX3TcuZkv2eUibWJN8N",
@@ -3191,8 +3191,8 @@
       "spacing": 5,
       "current_tick_or_bin": 1533,
       "_comment": "Meteora USDC/SOL DLMM",
-      "base_reserve": 1146166525,
-      "quote_reserve": 36132211613
+      "base_reserve": 1146933636,
+      "quote_reserve": 36125954461
     },
     {
       "address": "9RrL3knuK8WCVnt2dBYDXGkLFN8ei6Uk6PbdLpq1FU1b",
@@ -3223,8 +3223,8 @@
       "spacing": 2,
       "current_tick_or_bin": 767,
       "_comment": "Meteora USDC/USDT DLMM",
-      "base_reserve": 980431525,
-      "quote_reserve": 1105350002
+      "base_reserve": 991753677,
+      "quote_reserve": 1094025591
     },
     {
       "address": "4N41hUkrayX6duXJH8oYzybVpH3mcbG8TzoM14VXmTmh",
@@ -3239,8 +3239,8 @@
       "spacing": 5,
       "current_tick_or_bin": 1535,
       "_comment": "Meteora USDC/USDT DLMM",
-      "base_reserve": 810349475,
-      "quote_reserve": 1190785943
+      "base_reserve": 810797954,
+      "quote_reserve": 1190340110
     },
     {
       "address": "4wqG97j5vQBtGjxvK5ivoFJSofgoa36gGuNQsbyQHBE7",
@@ -3271,8 +3271,8 @@
       "spacing": 8,
       "current_tick_or_bin": 2301,
       "_comment": "Meteora USDC/USDT DLMM",
-      "base_reserve": 1585104948,
-      "quote_reserve": 1518825413
+      "base_reserve": 1585115882,
+      "quote_reserve": 1518836148
     },
     {
       "address": "5u2VwpaX136M5kmBEnTFbEbmL77sosNfDBQBZNRxM76F",
@@ -3303,8 +3303,8 @@
       "spacing": 16,
       "current_tick_or_bin": 4347,
       "_comment": "Meteora USDC/USDT DLMM",
-      "base_reserve": 2174564072,
-      "quote_reserve": 6082057401
+      "base_reserve": 2174562828,
+      "quote_reserve": 6082058660
     },
     {
       "address": "FcjjezXg8afwpVWxdVcXALLkqSXAAoGLuWaS6LmtNoZG",
@@ -3319,8 +3319,8 @@
       "spacing": 10,
       "current_tick_or_bin": 2815,
       "_comment": "Meteora USDC/USDT DLMM",
-      "base_reserve": 1719196373,
-      "quote_reserve": 1835123039
+      "base_reserve": 1719229584,
+      "quote_reserve": 1835157485
     },
     {
       "address": "BmdTFuWX5QqsFdYe8554TV45TJbGGmcThDK6ArLFHemt",
@@ -3351,8 +3351,8 @@
       "spacing": 1,
       "current_tick_or_bin": 510,
       "_comment": "Meteora USDC/USDT DLMM",
-      "base_reserve": 143953543746,
-      "quote_reserve": 298951731580
+      "base_reserve": 144373183307,
+      "quote_reserve": 297335388342
     },
     {
       "address": "4bg8UDLXEm4T6pCyoW7iUizAz9HMoxhTAtMquSXigFZu",
@@ -3367,8 +3367,8 @@
       "spacing": 5,
       "current_tick_or_bin": 1534,
       "_comment": "Meteora USDC/USDT DLMM",
-      "base_reserve": 5561180692,
-      "quote_reserve": 6445993793
+      "base_reserve": 5561229514,
+      "quote_reserve": 6445989862
     },
     {
       "address": "ANeTpNwPj4i62axSjUE4jZ7d3zvaj4sc9VFZyY1eYrtb",
@@ -3399,8 +3399,8 @@
       "spacing": 16,
       "current_tick_or_bin": 4350,
       "_comment": "Meteora USDT/SOL DLMM",
-      "base_reserve": 5278780873,
-      "quote_reserve": 30074882552
+      "base_reserve": 5285256353,
+      "quote_reserve": 30023147080
     },
     {
       "address": "D2ze4v7YYmBPfrDzA3XrFm4rvsmtDqoVJ4twdHS7QB98",
@@ -3415,8 +3415,8 @@
       "spacing": 1,
       "current_tick_or_bin": 511,
       "_comment": "Meteora USDT/USDC DLMM",
-      "base_reserve": 16098970876,
-      "quote_reserve": 6660975550
+      "base_reserve": 16042980308,
+      "quote_reserve": 6717131949
     },
     {
       "address": "A6u8tWDtSNuEyZSZufoP9TGQvuEREKnpGcNP7xUsYMKq",
@@ -3431,8 +3431,8 @@
       "spacing": 150,
       "current_tick_or_bin": 38654,
       "_comment": "Meteora WEN/SOL DLMM",
-      "base_reserve": 637597310087398,
-      "quote_reserve": 205695770534
+      "base_reserve": 662382757669478,
+      "quote_reserve": 194585915516
     },
     {
       "address": "48Nt6RDEPkW4gxBEdTZZB2AxzFMArE1nJstkDyFSgLbv",
@@ -3527,8 +3527,8 @@
       "spacing": 20,
       "current_tick_or_bin": 50337022,
       "_comment": "Meteora WEN/SOL DLMM",
-      "base_reserve": 112855891875261,
-      "quote_reserve": 6079690934
+      "base_reserve": 54034207217595,
+      "quote_reserve": 31140000370
     },
     {
       "address": "4R9J2J4SdD72VoKBeRBkJVFpmRdWh29bTAKspkKbsquA",
@@ -3639,8 +3639,8 @@
       "spacing": 1,
       "current_tick_or_bin": 511,
       "_comment": "Meteora jupSOL/JitoSOL DLMM",
-      "base_reserve": 1127847319964,
-      "quote_reserve": 2004784055679
+      "base_reserve": 1120308577496,
+      "quote_reserve": 2011930439038
     },
     {
       "address": "bNcdL9Hy85c9qb4hRavAUFtJUiyRPh3u96jerFqZQq6",
@@ -3655,8 +3655,8 @@
       "spacing": 1,
       "current_tick_or_bin": 508,
       "_comment": "Meteora jupSOL/SOL DLMM",
-      "base_reserve": 191191138514,
-      "quote_reserve": 706511266974
+      "base_reserve": 95490045864,
+      "quote_reserve": 867015821464
     },
     {
       "address": "2c8t845Piebguzo4BoeAdhKc536L7QPDHy5UMf8MYcn1",
@@ -3687,8 +3687,8 @@
       "spacing": 1,
       "current_tick_or_bin": 511,
       "_comment": "Meteora jupSOL/mSOL DLMM",
-      "base_reserve": 3440898877,
-      "quote_reserve": 8720639496
+      "base_reserve": 3368927986,
+      "quote_reserve": 8782516597
     },
     {
       "address": "2dBPJGLgNDZnzA32452zV2u6vensbo28dveBvecDg6X1",
@@ -3703,8 +3703,8 @@
       "spacing": 1,
       "current_tick_or_bin": 509,
       "_comment": "Meteora mSOL/SOL DLMM",
-      "base_reserve": 2971402665,
-      "quote_reserve": 214565185853
+      "base_reserve": 2930409531,
+      "quote_reserve": 214620465240
     },
     {
       "address": "Ckgsi4DDinsvnUdYzQNnLPtnR9t7LEtGcJZA7jWfvwAv",
@@ -3719,8 +3719,8 @@
       "spacing": 64,
       "current_tick_or_bin": 1766780371,
       "_comment": "Orca BONK/PYTH Whirlpool",
-      "base_reserve": 1429346541814,
-      "quote_reserve": 5922469471
+      "base_reserve": 1428067756042,
+      "quote_reserve": 5924162143
     },
     {
       "address": "5P6n5omLbLbP4kaPGL8etqQAHEx2UCkaUyvjLDnwV4EY",
@@ -3735,8 +3735,8 @@
       "spacing": 128,
       "current_tick_or_bin": 1766768254,
       "_comment": "Orca BONK/USDC Whirlpool",
-      "base_reserve": 28492301216303,
-      "quote_reserve": 2133515132
+      "base_reserve": 28472220211808,
+      "quote_reserve": 2135111627
     },
     {
       "address": "8QaXeHBrShJTdtN1rWCccBxpSVvKksQ2PCu5nufb2zbk",
@@ -3751,8 +3751,8 @@
       "spacing": 64,
       "current_tick_or_bin": 1766786434,
       "_comment": "Orca BONK/USDC Whirlpool",
-      "base_reserve": 3218237635698793,
-      "quote_reserve": 18132819413
+      "base_reserve": 3218472063332154,
+      "quote_reserve": 18164016928
     },
     {
       "address": "6Qa4N6dvQYAh6oZk7dMhPqMaGHBaFP3XTVpVQQLVX4Lx",
@@ -3767,8 +3767,8 @@
       "spacing": 64,
       "current_tick_or_bin": 1766771334,
       "_comment": "Orca ETH/JitoSOL Whirlpool",
-      "base_reserve": 115810984,
-      "quote_reserve": 41570957169
+      "base_reserve": 128925727,
+      "quote_reserve": 39076649726
     },
     {
       "address": "3PREk6SjhQ2EBhYMHf8Ksg4VX1W8uRxjJNvBjcPBrgVP",
@@ -3799,8 +3799,8 @@
       "spacing": 8,
       "current_tick_or_bin": 1766789368,
       "_comment": "Orca ETH/USDC Whirlpool",
-      "base_reserve": 14475066340,
-      "quote_reserve": 89344846701
+      "base_reserve": 14362627176,
+      "quote_reserve": 88696897745
     },
     {
       "address": "E5KuHFnU2VuuZFKeghbTLazgxeni4dhQ7URE4oBtJju2",
@@ -3847,8 +3847,8 @@
       "spacing": 128,
       "current_tick_or_bin": 1766764735,
       "_comment": "Orca JTO/BONK Whirlpool",
-      "base_reserve": 3212030688512,
-      "quote_reserve": 17121948389314
+      "base_reserve": 3132634079096,
+      "quote_reserve": 17510026827508
     },
     {
       "address": "9uFggMQFraFjqKR88g4kxFxHPNEhBYPaoVzmF5fnQpyG",
@@ -3879,8 +3879,8 @@
       "spacing": 64,
       "current_tick_or_bin": 1766789289,
       "_comment": "Orca JTO/JitoSOL Whirlpool",
-      "base_reserve": 1486558574866175,
-      "quote_reserve": 2288869185238
+      "base_reserve": 1482369457617177,
+      "quote_reserve": 2300923958073
     },
     {
       "address": "4UVvSVdeth9mxpPe4nwwZseXPd2bqqDm4xVaJSve3DXw",
@@ -3895,8 +3895,8 @@
       "spacing": 128,
       "current_tick_or_bin": 1766778808,
       "_comment": "Orca JTO/JitoSOL Whirlpool",
-      "base_reserve": 111467119296810,
-      "quote_reserve": 283084812970
+      "base_reserve": 110869387404217,
+      "quote_reserve": 284584730587
     },
     {
       "address": "2NhFXQhthjH31LqyPv4JD1oDtvkX4z7Kubkxe27eHxLV",
@@ -3911,8 +3911,8 @@
       "spacing": 32896,
       "current_tick_or_bin": 1766762099,
       "_comment": "Orca JTO/JitoSOL Whirlpool",
-      "base_reserve": 686322226449,
-      "quote_reserve": 1691180092
+      "base_reserve": 684458085668,
+      "quote_reserve": 1695839485
     },
     {
       "address": "Cvg45etASWwM1E5Cy8cQapHcWcYQ2pqF5MJPSRR9nNN7",
@@ -3927,8 +3927,8 @@
       "spacing": 128,
       "current_tick_or_bin": 1766761021,
       "_comment": "Orca JTO/PYTH Whirlpool",
-      "base_reserve": 4010753516941,
-      "quote_reserve": 21190633203
+      "base_reserve": 3786442352735,
+      "quote_reserve": 22640128142
     },
     {
       "address": "93MjUKNKxazKmgS3GBX2Gj2BttEjJUyi7NYeyDHdHSc2",
@@ -3943,8 +3943,8 @@
       "spacing": 128,
       "current_tick_or_bin": 1766779201,
       "_comment": "Orca JTO/USDC Whirlpool",
-      "base_reserve": 25760175184326,
-      "quote_reserve": 11797914349
+      "base_reserve": 25559202179574,
+      "quote_reserve": 11875231955
     },
     {
       "address": "AwBhvNXf5X5hNbC1jAqrJ7Stx5xLuG97xDjJ9PNy1h65",
@@ -3959,8 +3959,8 @@
       "spacing": 64,
       "current_tick_or_bin": 1766787462,
       "_comment": "Orca JTO/USDC Whirlpool",
-      "base_reserve": 2135930999939,
-      "quote_reserve": 796967788
+      "base_reserve": 2132182873462,
+      "quote_reserve": 798407683
     },
     {
       "address": "B7dHRBwEkhPWUnzP1uNFpWTtSHKNkaT73tKiwony6Fr5",
@@ -3975,8 +3975,8 @@
       "spacing": 256,
       "current_tick_or_bin": 1766760445,
       "_comment": "Orca JUP/JTO Whirlpool",
-      "base_reserve": 865503084,
-      "quote_reserve": 859669413063
+      "base_reserve": 887207454,
+      "quote_reserve": 848368972581
     },
     {
       "address": "4y9wdkdXdiK8mu3gqFCaeRD1np1L9cL6YCvaNsL9GxRR",
@@ -4007,8 +4007,8 @@
       "spacing": 1,
       "current_tick_or_bin": 1766786720,
       "_comment": "Orca JUP/SOL Whirlpool",
-      "base_reserve": 6976037236,
-      "quote_reserve": 1212204684
+      "base_reserve": 6976192606,
+      "quote_reserve": 1211950990
     },
     {
       "address": "4h9SaY7YMVtKfTewpGFq8StWJgGdRN3gVD7XmAGCSbki",
@@ -4055,8 +4055,8 @@
       "spacing": 128,
       "current_tick_or_bin": 1766764560,
       "_comment": "Orca JUP/SOL Whirlpool",
-      "base_reserve": 122968910259,
-      "quote_reserve": 55979360397
+      "base_reserve": 122982120348,
+      "quote_reserve": 55957965551
     },
     {
       "address": "C1MgLojNLWBKADvu9BHdtgzz1oZX4dZ5zGdGcgvvW8Wz",
@@ -4071,8 +4071,8 @@
       "spacing": 8,
       "current_tick_or_bin": 1766789367,
       "_comment": "Orca JUP/SOL Whirlpool",
-      "base_reserve": 1363959993806,
-      "quote_reserve": 801135181690
+      "base_reserve": 1355616622437,
+      "quote_reserve": 818032837285
     },
     {
       "address": "EzCFMMo43qLLkYQqhLG8Kjj4UL3Dwvk2paf7yqB575KP",
@@ -4087,8 +4087,8 @@
       "spacing": 64,
       "current_tick_or_bin": 1766786808,
       "_comment": "Orca JUP/SOL Whirlpool",
-      "base_reserve": 57242279883,
-      "quote_reserve": 59704878202
+      "base_reserve": 57250825880,
+      "quote_reserve": 59696750085
     },
     {
       "address": "EgcgMpmGnGvU3Wa8T6gvmEN6pfSXXSxPTbYNEHVh8cZk",
@@ -4103,8 +4103,8 @@
       "spacing": 16,
       "current_tick_or_bin": 1766788936,
       "_comment": "Orca JUP/SOL Whirlpool",
-      "base_reserve": 34864282401,
-      "quote_reserve": 23587816513
+      "base_reserve": 34867722293,
+      "quote_reserve": 23582517112
     },
     {
       "address": "85sChDdMcqeJhR7UsBf9jqk3guproVzWrqkf9dn1yYn5",
@@ -4135,8 +4135,8 @@
       "spacing": 128,
       "current_tick_or_bin": 1766773579,
       "_comment": "Orca JUP/USDC Whirlpool",
-      "base_reserve": 56013928415,
-      "quote_reserve": 10907375813
+      "base_reserve": 55957812364,
+      "quote_reserve": 10918687871
     },
     {
       "address": "HrLmpzp8Nu5wkn9SGZYSS9Ms6deTvMgGc6BETp4161ZX",
@@ -4151,8 +4151,8 @@
       "spacing": 64,
       "current_tick_or_bin": 1766787897,
       "_comment": "Orca JUP/USDC Whirlpool",
-      "base_reserve": 105156805483,
-      "quote_reserve": 9042056211
+      "base_reserve": 104840713776,
+      "quote_reserve": 9147136627
     },
     {
       "address": "A37RS54hkPY9ezT5EGSDvQnMr1WqToJBkSeav683o144",
@@ -4183,8 +4183,8 @@
       "spacing": 4,
       "current_tick_or_bin": 1766789316,
       "_comment": "Orca JUP/USDC Whirlpool",
-      "base_reserve": 157543664042,
-      "quote_reserve": 4089165852
+      "base_reserve": 157201133180,
+      "quote_reserve": 4157088451
     },
     {
       "address": "GaRZqVJCpRMsM12ZTaP13zpaY6npHw2SeruZRWY2GGfn",
@@ -4199,8 +4199,8 @@
       "spacing": 8,
       "current_tick_or_bin": 1766788727,
       "_comment": "Orca JUP/USDC Whirlpool",
-      "base_reserve": 10342536507,
-      "quote_reserve": 659001062
+      "base_reserve": 10333752311,
+      "quote_reserve": 660786129
     },
     {
       "address": "AyFajbj7QEi8CizFnfEjJn3vSUxgDjVKob4A8i618YJD",
@@ -4215,8 +4215,8 @@
       "spacing": 64,
       "current_tick_or_bin": 1766788138,
       "_comment": "Orca JUP/USDT Whirlpool",
-      "base_reserve": 10029197511,
-      "quote_reserve": 205755423
+      "base_reserve": 10028669328,
+      "quote_reserve": 205862254
     },
     {
       "address": "3NwGdGPBkwVMZAkJeBAqKz4CazrcCRMT8kuW4Fffcedg",
@@ -4247,8 +4247,8 @@
       "spacing": 128,
       "current_tick_or_bin": 1766769764,
       "_comment": "Orca JUP/USDT Whirlpool",
-      "base_reserve": 2874107446,
-      "quote_reserve": 741000227
+      "base_reserve": 2872079674,
+      "quote_reserve": 741408967
     },
     {
       "address": "7vWRTPPBq3aNaJZsrfterTz1BSjht4YSHBXJwnbuV6SC",
@@ -4263,8 +4263,8 @@
       "spacing": 128,
       "current_tick_or_bin": 1766777258,
       "_comment": "Orca JUP/WEN Whirlpool",
-      "base_reserve": 418591436,
-      "quote_reserve": 2218061674588
+      "base_reserve": 415267180,
+      "quote_reserve": 2229861971398
     },
     {
       "address": "KdcztfHmVNRd5qY7oR7AdoNhcpHhjXKesK9JTBnNxwL",
@@ -4279,8 +4279,8 @@
       "spacing": 64,
       "current_tick_or_bin": 1766786599,
       "_comment": "Orca JUP/bSOL Whirlpool",
-      "base_reserve": 41219733804,
-      "quote_reserve": 1760070579
+      "base_reserve": 41227056533,
+      "quote_reserve": 1751018761
     },
     {
       "address": "82vnbMa6vxm1a9TWy54s1dYRCYeGYZUPQnn7iVLBvmtx",
@@ -4295,8 +4295,8 @@
       "spacing": 64,
       "current_tick_or_bin": 1766787870,
       "_comment": "Orca POPCAT/USDC Whirlpool",
-      "base_reserve": 29897683782482,
-      "quote_reserve": 794796437
+      "base_reserve": 29986001281007,
+      "quote_reserve": 787874639
     },
     {
       "address": "5r2SKyVDAmaj8HJak4qRS2oLCn2caf3jmrJi8ikRKj6s",
@@ -4311,8 +4311,8 @@
       "spacing": 16,
       "current_tick_or_bin": 1766786301,
       "_comment": "Orca SOL/BONK Whirlpool",
-      "base_reserve": 1012376282,
-      "quote_reserve": 5529998294607
+      "base_reserve": 1012189716,
+      "quote_reserve": 5530289839787
     },
     {
       "address": "Gb4FqYysZDyucrw1w1CKnXj76c2ucAiBMJuQTy77a8vk",
@@ -4327,8 +4327,8 @@
       "spacing": 32896,
       "current_tick_or_bin": 1766769196,
       "_comment": "Orca SOL/BONK Whirlpool",
-      "base_reserve": 4195137490,
-      "quote_reserve": 6485661284722
+      "base_reserve": 4184934866,
+      "quote_reserve": 6492088463246
     },
     {
       "address": "3ne4mWqdYuNiYrYZC9TrA3FcfuFdErghH97vNPbjicr1",
@@ -4343,8 +4343,8 @@
       "spacing": 64,
       "current_tick_or_bin": 1766787613,
       "_comment": "Orca SOL/BONK Whirlpool",
-      "base_reserve": 667970411906,
-      "quote_reserve": 15741398766266879
+      "base_reserve": 573643657815,
+      "quote_reserve": 15889155709201775
     },
     {
       "address": "BqnpCdDLPV2pFdAaLnVidmn3G93RP2p5oRdGEY2sJGez",
@@ -4359,8 +4359,8 @@
       "spacing": 128,
       "current_tick_or_bin": 1766769632,
       "_comment": "Orca SOL/BONK Whirlpool",
-      "base_reserve": 860929409219,
-      "quote_reserve": 1332411442731644
+      "base_reserve": 859860181647,
+      "quote_reserve": 1334088731142064
     },
     {
       "address": "5zpyutJu9ee6jFymDGoK7F6S5Kczqtc9FomP3ueKuyA9",
@@ -4375,8 +4375,8 @@
       "spacing": 8,
       "current_tick_or_bin": 1766789369,
       "_comment": "Orca SOL/BONK Whirlpool",
-      "base_reserve": 575937601482,
-      "quote_reserve": 2001378619431919
+      "base_reserve": 562783064291,
+      "quote_reserve": 2024322450003788
     },
     {
       "address": "8EyLmmyt8VNqhu8c2NzJ2BCTEZZk4W9SccbEoie2raR7",
@@ -4407,8 +4407,8 @@
       "spacing": 8,
       "current_tick_or_bin": 1766789335,
       "_comment": "Orca SOL/ETH Whirlpool",
-      "base_reserve": 42725924111997,
-      "quote_reserve": 46602201127
+      "base_reserve": 39795111718077,
+      "quote_reserve": 66387712473
     },
     {
       "address": "2x6oDcyFpWqogTMxbbTAHHMqAsefFdApDdpiTJbgzPHQ",
@@ -4423,8 +4423,8 @@
       "spacing": 128,
       "current_tick_or_bin": 1766776124,
       "_comment": "Orca SOL/JTO Whirlpool",
-      "base_reserve": 7516895530,
-      "quote_reserve": 1961223812845
+      "base_reserve": 7535395530,
+      "quote_reserve": 1955304308931
     },
     {
       "address": "2UhFnySoJi6c89aydGAGS7ZRemo2dbkFRhvSJqDX4gHJ",
@@ -4439,8 +4439,8 @@
       "spacing": 64,
       "current_tick_or_bin": 1766788592,
       "_comment": "Orca SOL/JTO Whirlpool",
-      "base_reserve": 54431149200,
-      "quote_reserve": 41905336231701
+      "base_reserve": 55303025354,
+      "quote_reserve": 41589464606507
     },
     {
       "address": "69pZkiUKgFrHj2EzGnFZbZQs9czo131hTVqrh4L1azjv",
@@ -4455,8 +4455,8 @@
       "spacing": 32896,
       "current_tick_or_bin": 1766771465,
       "_comment": "Orca SOL/JTO Whirlpool",
-      "base_reserve": 1508576179,
-      "quote_reserve": 705218756686
+      "base_reserve": 1513362294,
+      "quote_reserve": 703687975632
     },
     {
       "address": "Hp53XEtt4S8SvPCXarsLSdGfZBuUr5mMmZmX2DRNXQKp",
@@ -4471,8 +4471,8 @@
       "spacing": 1,
       "current_tick_or_bin": 1766789215,
       "_comment": "Orca SOL/JitoSOL Whirlpool",
-      "base_reserve": 72407549465127,
-      "quote_reserve": 23632759260824
+      "base_reserve": 63995346856781,
+      "quote_reserve": 21304915111776
     },
     {
       "address": "4RedE6jkBz11zHp5kwEPuWJMi9BnRRUzSBqyR3jSvw7r",
@@ -4487,8 +4487,8 @@
       "spacing": 64,
       "current_tick_or_bin": 1766786816,
       "_comment": "Orca SOL/JitoSOL Whirlpool",
-      "base_reserve": 13864667738,
-      "quote_reserve": 9572875813
+      "base_reserve": 13864306529,
+      "quote_reserve": 9573165954
     },
     {
       "address": "BzcvYChwyV2dNbkAZmv8ShxiqgZMievTNXidFtZy8LUx",
@@ -4519,8 +4519,8 @@
       "spacing": 8,
       "current_tick_or_bin": 1766789327,
       "_comment": "Orca SOL/POPCAT Whirlpool",
-      "base_reserve": 28956923991,
-      "quote_reserve": 384080882314837
+      "base_reserve": 27951890906,
+      "quote_reserve": 385637594705098
     },
     {
       "address": "FjpUZNi84CrL8NPBkqTsMyLkxMHJfAjDZiZ65zsEgXnR",
@@ -4535,8 +4535,8 @@
       "spacing": 64,
       "current_tick_or_bin": 1766788224,
       "_comment": "Orca SOL/POPCAT Whirlpool",
-      "base_reserve": 68305635109,
-      "quote_reserve": 148833827993245
+      "base_reserve": 67230591324,
+      "quote_reserve": 150494186366584
     },
     {
       "address": "53nb67RHfUyfFD8BYUQrnx1A5Ro69aw14bYEaKQzzCed",
@@ -4551,8 +4551,8 @@
       "spacing": 128,
       "current_tick_or_bin": 1766769741,
       "_comment": "Orca SOL/POPCAT Whirlpool",
-      "base_reserve": 37116364964,
-      "quote_reserve": 81452366818496
+      "base_reserve": 37157060679,
+      "quote_reserve": 81383614228607
     },
     {
       "address": "8erNF5u3CHrqZJXtkfY8CjSxFYF1yqHmN8uDbAhk6tWM",
@@ -4567,8 +4567,8 @@
       "spacing": 8,
       "current_tick_or_bin": 1766788812,
       "_comment": "Orca SOL/PYTH Whirlpool",
-      "base_reserve": 59605329455,
-      "quote_reserve": 376632530341
+      "base_reserve": 57249509130,
+      "quote_reserve": 380485533712
     },
     {
       "address": "E2Z2vqwGRZfJWAFw9DPHWSnCd8dPt9BkhfQ6JyXjthm1",
@@ -4583,8 +4583,8 @@
       "spacing": 64,
       "current_tick_or_bin": 1766787149,
       "_comment": "Orca SOL/PYTH Whirlpool",
-      "base_reserve": 18163294983,
-      "quote_reserve": 45647544514
+      "base_reserve": 18047114980,
+      "quote_reserve": 45887254633
     },
     {
       "address": "5tAxSLByaiWR4nnx1VtiGG5LS3Z3So4AR3LiU1fnu98m",
@@ -4599,8 +4599,8 @@
       "spacing": 128,
       "current_tick_or_bin": 1766780371,
       "_comment": "Orca SOL/PYTH Whirlpool",
-      "base_reserve": 11700189002,
-      "quote_reserve": 59315285912
+      "base_reserve": 11675474669,
+      "quote_reserve": 59366577012
     },
     {
       "address": "3gYLU5tdbvXw4yFW6HjaXHNwPX2VDKNRXJtcgAz1qFsJ",
@@ -4615,8 +4615,8 @@
       "spacing": 16,
       "current_tick_or_bin": 1766787149,
       "_comment": "Orca SOL/PYTH Whirlpool",
-      "base_reserve": 491294196,
-      "quote_reserve": 4295175713
+      "base_reserve": 453811991,
+      "quote_reserve": 4372450764
     },
     {
       "address": "AbTXfZfd2YnR8w1uv81NzHT4ggmq6jombkAFPcpprnfr",
@@ -4647,8 +4647,8 @@
       "spacing": 16,
       "current_tick_or_bin": 1766787757,
       "_comment": "Orca SOL/TRUMP Whirlpool",
-      "base_reserve": 70244496761,
-      "quote_reserve": 3307696232
+      "base_reserve": 70124092247,
+      "quote_reserve": 3310797209
     },
     {
       "address": "EdRQgfs2oRyyqsGDNH5XPJKMUDUBdpPcy597ZHdYY7uk",
@@ -4679,8 +4679,8 @@
       "spacing": 2,
       "current_tick_or_bin": 1766789352,
       "_comment": "Orca SOL/USDC Whirlpool",
-      "base_reserve": 687536797099,
-      "quote_reserve": 81551477911
+      "base_reserve": 677167897580,
+      "quote_reserve": 82044669388
     },
     {
       "address": "C7AD8EHcbKvFL3zw2z4YKKn1ZMTCYqkThZGtY3hPajsd",
@@ -4727,8 +4727,8 @@
       "spacing": 16,
       "current_tick_or_bin": 1766787800,
       "_comment": "Orca SOL/USDC Whirlpool",
-      "base_reserve": 31997945194,
-      "quote_reserve": 533847810
+      "base_reserve": 31933451633,
+      "quote_reserve": 541815537
     },
     {
       "address": "65shmpuYmxx5p7ggNCZbyrGLCXVqbBR1ZD5aAocRBUNG",
@@ -4759,8 +4759,8 @@
       "spacing": 1,
       "current_tick_or_bin": 1766789371,
       "_comment": "Orca SOL/USDC Whirlpool",
-      "base_reserve": 40457519313,
-      "quote_reserve": 6400056972
+      "base_reserve": 40307264652,
+      "quote_reserve": 6418539657
     },
     {
       "address": "HJPjoWUrhoZzkNfRpHuieeFk9WcZWjwy6PBjZ81ngndJ",
@@ -4775,8 +4775,8 @@
       "spacing": 64,
       "current_tick_or_bin": 1766787896,
       "_comment": "Orca SOL/USDC Whirlpool",
-      "base_reserve": 507949728192,
-      "quote_reserve": 137552593253
+      "base_reserve": 506930012429,
+      "quote_reserve": 137678231410
     },
     {
       "address": "Esvfxt3jMDdtTZqLF1fqRhDjzM8Bpr7fZxJMrK69PB7e",
@@ -4791,8 +4791,8 @@
       "spacing": 2,
       "current_tick_or_bin": 1766789373,
       "_comment": "Orca SOL/USDC Whirlpool",
-      "base_reserve": 285149534455,
-      "quote_reserve": 14748319411
+      "base_reserve": 277980224077,
+      "quote_reserve": 9134991534
     },
     {
       "address": "4HppGTweoGQ8ZZ6UcCgwJKfi5mJD9Dqwy6htCpnbfBLW",
@@ -4807,8 +4807,8 @@
       "spacing": 4,
       "current_tick_or_bin": 1766789333,
       "_comment": "Orca SOL/USDC Whirlpool",
-      "base_reserve": 2631139498394,
-      "quote_reserve": 58862267818
+      "base_reserve": 2538798018195,
+      "quote_reserve": 70368803007
     },
     {
       "address": "Czfq3xZZDmsdGdUyrNLtRhGc47cXcZtLG4crryfu44zE",
@@ -4823,8 +4823,8 @@
       "spacing": 4,
       "current_tick_or_bin": 1766789358,
       "_comment": "Orca SOL/USDC Whirlpool",
-      "base_reserve": 256128153783625,
-      "quote_reserve": 4673909962933
+      "base_reserve": 248454994248176,
+      "quote_reserve": 5698212484548
     },
     {
       "address": "H3f4q1Y7mo7qwL5rKFpbesmJ8nKjkFPR6xWtYXGKCKqK",
@@ -4839,8 +4839,8 @@
       "spacing": 64,
       "current_tick_or_bin": 1766788693,
       "_comment": "Orca SOL/USDC Whirlpool",
-      "base_reserve": 869041147433,
-      "quote_reserve": 51926052050
+      "base_reserve": 854583153909,
+      "quote_reserve": 56656331153
     },
     {
       "address": "6d4UYGAEs4Akq6py8Vb3Qv5PvMkecPLS1Z9bBCcip2R7",
@@ -4855,8 +4855,8 @@
       "spacing": 96,
       "current_tick_or_bin": 1766781978,
       "_comment": "Orca SOL/USDC Whirlpool",
-      "base_reserve": 11602891639,
-      "quote_reserve": 842368250
+      "base_reserve": 11552971647,
+      "quote_reserve": 848518694
     },
     {
       "address": "7qbRF6YsyGuLUVs6Y1q64bdVrfe4ZcUUz1JRdoVNUJnm",
@@ -4871,8 +4871,8 @@
       "spacing": 8,
       "current_tick_or_bin": 1766789331,
       "_comment": "Orca SOL/USDC Whirlpool",
-      "base_reserve": 993840989231,
-      "quote_reserve": 110757444842
+      "base_reserve": 982345760332,
+      "quote_reserve": 111536031059
     },
     {
       "address": "DFVTutNYXD8z4T5cRdgpso1G3sZqQvMHWpW2N99E4DvE",
@@ -4887,8 +4887,8 @@
       "spacing": 128,
       "current_tick_or_bin": 1766787275,
       "_comment": "Orca SOL/USDC Whirlpool",
-      "base_reserve": 196355525269,
-      "quote_reserve": 11607967611
+      "base_reserve": 195936238969,
+      "quote_reserve": 11659727666
     },
     {
       "address": "9VuCJupdVXC1kKijULJQ2GPKPvk2kSMHtgvwDuQq3TDo",
@@ -4903,8 +4903,8 @@
       "spacing": 16,
       "current_tick_or_bin": 1766787957,
       "_comment": "Orca SOL/USDC Whirlpool",
-      "base_reserve": 13661340872,
-      "quote_reserve": 194390029
+      "base_reserve": 13651220630,
+      "quote_reserve": 195637647
     },
     {
       "address": "FwewVm8u6tFPGewAyHmWAqad9hmF7mvqxK4mJ7iNqqGC",
@@ -4919,8 +4919,8 @@
       "spacing": 2,
       "current_tick_or_bin": 1766789368,
       "_comment": "Orca SOL/USDT Whirlpool",
-      "base_reserve": 9474476646189,
-      "quote_reserve": 126853917176
+      "base_reserve": 9411854510209,
+      "quote_reserve": 134769824163
     },
     {
       "address": "AhhoxZDmsg2snm85vPjqzYzEYESoKfb4KmTj4HrBBNwY",
@@ -4935,8 +4935,8 @@
       "spacing": 64,
       "current_tick_or_bin": 1766789373,
       "_comment": "Orca SOL/USDT Whirlpool",
-      "base_reserve": 116973635267,
-      "quote_reserve": 4698337894
+      "base_reserve": 115491171691,
+      "quote_reserve": 4880894660
     },
     {
       "address": "8r7y8jgFum6chfi9J4ukzrejW4GHExx9TDnmGQM6wPFv",
@@ -4951,8 +4951,8 @@
       "spacing": 128,
       "current_tick_or_bin": 1766762164,
       "_comment": "Orca SOL/USDT Whirlpool",
-      "base_reserve": 103644605287,
-      "quote_reserve": 12577894025
+      "base_reserve": 103295651825,
+      "quote_reserve": 12620940997
     },
     {
       "address": "B6LL9aCWVuo1tTcJoYvCTDqYrq1vjMfci8uHxsm4UxTR",
@@ -4967,8 +4967,8 @@
       "spacing": 8,
       "current_tick_or_bin": 1766789347,
       "_comment": "Orca SOL/USDT Whirlpool",
-      "base_reserve": 69264622023,
-      "quote_reserve": 1617816310
+      "base_reserve": 69206213230,
+      "quote_reserve": 1625022339
     },
     {
       "address": "5zVKUoZcQkFCGcRHVHiyGAJRrZj1by67pW3dmvguFvwd",
@@ -4983,8 +4983,8 @@
       "spacing": 64,
       "current_tick_or_bin": 1766787802,
       "_comment": "Orca SOL/USDT Whirlpool",
-      "base_reserve": 18714326383,
-      "quote_reserve": 2261087145
+      "base_reserve": 18654065981,
+      "quote_reserve": 2268517107
     },
     {
       "address": "GDrzVCH6SXYpKrsSR1xymJisgsAvKLWkhk5yKNXDxsvB",
@@ -4999,8 +4999,8 @@
       "spacing": 2,
       "current_tick_or_bin": 1766789298,
       "_comment": "Orca SOL/USDT Whirlpool",
-      "base_reserve": 5468356400,
-      "quote_reserve": 413149015
+      "base_reserve": 5425399183,
+      "quote_reserve": 418565891
     },
     {
       "address": "6QczjfKv6hExjRL76kGPbUUjA6bijdtLw3NX6jnMwpAS",
@@ -5031,8 +5031,8 @@
       "spacing": 4,
       "current_tick_or_bin": 1766789339,
       "_comment": "Orca SOL/USDT Whirlpool",
-      "base_reserve": 6989107685,
-      "quote_reserve": 233446950
+      "base_reserve": 6838031106,
+      "quote_reserve": 252108536
     },
     {
       "address": "HLZhDXoCKDmDjhFubaEa5um3dMcbEFDs847EixYgbUM5",
@@ -5047,8 +5047,8 @@
       "spacing": 128,
       "current_tick_or_bin": 1766782483,
       "_comment": "Orca SOL/WEN Whirlpool",
-      "base_reserve": 5590491760,
-      "quote_reserve": 5549462550114
+      "base_reserve": 5573378604,
+      "quote_reserve": 5586406741499
     },
     {
       "address": "7BZzoP3QB2zK3R7WqRzjS5fpeeErgdy3HGzxXrN97aEY",
@@ -5063,8 +5063,8 @@
       "spacing": 16,
       "current_tick_or_bin": 1766789259,
       "_comment": "Orca SOL/WEN Whirlpool",
-      "base_reserve": 21355945244,
-      "quote_reserve": 85951436342556
+      "base_reserve": 20718768075,
+      "quote_reserve": 87378559923222
     },
     {
       "address": "2vokT9GE9iNafwWN98JQcW8QbSUyQVE182o2QSbhAqrA",
@@ -5079,8 +5079,8 @@
       "spacing": 32896,
       "current_tick_or_bin": 1766774771,
       "_comment": "Orca SOL/WEN Whirlpool",
-      "base_reserve": 18902298864,
-      "quote_reserve": 39451336536964
+      "base_reserve": 18544643325,
+      "quote_reserve": 39786882679221
     },
     {
       "address": "F7ocu8fhsoV7CHsEGRHmSKXNDdt7f1xXUEDc7KmZ3hi3",
@@ -5095,8 +5095,8 @@
       "spacing": 64,
       "current_tick_or_bin": 1766787726,
       "_comment": "Orca SOL/WEN Whirlpool",
-      "base_reserve": 2561981767,
-      "quote_reserve": 3262479979361
+      "base_reserve": 2555636424,
+      "quote_reserve": 3276676712436
     },
     {
       "address": "8phK65jxmTPEN158xLgSr4oZvssw9SyTErpNZj3g7px4",
@@ -5111,8 +5111,8 @@
       "spacing": 1,
       "current_tick_or_bin": 1766787757,
       "_comment": "Orca SOL/bSOL Whirlpool",
-      "base_reserve": 6812428443092,
-      "quote_reserve": 384688741837
+      "base_reserve": 6960227607181,
+      "quote_reserve": 267176415196
     },
     {
       "address": "DtYKbQELgMZ3ihFUrCcCs9gy4djcUuhwgR7UpxVpP2Tg",
@@ -5127,8 +5127,8 @@
       "spacing": 1,
       "current_tick_or_bin": 1766788452,
       "_comment": "Orca SOL/jupSOL Whirlpool",
-      "base_reserve": 3650496961442,
-      "quote_reserve": 339501590670
+      "base_reserve": 3870332171130,
+      "quote_reserve": 175594070363
     },
     {
       "address": "4oxgHVZUXsz2TrLEqfAk6GuK12bSDM68m3AaMdxu8Q92",
@@ -5175,8 +5175,8 @@
       "spacing": 1,
       "current_tick_or_bin": 1766789050,
       "_comment": "Orca SOL/mSOL Whirlpool",
-      "base_reserve": 1960274433542,
-      "quote_reserve": 84060555676
+      "base_reserve": 1985310469735,
+      "quote_reserve": 65657842704
     },
     {
       "address": "2AEWSvUds1wsufnsDPCXjFsJCMJH5SNNm7fSF4kxys9a",
@@ -5191,8 +5191,8 @@
       "spacing": 1,
       "current_tick_or_bin": 1766788413,
       "_comment": "Orca SOL/stSOL Whirlpool",
-      "base_reserve": 163109798852,
-      "quote_reserve": 11731593826
+      "base_reserve": 161888227326,
+      "quote_reserve": 12740158959
     },
     {
       "address": "6nD6d8gG17wakW6Wu5URktBZQp3uxp5orgPa576QXigJ",
@@ -5207,8 +5207,8 @@
       "spacing": 16,
       "current_tick_or_bin": 1766786884,
       "_comment": "Orca TRUMP/USDC Whirlpool",
-      "base_reserve": 8593145137,
-      "quote_reserve": 4814149808
+      "base_reserve": 8590752539,
+      "quote_reserve": 4825967695
     },
     {
       "address": "CxvWVYvvSymLWQNLqo61zjr1L86B4HpxoELbAAjxyb8H",
@@ -5223,8 +5223,8 @@
       "spacing": 64,
       "current_tick_or_bin": 1766789334,
       "_comment": "Orca USDC/JitoSOL Whirlpool",
-      "base_reserve": 34914458964,
-      "quote_reserve": 318956347679
+      "base_reserve": 35808396684,
+      "quote_reserve": 313147474835
     },
     {
       "address": "5hWJUNTtEtKmKgDXpthJXXRRmJrz5vJ7uJzrUNVdrwLg",
@@ -5239,8 +5239,8 @@
       "spacing": 8,
       "current_tick_or_bin": 1766789331,
       "_comment": "Orca USDC/JitoSOL Whirlpool",
-      "base_reserve": 145174468440,
-      "quote_reserve": 2255289389263
+      "base_reserve": 149288211202,
+      "quote_reserve": 2228642999380
     },
     {
       "address": "GgAqL1Lfs3zYZK6Gea9Bey5jmPbK8c4dmBbe5gPeYQEz",
@@ -5255,8 +5255,8 @@
       "spacing": 64,
       "current_tick_or_bin": 1766781939,
       "_comment": "Orca USDC/JitoSOL Whirlpool",
-      "base_reserve": 7238925126,
-      "quote_reserve": 31433330577
+      "base_reserve": 7261838410,
+      "quote_reserve": 31284637108
     },
     {
       "address": "9ffGX6gyZVHqZgCoPfxytUbuPC9aXyZLV2Cgx34KagMV",
@@ -5271,8 +5271,8 @@
       "spacing": 64,
       "current_tick_or_bin": 1766788053,
       "_comment": "Orca USDC/PYTH Whirlpool",
-      "base_reserve": 924751989,
-      "quote_reserve": 13758020666
+      "base_reserve": 921532275,
+      "quote_reserve": 13812259582
     },
     {
       "address": "CKyPqtvkenW8SRYsK4z5txZzCsCZFS2NTCrzLMmtXTPz",
@@ -5287,8 +5287,8 @@
       "spacing": 16,
       "current_tick_or_bin": 1766785032,
       "_comment": "Orca USDC/PYTH Whirlpool",
-      "base_reserve": 198283276,
-      "quote_reserve": 46430941663
+      "base_reserve": 198238289,
+      "quote_reserve": 46431701185
     },
     {
       "address": "Fra9rBL1F5eAgtoqjXsBzZocD1UKbxXoERKVs6e23ixn",
@@ -5303,8 +5303,8 @@
       "spacing": 128,
       "current_tick_or_bin": 1766761381,
       "_comment": "Orca USDC/PYTH Whirlpool",
-      "base_reserve": 528666144,
-      "quote_reserve": 50753720017
+      "base_reserve": 531146003,
+      "quote_reserve": 49617103724
     },
     {
       "address": "4fuUiYxTQ6QCrdSq9ouBYcTM7bqSwYTSyLueGZLTy4T4",
@@ -5319,8 +5319,8 @@
       "spacing": 1,
       "current_tick_or_bin": 1766789092,
       "_comment": "Orca USDC/USDT Whirlpool",
-      "base_reserve": 280810877709,
-      "quote_reserve": 884446339554
+      "base_reserve": 290521909819,
+      "quote_reserve": 884480236494
     },
     {
       "address": "FPPHjpjBk98pd5Z3xXQuDcrZdUdqfraCRJU8yvdT1ZKR",
@@ -5335,8 +5335,8 @@
       "spacing": 2,
       "current_tick_or_bin": 1766789194,
       "_comment": "Orca USDC/USDT Whirlpool",
-      "base_reserve": 1677560231,
-      "quote_reserve": 6468452274
+      "base_reserve": 1977327778,
+      "quote_reserve": 6168694135
     },
     {
       "address": "657PTJfJevDZkCRLpMpRNzNAPf6eap1EdzWob2fUbEwN",
@@ -5351,8 +5351,8 @@
       "spacing": 256,
       "current_tick_or_bin": 1766684650,
       "_comment": "Orca WEN/POPCAT Whirlpool",
-      "base_reserve": 682100732273,
-      "quote_reserve": 329722973432
+      "base_reserve": 683656615263,
+      "quote_reserve": 328593116673
     },
     {
       "address": "AaKQexvSih5oLCt8QDj1CWV3g21gLUJTGKfrMVmVypLm",
@@ -5367,8 +5367,8 @@
       "spacing": 32896,
       "current_tick_or_bin": 1766774772,
       "_comment": "Orca WEN/USDC Whirlpool",
-      "base_reserve": 5592853063826,
-      "quote_reserve": 328698629
+      "base_reserve": 5666355437955,
+      "quote_reserve": 324610738
     },
     {
       "address": "5y2jFFA3A8GNjRnVMg8LfTHbBg7y2vivopiK8LmGRP2B",
@@ -5383,8 +5383,8 @@
       "spacing": 16,
       "current_tick_or_bin": 1766789186,
       "_comment": "Orca WEN/USDC Whirlpool",
-      "base_reserve": 11151684729856,
-      "quote_reserve": 1519799239
+      "base_reserve": 10695636157366,
+      "quote_reserve": 1518639336
     },
     {
       "address": "FdfSfHaU851eNLaKnbHHkVheYRhPCgpqcSJdEk6iXHfK",
@@ -5399,8 +5399,8 @@
       "spacing": 32896,
       "current_tick_or_bin": 1766789186,
       "_comment": "Orca WEN/USDT Whirlpool",
-      "base_reserve": 5373940524968,
-      "quote_reserve": 315688252
+      "base_reserve": 5449270167503,
+      "quote_reserve": 311483620
     },
     {
       "address": "FGRVfcBFvjAi6ncXRdLkq4oNRYKPD88uQ2ihm5XjzsAF",
@@ -5415,8 +5415,8 @@
       "spacing": 64,
       "current_tick_or_bin": 1766781022,
       "_comment": "Orca WEN/bSOL Whirlpool",
-      "base_reserve": 5045644200288,
-      "quote_reserve": 1546569113
+      "base_reserve": 5051627409078,
+      "quote_reserve": 1544292479
     },
     {
       "address": "5snaYowgJDfuM1LPbTNUYHbgkKHtVVnzHiiLDWUV2hh8",
@@ -5431,8 +5431,8 @@
       "spacing": 1,
       "current_tick_or_bin": 1766787876,
       "_comment": "Orca bSOL/JitoSOL Whirlpool",
-      "base_reserve": 622439454835,
-      "quote_reserve": 562136213070
+      "base_reserve": 605752061991,
+      "quote_reserve": 579040782326
     },
     {
       "address": "7mPTnzjLgDUPuNU6cx61EaB4bhjexqPLEAf4ng8PpKkq",
@@ -5447,8 +5447,8 @@
       "spacing": 64,
       "current_tick_or_bin": 1766787757,
       "_comment": "Orca bSOL/PYTH Whirlpool",
-      "base_reserve": 7713090253,
-      "quote_reserve": 57875034442
+      "base_reserve": 7488407466,
+      "quote_reserve": 58461683022
     },
     {
       "address": "HGw4exa5vdxhJHNVyyxhCc6ZwycwHQEVzpRXMDPDAmVP",
@@ -5463,8 +5463,8 @@
       "spacing": 64,
       "current_tick_or_bin": 1766788724,
       "_comment": "Orca bSOL/USDC Whirlpool",
-      "base_reserve": 17189995064,
-      "quote_reserve": 2041661083
+      "base_reserve": 17009152848,
+      "quote_reserve": 2071685940
     },
     {
       "address": "CwZbEdMZdxjnPLcRGRz8PwuvA4tK4iBmS9YZrMvnrNJr",
@@ -5479,8 +5479,8 @@
       "spacing": 1,
       "current_tick_or_bin": 1766778366,
       "_comment": "Orca bSOL/mSOL Whirlpool",
-      "base_reserve": 992847993319,
-      "quote_reserve": 2677096573
+      "base_reserve": 992475622821,
+      "quote_reserve": 3028744315
     },
     {
       "address": "D2G7dVp1tSsxKx9hs4PLvG5nECszWLg5A1YzahmFx8Pp",
@@ -5495,8 +5495,8 @@
       "spacing": 1,
       "current_tick_or_bin": 1766788553,
       "_comment": "Orca jupSOL/JitoSOL Whirlpool",
-      "base_reserve": 7273667930,
-      "quote_reserve": 528864381508
+      "base_reserve": 4758889634,
+      "quote_reserve": 531194601490
     },
     {
       "address": "bTnKHSTSDY49nKZpBfMuYpMDziodqvRQCNBMzKjJGhe",
@@ -5511,8 +5511,8 @@
       "spacing": 64,
       "current_tick_or_bin": 1766782277,
       "_comment": "Orca jupSOL/USDC Whirlpool",
-      "base_reserve": 4826080623,
-      "quote_reserve": 69312412
+      "base_reserve": 4824253639,
+      "quote_reserve": 69573206
     },
     {
       "address": "2NjYrAWmiNE4dRRB8am4p8mWcvBDg22aGB9AfQoU9RRJ",
@@ -5527,8 +5527,8 @@
       "spacing": 1,
       "current_tick_or_bin": 1766789373,
       "_comment": "Orca jupSOL/mSOL Whirlpool",
-      "base_reserve": 85672892372,
-      "quote_reserve": 224712438346
+      "base_reserve": 73905583545,
+      "quote_reserve": 234831824241
     },
     {
       "address": "6jZQFLhSAzTYfo33MSQYvwKvZYwxat8kUa29Mz63oHN9",
@@ -5543,8 +5543,8 @@
       "spacing": 64,
       "current_tick_or_bin": 1766771336,
       "_comment": "Orca mSOL/ETH Whirlpool",
-      "base_reserve": 186215754045,
-      "quote_reserve": 731628169
+      "base_reserve": 184134896339,
+      "quote_reserve": 743419877
     },
     {
       "address": "8dxebMPEZjYJvE5JfC9iicZt9pkATBLW1PFgRHi5wGGv",
@@ -5559,8 +5559,8 @@
       "spacing": 1,
       "current_tick_or_bin": 1766777290,
       "_comment": "Orca mSOL/JitoSOL Whirlpool",
-      "base_reserve": 791225331913,
-      "quote_reserve": 545910921989
+      "base_reserve": 793700302750,
+      "quote_reserve": 543181227854
     },
     {
       "address": "HZsTF6VHdQy2W6cfEEqqpoTFKocx7Ch5c4TnWucXkAYv",
@@ -5575,8 +5575,8 @@
       "spacing": 2,
       "current_tick_or_bin": 1766789373,
       "_comment": "Orca mSOL/JitoSOL Whirlpool",
-      "base_reserve": 127808217330,
-      "quote_reserve": 404340421531
+      "base_reserve": 127679319290,
+      "quote_reserve": 404482595218
     },
     {
       "address": "9pZsKgKrhVbiSBdMaL2aaBrADnTGkuerPnmBpPswLw4x",
@@ -5607,8 +5607,8 @@
       "spacing": 64,
       "current_tick_or_bin": 1766787895,
       "_comment": "Orca mSOL/USDC Whirlpool",
-      "base_reserve": 288999376912,
-      "quote_reserve": 33734676161
+      "base_reserve": 287824523216,
+      "quote_reserve": 33929912699
     },
     {
       "address": "GSB3ihYWppzQps3X25UDC7MExW7HC2gH6EN9d6Eh48Ec",
@@ -5623,8 +5623,8 @@
       "spacing": 64,
       "current_tick_or_bin": 1766774745,
       "_comment": "Orca mSOL/USDC Whirlpool",
-      "base_reserve": 14969691267,
-      "quote_reserve": 2464750030
+      "base_reserve": 14916627502,
+      "quote_reserve": 2473568724
     },
     {
       "address": "24WZto6BNjNamZFUPf3nQZZaFpuvBwdqT5B8QQjpNjGb",
@@ -5655,8 +5655,8 @@
       "spacing": 8,
       "current_tick_or_bin": 1766789332,
       "_comment": "Orca mSOL/USDC Whirlpool",
-      "base_reserve": 839696575501,
-      "quote_reserve": 121467743429
+      "base_reserve": 825122876936,
+      "quote_reserve": 123406869206
     },
     {
       "address": "7A1R3L7AxcxuZHMJjFgskKGeBR5Rwst3Ai5bv5uAWZFG",
@@ -5671,8 +5671,8 @@
       "spacing": 64,
       "current_tick_or_bin": 1766787883,
       "_comment": "Orca mSOL/USDT Whirlpool",
-      "base_reserve": 14346044553,
-      "quote_reserve": 2976663801
+      "base_reserve": 14313149998,
+      "quote_reserve": 2982131237
     },
     {
       "address": "AXtdSZ2mpagmtM5aipN5kV9CyGBA8dxhSBnqMRp7UpdN",
@@ -5687,8 +5687,8 @@
       "spacing": 64,
       "current_tick_or_bin": 1766787895,
       "_comment": "Orca stSOL/USDC Whirlpool",
-      "base_reserve": 173206899534,
-      "quote_reserve": 48463458791
+      "base_reserve": 172060812714,
+      "quote_reserve": 48634655501
     },
     {
       "address": "FAbwB8VgdgSGty5E8dnmNbu5PZnQcvSuLnboJVpw1Rty",
@@ -5703,8 +5703,8 @@
       "spacing": 64,
       "current_tick_or_bin": 1766762825,
       "_comment": "Orca stSOL/USDT Whirlpool",
-      "base_reserve": 18701630877,
-      "quote_reserve": 31393808452
+      "base_reserve": 18699361699,
+      "quote_reserve": 31394145795
     },
     {
       "address": "Hgnmt4WVNEkDVhu7yQYFKUf9V7DrGdyPCJSuS4pLAG2U",
@@ -5737,8 +5737,8 @@
       "current_tick_or_bin": 0,
       "amm_config": "J7b3Vdke96rXQ3fw6FvDwQaeaNmVezMWgHBdPL2Ksbag",
       "_comment": "PancakeSwap ETH/USDC CLMM",
-      "base_reserve": 1755246660,
-      "quote_reserve": 54709257542
+      "base_reserve": 1758541523,
+      "quote_reserve": 54588420572
     },
     {
       "address": "CcWQgvvybBJSZYNQVHp1dQFM4JM1cVwuTuHtMAUkZ9T5",
@@ -5754,8 +5754,8 @@
       "current_tick_or_bin": 0,
       "amm_config": "JEGTPwPjCfi2juurxRbLZp9gauvf35ERPtikZXaoSpRw",
       "_comment": "PancakeSwap JTO/USDC CLMM",
-      "base_reserve": 1969663407445,
-      "quote_reserve": 4226337
+      "base_reserve": 1969663274542,
+      "quote_reserve": 4226388
     },
     {
       "address": "HJuipW7pcVq6kPQWJ4hovubwcu3gg8Vd2hmkR5bHh1Vs",
@@ -5771,8 +5771,8 @@
       "current_tick_or_bin": 0,
       "amm_config": "J3gdr92ZFGMozMYxaken3UqRKNCix3Fc6Qsjt8iL9nvL",
       "_comment": "PancakeSwap JUP/SOL CLMM",
-      "base_reserve": 28835547692,
-      "quote_reserve": 37146728610
+      "base_reserve": 28502008696,
+      "quote_reserve": 37637191323
     },
     {
       "address": "EqNzMLPJaYA1vN65foWEfvzufu9c3SW3zN3kx46ponBR",
@@ -5788,8 +5788,8 @@
       "current_tick_or_bin": 0,
       "amm_config": "J6MsfFHsXY8KBcjsKDzc5zxqXWqrdLbrZddJtXmE8N1G",
       "_comment": "PancakeSwap JUP/SOL CLMM",
-      "base_reserve": 1161899239,
-      "quote_reserve": 654188767
+      "base_reserve": 1158879639,
+      "quote_reserve": 659347872
     },
     {
       "address": "FG1EitLebiWFhJyx8XHvryds2fnrD59xdge9kMVkSQnY",
@@ -5839,8 +5839,8 @@
       "current_tick_or_bin": 0,
       "amm_config": "JA3fS8x4LdCnqvbxqXRywzrd7MHbVVYZMmHRGFoZtvdV",
       "_comment": "PancakeSwap SOL/ETH CLMM",
-      "base_reserve": 1464869310188,
-      "quote_reserve": 1715181124
+      "base_reserve": 1382590929325,
+      "quote_reserve": 2059608671
     },
     {
       "address": "3qMtQYbR6fvzm4jDgabVJmtuqKN6VgdqtPTza9wTb4Mo",
@@ -5856,8 +5856,8 @@
       "current_tick_or_bin": 0,
       "amm_config": "JAHCiu8XvVe54LK8hVBYHH5gDr2H7sj9erhVGioFSMZH",
       "_comment": "PancakeSwap SOL/USDC CLMM",
-      "base_reserve": 28350430863,
-      "quote_reserve": 3596140525
+      "base_reserve": 27775809435,
+      "quote_reserve": 3667040227
     },
     {
       "address": "DJNtGuBGEQiUCWE8F981M2C3ZghZt2XLD8f2sQdZ6rsZ",
@@ -5873,8 +5873,8 @@
       "current_tick_or_bin": 0,
       "amm_config": "JEAgxEk3KD7jzzypLEXVsrTJ3XyQ3EofjNF5tvPDZyKx",
       "_comment": "PancakeSwap SOL/USDC CLMM",
-      "base_reserve": 14069587843918,
-      "quote_reserve": 278957301773
+      "base_reserve": 13790772836890,
+      "quote_reserve": 334742911332
     },
     {
       "address": "4QU2NpRaqmKMvPSwVKQDeW4V6JFEKJdkzbzdauumD9qN",
@@ -5890,8 +5890,8 @@
       "current_tick_or_bin": 0,
       "amm_config": "JAsC9JwKc8C1ce39J48AvrFmTt1rJKQ4nYQxL1tfkgwm",
       "_comment": "PancakeSwap SOL/USDC CLMM",
-      "base_reserve": 12013778109774,
-      "quote_reserve": 245158686224
+      "base_reserve": 11520757095772,
+      "quote_reserve": 303792591132
     },
     {
       "address": "FbtzfW83EipJ7kw1VeUZ9bAVfk1iQJarbWREProMwKea",
@@ -5907,8 +5907,8 @@
       "current_tick_or_bin": 0,
       "amm_config": "JA1sKvNbS18tRzZGq8QXanTAnM6vthDu594PrwH35P8B",
       "_comment": "PancakeSwap SOL/USDT CLMM",
-      "base_reserve": 4504662829,
-      "quote_reserve": 238968566
+      "base_reserve": 4434022242,
+      "quote_reserve": 247680031
     },
     {
       "address": "22HUWiJaTNph96KQTKZVy2wg8KzfCems5nyW7E5H5J6w",
@@ -5924,8 +5924,8 @@
       "current_tick_or_bin": 0,
       "amm_config": "HxZ4NFqhjs8tNEVvJDTiJ9UP1ViKDSQ3Pu1Xt99Egkga",
       "_comment": "PancakeSwap SOL/USDT CLMM",
-      "base_reserve": 4385549356809,
-      "quote_reserve": 132109120405
+      "base_reserve": 4292479526716,
+      "quote_reserve": 146450006263
     },
     {
       "address": "6XaG4RMmyBmX2djczAQVVJWRHnmmVspxMUTDf5ruUjWP",
@@ -5958,8 +5958,8 @@
       "current_tick_or_bin": 0,
       "amm_config": "JAGHJk1xRNd2bJrqpjG3yvi4nXQdLHhm9VwCPj5DrAfc",
       "_comment": "PancakeSwap USDC/USDT CLMM",
-      "base_reserve": 10561006693563,
-      "quote_reserve": 11429503784073
+      "base_reserve": 10563143932996,
+      "quote_reserve": 11427369900031
     },
     {
       "address": "46Z4iBRb8Kwj2qBoDyLAWt99vKXsUS1vE7vFU2vy5x2V",
@@ -5975,8 +5975,8 @@
       "current_tick_or_bin": 0,
       "amm_config": "JDvGyR6gKqdbqggFLdfyUiCQ3MfhbeKof1NHN8b2oBnX",
       "_comment": "PancakeSwap USDC/USDT CLMM",
-      "base_reserve": 15040544846428,
-      "quote_reserve": 17500654236403
+      "base_reserve": 15040592571560,
+      "quote_reserve": 17500606541623
     },
     {
       "address": "HVNwzt7Pxfu76KHCMQPTLuTCLTm6WnQ1esLv4eizseSv",
@@ -5990,8 +5990,8 @@
       "fee_bps": 25,
       "spacing": 0,
       "_comment": "Raydium BONK/SOL AMM",
-      "base_reserve": 217653621111908,
-      "quote_reserve": 140308670766
+      "base_reserve": 218653488307075,
+      "quote_reserve": 139670796694
     },
     {
       "address": "G7mw1d83ismcQJKkzt62Ug4noXCjVhu3eV7U5EMgge6Z",
@@ -6005,8 +6005,8 @@
       "fee_bps": 25,
       "spacing": 0,
       "_comment": "Raydium BONK/USDC AMM",
-      "base_reserve": 221832068699971,
-      "quote_reserve": 17450982192
+      "base_reserve": 222261109633227,
+      "quote_reserve": 17418571398
     },
     {
       "address": "4yrHms7ekgTBgJg77zJ33TsWrraqHsCXDtuSZqUsuGHb",
@@ -6020,8 +6020,8 @@
       "fee_bps": 25,
       "spacing": 0,
       "_comment": "Raydium ETH/SOL AMM",
-      "base_reserve": 9038847315,
-      "quote_reserve": 2166700027366
+      "base_reserve": 9068991250,
+      "quote_reserve": 2159532241922
     },
     {
       "address": "EoNrn8iUhwgJySD1pHu8Qxm5gSQqLK3za4m8xzD2RuEb",
@@ -6035,8 +6035,8 @@
       "fee_bps": 25,
       "spacing": 0,
       "_comment": "Raydium ETH/USDC AMM",
-      "base_reserve": 452517459,
-      "quote_reserve": 13240026167
+      "base_reserve": 452680402,
+      "quote_reserve": 13235315997
     },
     {
       "address": "EYErUp5muPYEEkeaUCY22JibeZX7E9UuMcJFZkmNAN7c",
@@ -6050,8 +6050,8 @@
       "fee_bps": 25,
       "spacing": 0,
       "_comment": "Raydium JUP/SOL AMM",
-      "base_reserve": 20526600846,
-      "quote_reserve": 33595350416
+      "base_reserve": 20533534068,
+      "quote_reserve": 33585506264
     },
     {
       "address": "FRhB8L7Y9Qq41qZXYLtC2nw8An1RJfLLxRF2x9RwLLMo",
@@ -6065,8 +6065,8 @@
       "fee_bps": 25,
       "spacing": 0,
       "_comment": "Raydium POPCAT/SOL AMM",
-      "base_reserve": 30026841676811600,
-      "quote_reserve": 19638682927596
+      "base_reserve": 30216551222724131,
+      "quote_reserve": 19515946050561
     },
     {
       "address": "HBS7a3br8GMMWuqVa7VB3SMFa7xVi1tSFdoF5w4ZZ3kS",
@@ -6080,8 +6080,8 @@
       "fee_bps": 25,
       "spacing": 0,
       "_comment": "Raydium POPCAT/USDC AMM",
-      "base_reserve": 4497742462070881,
-      "quote_reserve": 358903728695
+      "base_reserve": 4510267949046733,
+      "quote_reserve": 357913892538
     },
     {
       "address": "5Qtn7FFKmVH4Brx3V1cR8E4mot2V3eSmvFRBpmKjNy35",
@@ -6095,8 +6095,8 @@
       "fee_bps": 25,
       "spacing": 0,
       "_comment": "Raydium SOL/JUP AMM",
-      "base_reserve": 6584687131,
-      "quote_reserve": 4024381448
+      "base_reserve": 6619648720,
+      "quote_reserve": 4050133298
     },
     {
       "address": "59VtDHQrcDKswbaStjTsjNiqLngjX72UHFqChnpAb93p",
@@ -6110,8 +6110,8 @@
       "fee_bps": 25,
       "spacing": 0,
       "_comment": "Raydium SOL/PYTH AMM",
-      "base_reserve": 8458680442,
-      "quote_reserve": 17262910128
+      "base_reserve": 8450065909,
+      "quote_reserve": 17504884229
     },
     {
       "address": "HPUFRpydYrA5FCBm7W1oL6JdbRg26qt6H5wo4yAud4vq",
@@ -6125,8 +6125,8 @@
       "fee_bps": 25,
       "spacing": 0,
       "_comment": "Raydium SOL/TRUMP AMM",
-      "base_reserve": 7516217720,
-      "quote_reserve": 187361316
+      "base_reserve": 8018955417,
+      "quote_reserve": 200096570
     },
     {
       "address": "5oAvct85WyF7Sj73VYHbyFJkdRJ28D8m4z4Sxjvzuc6n",
@@ -6140,8 +6140,8 @@
       "fee_bps": 25,
       "spacing": 0,
       "_comment": "Raydium SOL/USDC AMM",
-      "base_reserve": 4090575762,
-      "quote_reserve": 497939884
+      "base_reserve": 4084270487,
+      "quote_reserve": 502333360
     },
     {
       "address": "58oQChx4yWmvKdwLLZzBi4ChoCc2fqCUWBkwMihLYQo2",
@@ -6155,8 +6155,8 @@
       "fee_bps": 25,
       "spacing": 0,
       "_comment": "Raydium SOL/USDC AMM",
-      "base_reserve": 35416206034168,
-      "quote_reserve": 4326028231572
+      "base_reserve": 35325250052591,
+      "quote_reserve": 4337310989300
     },
     {
       "address": "61acRgpURKTU8LKPJKs6WQa18KzD9ogavXzjxfD84KLu",
@@ -6170,8 +6170,8 @@
       "fee_bps": 25,
       "spacing": 0,
       "_comment": "Raydium SOL/USDC AMM",
-      "base_reserve": 7079864391,
-      "quote_reserve": 864106254
+      "base_reserve": 7087784956,
+      "quote_reserve": 871672682
     },
     {
       "address": "7XawhbbxtsRcQA8KTkHT9f9nc6d69UwqCDh6U5EEbEmX",
@@ -6185,8 +6185,8 @@
       "fee_bps": 25,
       "spacing": 0,
       "_comment": "Raydium SOL/USDT AMM",
-      "base_reserve": 2956137615230,
-      "quote_reserve": 360678482493
+      "base_reserve": 2946301254112,
+      "quote_reserve": 361903513192
     },
     {
       "address": "uCk125EJf7iCjz43aSdzuyMAT5eii6c5zKVxEnGnosa",
@@ -6200,8 +6200,8 @@
       "fee_bps": 25,
       "spacing": 0,
       "_comment": "Raydium TRUMP/SOL AMM",
-      "base_reserve": 268548623,
-      "quote_reserve": 10755457571
+      "base_reserve": 268807209,
+      "quote_reserve": 10745722772
     },
     {
       "address": "7TbGqz32RsuwXbXY7EyBCiAnMbJq1gm1wKmfjQjuwoyF",
@@ -6215,8 +6215,8 @@
       "fee_bps": 25,
       "spacing": 0,
       "_comment": "Raydium USDT/USDC AMM",
-      "base_reserve": 31068967356,
-      "quote_reserve": 31048098118
+      "base_reserve": 31099557492,
+      "quote_reserve": 31017643925
     },
     {
       "address": "5WGx6mE9Xww3ocYzSenGVQMJLCVVwK7ePnYV6cXcpJtK",
@@ -6230,8 +6230,8 @@
       "fee_bps": 25,
       "spacing": 0,
       "_comment": "Raydium WEN/SOL AMM",
-      "base_reserve": 50093599960659,
-      "quote_reserve": 23873473412
+      "base_reserve": 50483530758756,
+      "quote_reserve": 23703787392
     },
     {
       "address": "HrPMN9xR3csgXNEZFZBU2SZagDUDzNH8JwVSDcZvvYHA",
@@ -6245,8 +6245,8 @@
       "fee_bps": 25,
       "spacing": 0,
       "_comment": "Raydium WEN/USDC AMM",
-      "base_reserve": 2838197030423,
-      "quote_reserve": 164893514
+      "base_reserve": 2847240846914,
+      "quote_reserve": 164406117
     },
     {
       "address": "C4ZTAnN6Fa6gekjmYaoivD6E4N2ahnqsXmJqUxD5KssH",
@@ -6260,8 +6260,8 @@
       "fee_bps": 25,
       "spacing": 0,
       "_comment": "Raydium mSOL/JUP AMM",
-      "base_reserve": 1161304130,
-      "quote_reserve": 958068257
+      "base_reserve": 1160512209,
+      "quote_reserve": 958741374
     },
     {
       "address": "EGyhb2uLAsRUbRx9dNFBjMVYnFaASWMvD6RE1aEf2LxL",
@@ -6275,8 +6275,8 @@
       "fee_bps": 25,
       "spacing": 0,
       "_comment": "Raydium mSOL/SOL AMM",
-      "base_reserve": 411722257024,
-      "quote_reserve": 554641080775
+      "base_reserve": 411695016716,
+      "quote_reserve": 554677871264
     },
     {
       "address": "ZfvDXXUhZDzDVsapffUyXHj9ByCoPjP4thL6YXcZ9ix",
@@ -6290,8 +6290,8 @@
       "fee_bps": 25,
       "spacing": 0,
       "_comment": "Raydium mSOL/USDC AMM",
-      "base_reserve": 928711228816,
-      "quote_reserve": 152963024697
+      "base_reserve": 926074984534,
+      "quote_reserve": 153401573223
     },
     {
       "address": "BhuMVCzwFVZMSuc1kBbdcAnXwFg9p4HJp7A9ddwYjsaF",
@@ -6305,8 +6305,8 @@
       "fee_bps": 25,
       "spacing": 0,
       "_comment": "Raydium mSOL/USDT AMM",
-      "base_reserve": 174888217091,
-      "quote_reserve": 28817211334
+      "base_reserve": 174410434655,
+      "quote_reserve": 28896718158
     },
     {
       "address": "6a1CsrpeZubDjEJE9s1CMVheB6HWM5d7m1cj2jkhyXhj",
@@ -6320,8 +6320,8 @@
       "fee_bps": 25,
       "spacing": 0,
       "_comment": "Raydium stSOL/USDC AMM",
-      "base_reserve": 1314517199970,
-      "quote_reserve": 194688183961
+      "base_reserve": 1310966268493,
+      "quote_reserve": 195219864565
     },
     {
       "address": "9euZD3C1d7e2fLKnUxHc7oUUDJcYnguMT6cRzLY9y4o7",
@@ -6335,8 +6335,8 @@
       "fee_bps": 25,
       "spacing": 0,
       "_comment": "Raydium stSOL/USDT AMM",
-      "base_reserve": 126453135171,
-      "quote_reserve": 18737474076
+      "base_reserve": 126101005572,
+      "quote_reserve": 18790145582
     },
     {
       "address": "Br2KNmeUQCXTEZHoNprtgKv31rJCKCnSKSxZzNdAA14S",
@@ -6349,11 +6349,13 @@
       "decimals_b": 6,
       "fee_bps": 25,
       "spacing": 33897,
-      "current_tick_or_bin": 0,
+      "current_tick_or_bin": -90240,
       "amm_config": "JDNwM8TG2JxCrxHJCB3uuYQRDbFT6bKUyiB8fUS8HAw6",
       "_comment": "Raydium BONK/USDC CLMM",
       "base_reserve": 28121432201683,
-      "quote_reserve": 37392055
+      "quote_reserve": 37392055,
+      "observation_state": "DvDycoxZMwBvqs6862sLm3RYnnpTqAE5LrnvuaMZ6qUZ",
+      "sqrt_price": "202526095698013626"
     },
     {
       "address": "CVW96A5BGmdhmdQSU2tTwciJwyTJVJ1HxaKuAEAXXDVb",
@@ -6366,11 +6368,13 @@
       "decimals_b": 6,
       "fee_bps": 25,
       "spacing": 48848,
-      "current_tick_or_bin": 0,
+      "current_tick_or_bin": -91086,
       "amm_config": "Hzk3dF6tK4AQiqzeiYCBMr5SVfhcB2b42QRjQJgvQG9s",
       "_comment": "Raydium BONK/USDC CLMM",
       "base_reserve": 12674913144892,
-      "quote_reserve": 752876553
+      "quote_reserve": 752876553,
+      "observation_state": "4Vwj2B4wBN62oBbbK9h3UcJK5NB1Zox1WxeeUUNhTpf6",
+      "sqrt_price": "194146062990901732"
     },
     {
       "address": "3v2am7LrJD3Vc3XN6b6gH8whQqXbR3u2La3N4BdCzxu3",
@@ -6383,11 +6387,13 @@
       "decimals_b": 6,
       "fee_bps": 122,
       "spacing": 30266,
-      "current_tick_or_bin": 0,
+      "current_tick_or_bin": 12134,
       "amm_config": "J8YrvEZ46j9qYEEbjYj59hZu1gq9avnsC93WQhJuqsUZ",
       "_comment": "Raydium JUP/PYTH CLMM",
-      "base_reserve": 77451817199,
-      "quote_reserve": 890049796107
+      "base_reserve": 76354096369,
+      "quote_reserve": 893720000243,
+      "observation_state": "5XUF1bnJ9DCxnrLLUV3uUpQD5ry7XETffPDFm6JyjK4n",
+      "sqrt_price": "33838548908009148065"
     },
     {
       "address": "7WMCUyZXrDxNjAWjuh2r7g8CdT2guqvrmdUPAnGdLsfG",
@@ -6400,11 +6406,13 @@
       "decimals_b": 9,
       "fee_bps": 49,
       "spacing": 22372,
-      "current_tick_or_bin": 0,
+      "current_tick_or_bin": 4917,
       "amm_config": "JDNwM8TG2JxCrxHJCB3uuYQRDbFT6bKUyiB8fUS8HAw6",
       "_comment": "Raydium JUP/SOL CLMM",
-      "base_reserve": 27873065289,
-      "quote_reserve": 19203410503
+      "base_reserve": 27873279418,
+      "quote_reserve": 19203409496,
+      "observation_state": "Dji39ioziqZfwyVwf6fq2u44uE3jCJbnjjoKYuocvR7Z",
+      "sqrt_price": "23588731238230887118"
     },
     {
       "address": "EZVkeboWeXygtq8LMyENHyXdF5wpYrtExRNH9UwB1qYw",
@@ -6417,11 +6425,13 @@
       "decimals_b": 9,
       "fee_bps": 49,
       "spacing": 236,
-      "current_tick_or_bin": 0,
+      "current_tick_or_bin": 4949,
       "amm_config": "JAHU65iTsKA9hJY4A9CYQESW4DwGBty3ob7NcRUPU9qj",
       "_comment": "Raydium JUP/SOL CLMM",
-      "base_reserve": 227662361742,
-      "quote_reserve": 67231161799
+      "base_reserve": 227049922957,
+      "quote_reserve": 68252497182,
+      "observation_state": "72uc9nXozQS2SKXzdbT115mMxjNeWwUjMoJgwbkN7VMU",
+      "sqrt_price": "23625536345623951829"
     },
     {
       "address": "Fu5uXjR17rGbUur294Ke3UxCH8JF5nWYYCe9wqNjDuFr",
@@ -6434,11 +6444,13 @@
       "decimals_b": 6,
       "fee_bps": 25,
       "spacing": 21794,
-      "current_tick_or_bin": 0,
+      "current_tick_or_bin": -16094,
       "amm_config": "J9UXhdjB8UTVTGAKgfnU1cfBxaggPeDaPqsFAH88ZNGk",
       "_comment": "Raydium JUP/USDC CLMM",
       "base_reserve": 14875736570,
-      "quote_reserve": 143203730
+      "quote_reserve": 143203730,
+      "observation_state": "BzRwC5EDuzNGimhHyFU21gNoYrmsCQbnMoLAj8Z64g7e",
+      "sqrt_price": "8250406646923909044"
     },
     {
       "address": "5Z2YAbbCeagp8kMTAD61fvbT5bcw45Qjubz8t8YobtZR",
@@ -6451,11 +6463,13 @@
       "decimals_b": 6,
       "fee_bps": 25,
       "spacing": 16765,
-      "current_tick_or_bin": 0,
+      "current_tick_or_bin": -8280,
       "amm_config": "HvqdykNoRDfhK9sgD2vjTvLDEf8qU5V9SY7qu7NvgTVX",
       "_comment": "Raydium JUP/USDC CLMM",
       "base_reserve": 4509469845,
-      "quote_reserve": 100600228
+      "quote_reserve": 100600228,
+      "observation_state": "Enigy92aUYyLpzE7Ja7s6LpEz3JoDgYEp83iyBwcHJEr",
+      "sqrt_price": "12193567996800379392"
     },
     {
       "address": "DcM51yhj5e7AdMFV2xuejmpnMwWmSQVps7FVnMbcikiZ",
@@ -6468,11 +6482,13 @@
       "decimals_b": 6,
       "fee_bps": 25,
       "spacing": 8174,
-      "current_tick_or_bin": 0,
+      "current_tick_or_bin": -8400,
       "amm_config": "JCTGZjH8zZeYwvMaF3zX3dK8GhPvHstmn1MPutcuZg8u",
       "_comment": "Raydium JUP/USDT CLMM",
       "base_reserve": 9121510776,
-      "quote_reserve": 74270253
+      "quote_reserve": 74270253,
+      "observation_state": "3WYyMuW41oYYqeMrJJj9yDoPEVWrHgXg2onfF6Z645Y1",
+      "sqrt_price": "12120629082084344553"
     },
     {
       "address": "2dCj7aEkW15fib8PieEf6qatR2FpmQco2TA7ZLKkUjb5",
@@ -6485,11 +6501,13 @@
       "decimals_b": 6,
       "fee_bps": 25,
       "spacing": 29584,
-      "current_tick_or_bin": 0,
+      "current_tick_or_bin": -78901,
       "amm_config": "J5a84916Edxn3a3MBAX27guxha7ugh7foyZMf5p8qZcQ",
       "_comment": "Raydium POPCAT/USDC CLMM",
       "base_reserve": 4852140303865,
-      "quote_reserve": 303734695
+      "quote_reserve": 303734695,
+      "observation_state": "7gL2JkErSmBtgY1gn2KAzkuAG8N6Zg5CLY2exHNip29a",
+      "sqrt_price": "357037336086330554"
     },
     {
       "address": "GtKKKs3yaPdHbQd2aZS4SfWhy8zQ988BJGnKNndLxYsN",
@@ -6502,11 +6520,13 @@
       "decimals_b": 5,
       "fee_bps": 734,
       "spacing": 33424,
-      "current_tick_or_bin": 0,
+      "current_tick_or_bin": 73565,
       "amm_config": "J5a84916Edxn3a3MBAX27guxha7ugh7foyZMf5p8qZcQ",
       "_comment": "Raydium SOL/BONK CLMM",
-      "base_reserve": 94547800099,
-      "quote_reserve": 420666927279056
+      "base_reserve": 93018589109,
+      "quote_reserve": 423255454213921,
+      "observation_state": "Gj8gzDNKmf5y3p1LorKHTvMZ8eCLhbCDnhGiN5xVW8Jq",
+      "sqrt_price": "729950271131854849860"
     },
     {
       "address": "ysq96dVZrrMVRassYB2Vr5cHFWoSQDRzQRGNmRRtr1L",
@@ -6519,11 +6539,13 @@
       "decimals_b": 5,
       "fee_bps": 734,
       "spacing": 35182,
-      "current_tick_or_bin": 0,
+      "current_tick_or_bin": 73567,
       "amm_config": "JB2KACppn93mBpbP5W1nXGpBKa5TWBS41ndhyxgZAi5S",
       "_comment": "Raydium SOL/BONK CLMM",
-      "base_reserve": 6763062754,
-      "quote_reserve": 60460155724766
+      "base_reserve": 6760201039,
+      "quote_reserve": 60464622234596,
+      "observation_state": "Gajn4cvFPSFNFCUrvLbTwjkgShvTTS4TGPxYqc1HcG6a",
+      "sqrt_price": "730040294810367818790"
     },
     {
       "address": "BjZKz1z4UMjJPvPfKwTwjPErVBWnewnJFvcZB6minymy",
@@ -6536,11 +6558,13 @@
       "decimals_b": 5,
       "fee_bps": 734,
       "spacing": 2416,
-      "current_tick_or_bin": 0,
+      "current_tick_or_bin": 73548,
       "amm_config": "J6P4SazNyUfSHcR5edw6WJhGoDNVUws9DioV7EAPkMBP",
       "_comment": "Raydium SOL/BONK CLMM",
-      "base_reserve": 4264536745,
-      "quote_reserve": 58220964297983
+      "base_reserve": 4264515544,
+      "quote_reserve": 58220997360500,
+      "observation_state": "7MZbMKTV5srt6BqctdfDi7eSzgvZBnuh9zgtKqfYcoKU",
+      "sqrt_price": "729315964014244918196"
     },
     {
       "address": "ALYy1HRt3fsn1S9McLWsXCoq6Ke7bwMiwZ6QYr6HvsYS",
@@ -6553,11 +6577,13 @@
       "decimals_b": 5,
       "fee_bps": 734,
       "spacing": 23719,
-      "current_tick_or_bin": 0,
+      "current_tick_or_bin": 73490,
       "amm_config": "J8YrvEZ46j9qYEEbjYj59hZu1gq9avnsC93WQhJuqsUZ",
       "_comment": "Raydium SOL/BONK CLMM",
-      "base_reserve": 33106584517,
-      "quote_reserve": 50495130305119
+      "base_reserve": 32968972996,
+      "quote_reserve": 50710654646908,
+      "observation_state": "29FycfAbV5mQg4gvU72GnbRJux5jPsi2iQeH9aacTtFm",
+      "sqrt_price": "727232744342395591058"
     },
     {
       "address": "z5UnzBcUnzQPoeHe5eVPoYczaTQ2BhwwDD9PN7Fq16v",
@@ -6570,11 +6596,13 @@
       "decimals_b": 8,
       "fee_bps": 25,
       "spacing": 28696,
-      "current_tick_or_bin": 0,
+      "current_tick_or_bin": -54731,
       "amm_config": "Hsru7epqZ8UdpVgReeigRugGvYRbZqox4Ndh9Vt9g9dN",
       "_comment": "Raydium SOL/ETH CLMM",
-      "base_reserve": 39234976024,
-      "quote_reserve": 50506903
+      "base_reserve": 38683298167,
+      "quote_reserve": 52826288,
+      "observation_state": "5F5ADAvA5u3PiLG8krhVw31KFtnzuh6CKDykxxoW4x3e",
+      "sqrt_price": "1195414454806689859"
     },
     {
       "address": "296QdpvTmcnmNwzXu3VRuFV13UMaj2LsV65sGRrUnjBv",
@@ -6587,11 +6615,13 @@
       "decimals_b": 9,
       "fee_bps": 536,
       "spacing": 61384,
-      "current_tick_or_bin": 0,
+      "current_tick_or_bin": 53699,
       "amm_config": "JDNwM8TG2JxCrxHJCB3uuYQRDbFT6bKUyiB8fUS8HAw6",
       "_comment": "Raydium SOL/JTO CLMM",
       "base_reserve": 1328666299,
-      "quote_reserve": 2085038784372
+      "quote_reserve": 2085038784372,
+      "observation_state": "2vahQ27C4jvpGGjAvFD7wXBJMAUbX3gQFTEVrQoRf6H2",
+      "sqrt_price": "270359793525292482930"
     },
     {
       "address": "JVoPtWWDsRcLvQosu5fWc2CaNF6jEtJzbxdPtcEuvZo",
@@ -6604,11 +6634,13 @@
       "decimals_b": 9,
       "fee_bps": 577,
       "spacing": 15368,
-      "current_tick_or_bin": 0,
+      "current_tick_or_bin": 57684,
       "amm_config": "J8YrvEZ46j9qYEEbjYj59hZu1gq9avnsC93WQhJuqsUZ",
       "_comment": "Raydium SOL/JTO CLMM",
-      "base_reserve": 128176329707,
-      "quote_reserve": 96197645371222
+      "base_reserve": 129788978342,
+      "quote_reserve": 95686612017096,
+      "observation_state": "J56JoCEHyCG3P5fCKdB9S78NLBXY6T4UfxiCwRNh8gGP",
+      "sqrt_price": "329960439016997783184"
     },
     {
       "address": "4Kty4cBWvf8fvTbwhDXVE7Yer6eqFmHQoeDm5v2PGuD4",
@@ -6621,11 +6653,13 @@
       "decimals_b": 9,
       "fee_bps": 25,
       "spacing": 9759,
-      "current_tick_or_bin": 0,
+      "current_tick_or_bin": -641,
       "amm_config": "JB8j7YGuFQamgdE5rJ316aG5YeadCifd5HbeT7ZJwhBn",
       "_comment": "Raydium SOL/JitoSOL CLMM",
       "base_reserve": 82338615603,
-      "quote_reserve": 34752112
+      "quote_reserve": 34752112,
+      "observation_state": "EYstuXRXLP7JY4mML4wPQ7NiSixD7t4qj86HkwZHBgvN",
+      "sqrt_price": "17865821636704525308"
     },
     {
       "address": "2uoKbPEidR7KAMYtY4x7xdkHXWqYib5k4CutJauSL3Mc",
@@ -6638,11 +6672,13 @@
       "decimals_b": 9,
       "fee_bps": 25,
       "spacing": 297,
-      "current_tick_or_bin": 0,
+      "current_tick_or_bin": -2238,
       "amm_config": "JCPS6D41dkCnqv8Dtut9ALn1H6MPx3EdThKScmj6t7SL",
       "_comment": "Raydium SOL/JitoSOL CLMM",
-      "base_reserve": 11975188548187,
-      "quote_reserve": 8564227869341
+      "base_reserve": 11584850438053,
+      "quote_reserve": 8176685852188,
+      "observation_state": "CPbJctJNpDpV1BVDSq9jwjzz3hjUGSxq2B33g4ciC927",
+      "sqrt_price": "16494450622238069101"
     },
     {
       "address": "ZT6NM6DzTqLZytKFVGXM2q4PiB8cwGzJXe3FtheB6GB",
@@ -6655,11 +6691,13 @@
       "decimals_b": 9,
       "fee_bps": 630,
       "spacing": 50063,
-      "current_tick_or_bin": 0,
+      "current_tick_or_bin": 63029,
       "amm_config": "J5X5dHxtc2hn9q18Vri9Ba6pw74XUErTnMnADM6dEPRQ",
       "_comment": "Raydium SOL/POPCAT CLMM",
       "base_reserve": 253390509,
-      "quote_reserve": 2412289411815
+      "quote_reserve": 2412289411815,
+      "observation_state": "DhZBzu9FcKQgsufJ1JVLs3jUwDzbTYy1Wk8R1pKZDnEq",
+      "sqrt_price": "431052683204100305017"
     },
     {
       "address": "43xBeK8mZtssDjFLdrpr2muH5AYQJRVFb22y5rHvfo9C",
@@ -6672,11 +6710,13 @@
       "decimals_b": 9,
       "fee_bps": 733,
       "spacing": 37864,
-      "current_tick_or_bin": 0,
+      "current_tick_or_bin": 73456,
       "amm_config": "J9UXhdjB8UTVTGAKgfnU1cfBxaggPeDaPqsFAH88ZNGk",
       "_comment": "Raydium SOL/POPCAT CLMM",
-      "base_reserve": 859235159,
-      "quote_reserve": 10522519509587
+      "base_reserve": 858525519,
+      "quote_reserve": 10523615529704,
+      "observation_state": "HytFPw3VwLeLZXgBU6e4voCuDtVMukCbPYphbFDwfvyL",
+      "sqrt_price": "725977251137905355333"
     },
     {
       "address": "7bLEFh4c4mBMPnmnLbCd2KS7ifH6XFSsw8qQLpaFfQTN",
@@ -6689,11 +6729,13 @@
       "decimals_b": 9,
       "fee_bps": 579,
       "spacing": 25826,
-      "current_tick_or_bin": 0,
+      "current_tick_or_bin": 57993,
       "amm_config": "JB2KACppn93mBpbP5W1nXGpBKa5TWBS41ndhyxgZAi5S",
       "_comment": "Raydium SOL/POPCAT CLMM",
       "base_reserve": 159139198,
-      "quote_reserve": 1592694125475
+      "quote_reserve": 1592694125475,
+      "observation_state": "GSKwiHdY6uJHs4g5zB56TzQdfFX5BSC3jsshV3bEdADe",
+      "sqrt_price": "335087907921640407219"
     },
     {
       "address": "dgfJKacfubDGfX3mhEk1JKaK9qx38SpLzM2wNdgX2fD",
@@ -6706,11 +6748,13 @@
       "decimals_b": 9,
       "fee_bps": 733,
       "spacing": 17053,
-      "current_tick_or_bin": 0,
+      "current_tick_or_bin": 73365,
       "amm_config": "JCTGZjH8zZeYwvMaF3zX3dK8GhPvHstmn1MPutcuZg8u",
       "_comment": "Raydium SOL/POPCAT CLMM",
       "base_reserve": 2628091863,
-      "quote_reserve": 3896762021405
+      "quote_reserve": 3896762021405,
+      "observation_state": "J3sJsFTBFU1RKGtpmpG1Th2D2oLv9vNyv6uQVQFK8A65",
+      "sqrt_price": "722694112821953940547"
     },
     {
       "address": "bWpDAyJ8UidQoYU2rDemfoLE8pWP1p8GYKrxFrCtPbN",
@@ -6723,11 +6767,13 @@
       "decimals_b": 6,
       "fee_bps": 67,
       "spacing": 35504,
-      "current_tick_or_bin": 0,
+      "current_tick_or_bin": 6719,
       "amm_config": "J9Kbn8UXfXnxApNAykLF7MT23wz9ARPjAoeRap68yNSA",
       "_comment": "Raydium SOL/PYTH CLMM",
       "base_reserve": 27775612,
-      "quote_reserve": 46226025271
+      "quote_reserve": 46226025271,
+      "observation_state": "4sdBbRqjGAAgksAWLQNWJv2ig4pBG2JCNHHmSxWX7nsZ",
+      "sqrt_price": "25812815231330637753"
     },
     {
       "address": "D2P4D7xtUAwzd8WRDaNQRcojoKKVyoWVG2PUPYscMT7p",
@@ -6740,11 +6786,13 @@
       "decimals_b": 6,
       "fee_bps": 69,
       "spacing": 38132,
-      "current_tick_or_bin": 0,
+      "current_tick_or_bin": 6959,
       "amm_config": "HtvNt3RErsyVPdsVQ4AnXv5YRk5ihbZir2hQRWLc62NW",
       "_comment": "Raydium SOL/PYTH CLMM",
       "base_reserve": 2415692291,
-      "quote_reserve": 67320021583
+      "quote_reserve": 67320021583,
+      "observation_state": "43M3oQs1UgsjmSNNKjw63R4wqnnGHiJfSWc39EHxQT9q",
+      "sqrt_price": "26124419318112164137"
     },
     {
       "address": "9n3dSLrERZQp95dHXywft7xV8D8xnGFLaUHtEhQVaXaC",
@@ -6757,11 +6805,13 @@
       "decimals_b": 6,
       "fee_bps": 72,
       "spacing": 41569,
-      "current_tick_or_bin": 0,
+      "current_tick_or_bin": 7307,
       "amm_config": "JDNwM8TG2JxCrxHJCB3uuYQRDbFT6bKUyiB8fUS8HAw6",
       "_comment": "Raydium SOL/PYTH CLMM",
-      "base_reserve": 400793797932,
-      "quote_reserve": 1766677981458
+      "base_reserve": 353391355668,
+      "quote_reserve": 1864808363148,
+      "observation_state": "B34gh57xbQHfGjAdEoy9s6L1eivCpGJcrg18DjoozEE6",
+      "sqrt_price": "26582641760999610749"
     },
     {
       "address": "CP3J4WkKwDyDxm7uSucQfPgrKBwFe5wM4UsURscdytsX",
@@ -6774,11 +6824,13 @@
       "decimals_b": 6,
       "fee_bps": 72,
       "spacing": 61516,
-      "current_tick_or_bin": 0,
+      "current_tick_or_bin": 7258,
       "amm_config": "JDxfs4GtJ74k7XyFceqQ32fgkBVXJTX5xo6GVYsmrFcF",
       "_comment": "Raydium SOL/PYTH CLMM",
       "base_reserve": 22155525869,
-      "quote_reserve": 299740209305
+      "quote_reserve": 299740209305,
+      "observation_state": "DULGhHJhNfKFcoXT5dko5YACasnC2UPs8FurDyXQFoHE",
+      "sqrt_price": "26516614392914793325"
     },
     {
       "address": "CsVe97sDiaXkVfVjiwyYp4zKZXD7TckaRcLVgqbFuUay",
@@ -6791,11 +6843,13 @@
       "decimals_b": 6,
       "fee_bps": 25,
       "spacing": 7401,
-      "current_tick_or_bin": 0,
+      "current_tick_or_bin": -36864,
       "amm_config": "JDxfs4GtJ74k7XyFceqQ32fgkBVXJTX5xo6GVYsmrFcF",
       "_comment": "Raydium SOL/TRUMP CLMM",
       "base_reserve": 85759930112,
-      "quote_reserve": 2433990483
+      "quote_reserve": 2433990483,
+      "observation_state": "EWcRqKuf9tTAbpnYq33Sxvd7oKTz9KngFhGn6S9SxGNE",
+      "sqrt_price": "2920616147816627636"
     },
     {
       "address": "EKmcEiMEExCBEg9Aw7HethY8UGm5KjPgSdhJeK9bQh6j",
@@ -6808,11 +6862,13 @@
       "decimals_b": 6,
       "fee_bps": 25,
       "spacing": 59197,
-      "current_tick_or_bin": 0,
+      "current_tick_or_bin": -36878,
       "amm_config": "J8YrvEZ46j9qYEEbjYj59hZu1gq9avnsC93WQhJuqsUZ",
       "_comment": "Raydium SOL/TRUMP CLMM",
       "base_reserve": 8155283258,
-      "quote_reserve": 876733913
+      "quote_reserve": 876733913,
+      "observation_state": "5bPnxrLfbyr9cgkjhNfpiCuofd95UGo3qt2pRbfxHasA",
+      "sqrt_price": "2918586809264552526"
     },
     {
       "address": "GQsPr4RJk9AZkkfWHud7v4MtotcxhaYzZHdsPCg9vNvW",
@@ -6825,11 +6881,13 @@
       "decimals_b": 6,
       "fee_bps": 25,
       "spacing": 21134,
-      "current_tick_or_bin": 0,
+      "current_tick_or_bin": -36875,
       "amm_config": "JDNwM8TG2JxCrxHJCB3uuYQRDbFT6bKUyiB8fUS8HAw6",
       "_comment": "Raydium SOL/TRUMP CLMM",
-      "base_reserve": 84346294210,
-      "quote_reserve": 33879258415
+      "base_reserve": 84232035785,
+      "quote_reserve": 33870958683,
+      "observation_state": "B39UjYJDygUfufZfwGa2BVbSnLLw9qredg3wDWarMAUx",
+      "sqrt_price": "2919064858155680764"
     },
     {
       "address": "2SjLv6XwViJ17rq21N1y98LbMee1J4DXinP61rk9v2aK",
@@ -6842,11 +6900,13 @@
       "decimals_b": 6,
       "fee_bps": 25,
       "spacing": 54582,
-      "current_tick_or_bin": 0,
+      "current_tick_or_bin": -17700,
       "amm_config": "J6dbpXbVYPTdciEQvZy8DhKECmn2pSsSbdd4w6GbFSMY",
       "_comment": "Raydium SOL/USDC CLMM",
       "base_reserve": 19088085109,
-      "quote_reserve": 124388507
+      "quote_reserve": 124388507,
+      "observation_state": "CqY713Ms9mF3LRbyGzWJmoEVNE837pqS5saYgfHcSQXu",
+      "sqrt_price": "7613569601240257576"
     },
     {
       "address": "3ucNos4NbumPLZNWztqGHNFFgkHeRMBQAVemeeomsUxv",
@@ -6859,11 +6919,13 @@
       "decimals_b": 6,
       "fee_bps": 25,
       "spacing": 57594,
-      "current_tick_or_bin": 0,
+      "current_tick_or_bin": -20969,
       "amm_config": "JB2KACppn93mBpbP5W1nXGpBKa5TWBS41ndhyxgZAi5S",
       "_comment": "Raydium SOL/USDC CLMM",
-      "base_reserve": 79212510345310,
-      "quote_reserve": 1619370074113
+      "base_reserve": 78135418276419,
+      "quote_reserve": 1735627367115,
+      "observation_state": "3Y695CuQ8AP4anbwAqiEBeQF9KxqHFr8piEwvw3UePnQ",
+      "sqrt_price": "6465736524328548455"
     },
     {
       "address": "8sLbNZoA1cfnvMJLPfp98ZLAnFSYCFApfJKMbiXNLwxj",
@@ -6876,11 +6938,13 @@
       "decimals_b": 6,
       "fee_bps": 25,
       "spacing": 14335,
-      "current_tick_or_bin": 0,
+      "current_tick_or_bin": -20968,
       "amm_config": "HvmoWE9g4QDwD9eKrtpMado6F46K8Eq18E5tbzV7ztnx",
       "_comment": "Raydium SOL/USDC CLMM",
-      "base_reserve": 6739681790841,
-      "quote_reserve": 78311374508
+      "base_reserve": 6675900431507,
+      "quote_reserve": 81773083694,
+      "observation_state": "3MsJXVvievxAbsMsaT6TS4i6oMitD9jazucuq3X234tC",
+      "sqrt_price": "6466120428891975568"
     },
     {
       "address": "CztrCcLhgfazkBchMW7wXQL37AWQdBP1tQWHBR249neh",
@@ -6893,11 +6957,13 @@
       "decimals_b": 6,
       "fee_bps": 25,
       "spacing": 33277,
-      "current_tick_or_bin": 0,
+      "current_tick_or_bin": -20957,
       "amm_config": "J3K1pHEJpm78VVcCWBLmGvK89nJWmXmii9zkCu6otB3T",
       "_comment": "Raydium SOL/USDC CLMM",
-      "base_reserve": 1696660052814,
-      "quote_reserve": 45818655692
+      "base_reserve": 1690070099206,
+      "quote_reserve": 46630527256,
+      "observation_state": "Bc2y3udGsGEENH9wBMgywGEPnPdR5Dkjns81pEtZ3pU",
+      "sqrt_price": "6469465563958146267"
     },
     {
       "address": "2QdhepnKRTLjjSqPL1PtKNwqrUkoLee5Gqs8bvZhRdMv",
@@ -6910,11 +6976,13 @@
       "decimals_b": 6,
       "fee_bps": 25,
       "spacing": 36157,
-      "current_tick_or_bin": 0,
+      "current_tick_or_bin": -20964,
       "amm_config": "JEBsjaSYm9es6zf2feTzJABjKEW2tr4xPTRG7cnPBxW5",
       "_comment": "Raydium SOL/USDC CLMM",
-      "base_reserve": 2326593805639,
-      "quote_reserve": 234763418101
+      "base_reserve": 2313862254909,
+      "quote_reserve": 235792064691,
+      "observation_state": "4fEjbMXTet3w8qhScPmT6X79ypagRydKLHPqcGsrhcmP",
+      "sqrt_price": "6467476579836298594"
     },
     {
       "address": "6MUjnGffYaqcHeqv4nNemUQVNMpJab3W2NV9bfPj576c",
@@ -6927,11 +6995,13 @@
       "decimals_b": 6,
       "fee_bps": 25,
       "spacing": 43784,
-      "current_tick_or_bin": 0,
+      "current_tick_or_bin": -21001,
       "amm_config": "J2FSva6dcbabtTcL6934MFRzy9oDBcDNDCAbyxwngqdD",
       "_comment": "Raydium SOL/USDC CLMM",
       "base_reserve": 28562381880,
-      "quote_reserve": 444441441
+      "quote_reserve": 444441441,
+      "observation_state": "6As3k6r8ruuuBT6ueci5ta9UrgjyT8W59qGeN43n6iao",
+      "sqrt_price": "6455253691834570015"
     },
     {
       "address": "2JtkunkYCRbe5YZuGU6kLFmNwN22Ba1pCicHoqW5Eqja",
@@ -6944,11 +7014,13 @@
       "decimals_b": 6,
       "fee_bps": 25,
       "spacing": 24094,
-      "current_tick_or_bin": 0,
+      "current_tick_or_bin": -20715,
       "amm_config": "J7qrZRb1cd9Kx9MB1D5CDWZEBZWAchJfrYHhGWJt6BPT",
       "_comment": "Raydium SOL/USDC CLMM",
       "base_reserve": 24547406435,
-      "quote_reserve": 361119857
+      "quote_reserve": 361119857,
+      "observation_state": "EsGEeBn6T4cpRwQyzkZzjRHHeaiZUsjB9b5iwUVB1Zgp",
+      "sqrt_price": "6548337344708557216"
     },
     {
       "address": "4i1h1Uz8SFWVa2erTtD4rvbxmWgPLjQZEvZj9yZULce1",
@@ -6961,11 +7033,13 @@
       "decimals_b": 6,
       "fee_bps": 25,
       "spacing": 11992,
-      "current_tick_or_bin": 0,
+      "current_tick_or_bin": -19921,
       "amm_config": "J59bmykaQA28ZE6EeYRUggMu6jLp4DwJ9Si6i8KnopVT",
       "_comment": "Raydium SOL/USDC CLMM",
       "base_reserve": 19047208077,
-      "quote_reserve": 104308447
+      "quote_reserve": 104308447,
+      "observation_state": "FQK1gQfBBLSiz96T9KP6QkniaBEWW6T8NqZ561PRmwHy",
+      "sqrt_price": "6813716266760046567"
     },
     {
       "address": "CiSQxEhiS1j7PVHy57LqmjFWL1N7ciYD45Enq5tSyfaN",
@@ -6978,11 +7052,13 @@
       "decimals_b": 6,
       "fee_bps": 25,
       "spacing": 54582,
-      "current_tick_or_bin": 0,
+      "current_tick_or_bin": -17701,
       "amm_config": "JDE1RdCcZNHfaWV9VFbh1HCFJxYusNVdkfxK61Q8hB6W",
       "_comment": "Raydium SOL/USDC CLMM",
       "base_reserve": 18922380481,
-      "quote_reserve": 110508971
+      "quote_reserve": 110508971,
+      "observation_state": "Ahc4tS1eHmub427i7P6wkNRmRtD8UoLiuHkQXEz6F8q6",
+      "sqrt_price": "7613569600617062738"
     },
     {
       "address": "5s7njN2X6k3trkibTKX6LJFu4PnybYhCuADP9LD2fhuP",
@@ -6995,11 +7071,13 @@
       "decimals_b": 6,
       "fee_bps": 25,
       "spacing": 65175,
-      "current_tick_or_bin": 0,
+      "current_tick_or_bin": -20965,
       "amm_config": "J9mFQrXxsbDErwE2ZMr5uuWvj4WrPv9Fh5xyVseK2z7w",
       "_comment": "Raydium SOL/USDC CLMM",
-      "base_reserve": 19217838150,
-      "quote_reserve": 146021476
+      "base_reserve": 19211116424,
+      "quote_reserve": 146848282,
+      "observation_state": "CZ7yfxEfoLvn5MqnPJMLJnA2bwyzMrkYHbD5Ebr4qfPQ",
+      "sqrt_price": "6466878881711299986"
     },
     {
       "address": "GqxUEcFw8GbfDPoWU6UG2ypvsM3aw3vZmiN4e1Nbv94G",
@@ -7012,11 +7090,13 @@
       "decimals_b": 6,
       "fee_bps": 25,
       "spacing": 18675,
-      "current_tick_or_bin": 0,
+      "current_tick_or_bin": -18480,
       "amm_config": "JCTGZjH8zZeYwvMaF3zX3dK8GhPvHstmn1MPutcuZg8u",
       "_comment": "Raydium SOL/USDC CLMM",
       "base_reserve": 19422515264,
-      "quote_reserve": 152040354
+      "quote_reserve": 152040354,
+      "observation_state": "EeVXzDotby848gkusN8qZykJ4NiKFRopCanXkMTJeF2K",
+      "sqrt_price": "7322370256581809715"
     },
     {
       "address": "87Dia7JixTXFrXs7i5YHT1Z3dJFkd9KdaWquNcPsGPyT",
@@ -7029,11 +7109,13 @@
       "decimals_b": 6,
       "fee_bps": 25,
       "spacing": 58580,
-      "current_tick_or_bin": 0,
+      "current_tick_or_bin": -17681,
       "amm_config": "JDKtvHR4PhhCyDF5WsF2yRbHT8C4t94Gx6PwDjicfzk6",
       "_comment": "Raydium SOL/USDC CLMM",
       "base_reserve": 38362755120,
-      "quote_reserve": 164592973
+      "quote_reserve": 164592973,
+      "observation_state": "6JKrD2JYLxak4LUnQZKnuBfj2UNsgug4iqAN973PqxBM",
+      "sqrt_price": "7621186597237784982"
     },
     {
       "address": "CYbD9RaToYMtWKA7QZyoLahnHdWq553Vm62Lh6qWtuxq",
@@ -7046,11 +7128,13 @@
       "decimals_b": 6,
       "fee_bps": 25,
       "spacing": 56920,
-      "current_tick_or_bin": 0,
+      "current_tick_or_bin": -20967,
       "amm_config": "J5hDrSzEDoVKe6z5q2X4eSiSoiUuRU4WK755BrYomq1W",
       "_comment": "Raydium SOL/USDC CLMM",
-      "base_reserve": 3828159853034,
-      "quote_reserve": 555628033709
+      "base_reserve": 3771767112543,
+      "quote_reserve": 562730059847,
+      "observation_state": "AA5RaVvyGyZgtmAsJJHT5ZVBxVPtAXuYaMwfgeFJW4Mk",
+      "sqrt_price": "6466368459466181273"
     },
     {
       "address": "EXHyQxMSttcvLPwjENnXCPZ8GmLjJYHtNBnAkcFeFKMn",
@@ -7063,11 +7147,13 @@
       "decimals_b": 6,
       "fee_bps": 25,
       "spacing": 59381,
-      "current_tick_or_bin": 0,
+      "current_tick_or_bin": -20969,
       "amm_config": "J3KupYpjTjbLsEz8qHW7Jimd2dT5npTouYysSiwKW5s6",
       "_comment": "Raydium SOL/USDC CLMM",
-      "base_reserve": 87284878007,
-      "quote_reserve": 372641783
+      "base_reserve": 87281618151,
+      "quote_reserve": 373043537,
+      "observation_state": "BidNmgznWp3ERbuemvdPANYmF2ePMHzGvbqjhMpRZYrn",
+      "sqrt_price": "6465594525482760426"
     },
     {
       "address": "3tD34VtprDSkYCnATtQLCiVgTkECU3d12KtjupeR6N2X",
@@ -7080,11 +7166,13 @@
       "decimals_b": 6,
       "fee_bps": 25,
       "spacing": 31778,
-      "current_tick_or_bin": 0,
+      "current_tick_or_bin": -16293,
       "amm_config": "J9UXhdjB8UTVTGAKgfnU1cfBxaggPeDaPqsFAH88ZNGk",
       "_comment": "Raydium SOL/USDC CLMM",
       "base_reserve": 141103107654,
-      "quote_reserve": 23536278735
+      "quote_reserve": 23536278735,
+      "observation_state": "5jioL9CDJUpqGG9X9MYXwNz5McnXNPm2VJ61JTvUbRkZ",
+      "sqrt_price": "8168540310819703009"
     },
     {
       "address": "ExcBWu8fGPdJiaF1b1z3iEef38sjQJks8xvj6M85pPY6",
@@ -7097,11 +7185,13 @@
       "decimals_b": 6,
       "fee_bps": 25,
       "spacing": 13733,
-      "current_tick_or_bin": 0,
+      "current_tick_or_bin": -20964,
       "amm_config": "JDW39SSQ1UUkTVE2r33xSJCuKjcSqNGKUqgrCFAoDSLC",
       "_comment": "Raydium SOL/USDT CLMM",
-      "base_reserve": 329217666795,
-      "quote_reserve": 24338501903
+      "base_reserve": 326800865387,
+      "quote_reserve": 24636010968,
+      "observation_state": "3AsJZQY3jtZwqBfbTUQ4xKDVwmdz2ufdKMsnxN9K5L3S",
+      "sqrt_price": "6467375232545029448"
     },
     {
       "address": "6kT4MhDqKrkWikaGpFCvYsk45BUKXEe2gTpNGAR1YcjS",
@@ -7114,11 +7204,13 @@
       "decimals_b": 6,
       "fee_bps": 25,
       "spacing": 45124,
-      "current_tick_or_bin": 0,
+      "current_tick_or_bin": -20966,
       "amm_config": "JAHU65iTsKA9hJY4A9CYQESW4DwGBty3ob7NcRUPU9qj",
       "_comment": "Raydium SOL/USDT CLMM",
-      "base_reserve": 885099249347,
-      "quote_reserve": 44528860922
+      "base_reserve": 879487874096,
+      "quote_reserve": 45219942728,
+      "observation_state": "AWAcFgo1fooVejmPn5FujmUc2iv2iUUNBDsGZzLwdy3Y",
+      "sqrt_price": "6466790907082536454"
     },
     {
       "address": "3nMFwZXwY1s1M5s8vYAHqd4wGs4iSxXE4LRoUMMYqEgF",
@@ -7131,11 +7223,13 @@
       "decimals_b": 6,
       "fee_bps": 25,
       "spacing": 55408,
-      "current_tick_or_bin": 0,
+      "current_tick_or_bin": -20965,
       "amm_config": "HvmoWE9g4QDwD9eKrtpMado6F46K8Eq18E5tbzV7ztnx",
       "_comment": "Raydium SOL/USDT CLMM",
-      "base_reserve": 9747013951086,
-      "quote_reserve": 348259724767
+      "base_reserve": 8851753138738,
+      "quote_reserve": 416509104278,
+      "observation_state": "Cqb16WaM7dDDP8koxYASDJLWgan4STDB1R3LiSH8r3GR",
+      "sqrt_price": "6467119002013393016"
     },
     {
       "address": "7npqExgYmktC6S9YxdxFzsh7LEzokgQfxeAAZHxQwM6Z",
@@ -7148,11 +7242,13 @@
       "decimals_b": 5,
       "fee_bps": 619,
       "spacing": 15164,
-      "current_tick_or_bin": 0,
+      "current_tick_or_bin": 61919,
       "amm_config": "JCTGZjH8zZeYwvMaF3zX3dK8GhPvHstmn1MPutcuZg8u",
       "_comment": "Raydium SOL/WEN CLMM",
       "base_reserve": 81025077,
-      "quote_reserve": 1623412234409
+      "quote_reserve": 1623412234409,
+      "observation_state": "EVuYZVqpeua88TKEkAuiuPsVbazgoxxVo8EoisDYwLzQ",
+      "sqrt_price": "407782152565380847855"
     },
     {
       "address": "FVahRzeovtD5Zbm8vcL65yAVxKMWzPQYdsz5u811qcGi",
@@ -7165,11 +7261,13 @@
       "decimals_b": 9,
       "fee_bps": 25,
       "spacing": 35521,
-      "current_tick_or_bin": 0,
+      "current_tick_or_bin": -2131,
       "amm_config": "J3KupYpjTjbLsEz8qHW7Jimd2dT5npTouYysSiwKW5s6",
       "_comment": "Raydium SOL/bSOL CLMM",
       "base_reserve": 93784929828,
-      "quote_reserve": 291486222
+      "quote_reserve": 291486222,
+      "observation_state": "FZsvspgE5np54CgFrqarUHJsWWDYghoADp5nXQHVZpYp",
+      "sqrt_price": "16583250816832053198"
     },
     {
       "address": "HZf7wppva3wk4dCnrUe2GE1c8aUEXsUNk5asMFQ5sYch",
@@ -7182,11 +7280,13 @@
       "decimals_b": 9,
       "fee_bps": 25,
       "spacing": 34887,
-      "current_tick_or_bin": 0,
+      "current_tick_or_bin": -2991,
       "amm_config": "JB8j7YGuFQamgdE5rJ316aG5YeadCifd5HbeT7ZJwhBn",
       "_comment": "Raydium SOL/mSOL CLMM",
-      "base_reserve": 6731887317,
-      "quote_reserve": 1257773077
+      "base_reserve": 6732476811,
+      "quote_reserve": 1257335909,
+      "observation_state": "4darN1x7dPYBRP5UkgF8VN53vm5CPf1q2aAmvM4MiSLe",
+      "sqrt_price": "15885168642066138457"
     },
     {
       "address": "8EzbUfvcRT1Q6RL462ekGkgqbxsPmwC5FMLQZhSPMjJ3",
@@ -7199,11 +7299,13 @@
       "decimals_b": 9,
       "fee_bps": 25,
       "spacing": 3851,
-      "current_tick_or_bin": 0,
+      "current_tick_or_bin": -2990,
       "amm_config": "JCPS6D41dkCnqv8Dtut9ALn1H6MPx3EdThKScmj6t7SL",
       "_comment": "Raydium SOL/mSOL CLMM",
-      "base_reserve": 14960230604420,
-      "quote_reserve": 3919257781173
+      "base_reserve": 15389060245347,
+      "quote_reserve": 3574433162719,
+      "observation_state": "C29RA4TYnMjmVRSNnuodVowQXn8L1a1FSwMHWZjWWNFz",
+      "sqrt_price": "15885812315216378540"
     },
     {
       "address": "FvviNYdPiReHR2RjH7GUgML2KAG2iD7QYzJ85B5RCQ7p",
@@ -7216,11 +7318,13 @@
       "decimals_b": 9,
       "fee_bps": 25,
       "spacing": 16704,
-      "current_tick_or_bin": 0,
+      "current_tick_or_bin": -1861,
       "amm_config": "Hsru7epqZ8UdpVgReeigRugGvYRbZqox4Ndh9Vt9g9dN",
       "_comment": "Raydium SOL/mSOL CLMM",
       "base_reserve": 14571857044,
-      "quote_reserve": 63342453
+      "quote_reserve": 63342453,
+      "observation_state": "ApDhqtz7jP41fM53Jx3b9dDZaNWXxGeLsA5fxD3bYGL6",
+      "sqrt_price": "16808631456335284239"
     },
     {
       "address": "Bev3s1WZtmvfSspWmkpfvaBz2vCB3ckqm5SLVtVJiDPF",
@@ -7233,11 +7337,13 @@
       "decimals_b": 9,
       "fee_bps": 25,
       "spacing": 10246,
-      "current_tick_or_bin": 0,
+      "current_tick_or_bin": -1924,
       "amm_config": "J8V2SiKvjui5SE1FPQchGR2n25ndF68isq1Z7aR7AJmz",
       "_comment": "Raydium SOL/stSOL CLMM",
-      "base_reserve": 16848421250,
-      "quote_reserve": 633588765
+      "base_reserve": 16847975738,
+      "quote_reserve": 633956461,
+      "observation_state": "78pbycHCuf2zFz5QgasujyT8CABRrqJYUVQ3AU3SWFMF",
+      "sqrt_price": "16755168477148740845"
     },
     {
       "address": "DdigEybG2begUfkpSUP63o5CKF2Q9yGCWktZ6Hnb1RxN",
@@ -7250,11 +7356,13 @@
       "decimals_b": 9,
       "fee_bps": 25,
       "spacing": 55776,
-      "current_tick_or_bin": 0,
+      "current_tick_or_bin": -1925,
       "amm_config": "JB8j7YGuFQamgdE5rJ316aG5YeadCifd5HbeT7ZJwhBn",
       "_comment": "Raydium SOL/stSOL CLMM",
-      "base_reserve": 47834827125,
-      "quote_reserve": 26787045902
+      "base_reserve": 47833301736,
+      "quote_reserve": 26788315455,
+      "observation_state": "Es9znLCuLk2mKJapCadvqQXTtjT8u9nL4xE3GsGNzcsj",
+      "sqrt_price": "16754491683564664699"
     },
     {
       "address": "6uqNoghWR37pFYnWfSMwv1xEAhPGUJCJe2C8fsB96ro1",
@@ -7267,11 +7375,13 @@
       "decimals_b": 6,
       "fee_bps": 158,
       "spacing": 9228,
-      "current_tick_or_bin": 0,
+      "current_tick_or_bin": 15939,
       "amm_config": "J3BGfwbg96A1m1KeTgGwB13HjtZYGorVS2jR5eGGNDT6",
       "_comment": "Raydium TRUMP/USDC CLMM",
-      "base_reserve": 504224720,
-      "quote_reserve": 72675868
+      "base_reserve": 504201967,
+      "quote_reserve": 72787498,
+      "observation_state": "735bbBHjLMCBcaY36RciPvikYoUNuLxTYW9AGCaEpzgL",
+      "sqrt_price": "40929341019723893727"
     },
     {
       "address": "7XzVsjqTebULfkUofTDH5gDdZDmxacPmPuTfHa1n9kuh",
@@ -7284,11 +7394,13 @@
       "decimals_b": 6,
       "fee_bps": 158,
       "spacing": 62188,
-      "current_tick_or_bin": 0,
+      "current_tick_or_bin": 15928,
       "amm_config": "JDNwM8TG2JxCrxHJCB3uuYQRDbFT6bKUyiB8fUS8HAw6",
       "_comment": "Raydium TRUMP/USDC CLMM",
-      "base_reserve": 495461057,
-      "quote_reserve": 760097165
+      "base_reserve": 494158184,
+      "quote_reserve": 766532281,
+      "observation_state": "AziwKtNZrKGLW4qBHtTUgRTUx1toW635UKAS74BN6VX7",
+      "sqrt_price": "40904952305544729971"
     },
     {
       "address": "4LYn8u6CQr7UrUxycswwEAerxpHcCR4wJTfdJednY35Q",
@@ -7301,11 +7413,13 @@
       "decimals_b": 6,
       "fee_bps": 159,
       "spacing": 18184,
-      "current_tick_or_bin": 0,
+      "current_tick_or_bin": 15999,
       "amm_config": "JB7q7GgUcS6ZJsr9XBsf4moafoS4BRyXstcXDHioKnN9",
       "_comment": "Raydium TRUMP/USDT CLMM",
       "base_reserve": 206913498,
-      "quote_reserve": 227806118
+      "quote_reserve": 227806118,
+      "observation_state": "GB36nWZVCibyov2Rm7gzq9rq6rMNCZ3fYw37HpKf42FH",
+      "sqrt_price": "41050388707310063595"
     },
     {
       "address": "FWGk2dvJizVnbU8wAZt7YwgmKsnDZRyHhxnaWHvg64gU",
@@ -7318,11 +7432,13 @@
       "decimals_b": 6,
       "fee_bps": 279,
       "spacing": 52845,
-      "current_tick_or_bin": 0,
+      "current_tick_or_bin": 27996,
       "amm_config": "HwmJm9YvSxyMEBoQA9z8KqRWBYzNGnureEwaehC9PxHi",
       "_comment": "Raydium USDC/PYTH CLMM",
-      "base_reserve": 1027998561,
-      "quote_reserve": 24491136748
+      "base_reserve": 1027997188,
+      "quote_reserve": 24491159284,
+      "observation_state": "2V9CAwAnGCxdqCvUeMDquUqpxHnM3avyrmvZZHmdaHad",
+      "sqrt_price": "74787180800338174083"
     },
     {
       "address": "FPfbntAR84nyxfcmATEwYG55joLcPCxgYBC3BTPqB7yR",
@@ -7335,11 +7451,13 @@
       "decimals_b": 6,
       "fee_bps": 0,
       "spacing": 17455,
-      "current_tick_or_bin": 0,
+      "current_tick_or_bin": 3,
       "amm_config": "JAz5xw3qvm9SaPZbUgopxrXkFuh5gi4JbmMC62tFopmn",
       "_comment": "Raydium USDC/USDT CLMM",
       "base_reserve": 300022585,
-      "quote_reserve": 716946625
+      "quote_reserve": 716946625,
+      "observation_state": "HsT8cEbroP6hU3yV5efiTTUNigb7dmBpXS8K2hrFVMGM",
+      "sqrt_price": "18449633795709724700"
     },
     {
       "address": "BZtgQEyS6eXUXicYPHecYQ7PybqodXQMvkjUbP4R8mUU",
@@ -7352,11 +7470,13 @@
       "decimals_b": 6,
       "fee_bps": 0,
       "spacing": 2260,
-      "current_tick_or_bin": 0,
+      "current_tick_or_bin": 4,
       "amm_config": "JCPS6D41dkCnqv8Dtut9ALn1H6MPx3EdThKScmj6t7SL",
       "_comment": "Raydium USDC/USDT CLMM",
-      "base_reserve": 1635654441540,
-      "quote_reserve": 3227983834058
+      "base_reserve": 1693348880554,
+      "quote_reserve": 3183977857490,
+      "observation_state": "3YZE41e4GKm9Uqvx6H4QA1FdyxT15nEjUP8LbvdiDF2t",
+      "sqrt_price": "18450671118354535028"
     },
     {
       "address": "3NeUgARDmFgnKtkJLqUcEUNCfknFCcGsFfMJCtx6bAgx",
@@ -7369,11 +7489,13 @@
       "decimals_b": 6,
       "fee_bps": 0,
       "spacing": 9655,
-      "current_tick_or_bin": 0,
+      "current_tick_or_bin": 4,
       "amm_config": "J3KupYpjTjbLsEz8qHW7Jimd2dT5npTouYysSiwKW5s6",
       "_comment": "Raydium USDC/USDT CLMM",
-      "base_reserve": 25850038171,
-      "quote_reserve": 31379752006
+      "base_reserve": 25882418553,
+      "quote_reserve": 31347728813,
+      "observation_state": "3biUefMSC3HikUHTc6PRszuhJmrLSr3cLj3r7kZgKyuh",
+      "sqrt_price": "18450737006293498955"
     },
     {
       "address": "ANNsQrhxx16ajJRnnPPmruFHfDpbfKyHLWqTSCsHRn9g",
@@ -7386,11 +7508,13 @@
       "decimals_b": 5,
       "fee_bps": 25,
       "spacing": 35236,
-      "current_tick_or_bin": 0,
+      "current_tick_or_bin": -3196,
       "amm_config": "J8YrvEZ46j9qYEEbjYj59hZu1gq9avnsC93WQhJuqsUZ",
       "_comment": "Raydium WEN/BONK CLMM",
-      "base_reserve": 1470694075685,
-      "quote_reserve": 185471492502
+      "base_reserve": 1471755390160,
+      "quote_reserve": 184697836375,
+      "observation_state": "2hHfAoubEKmkgo6MfC2x7Uy4idYPpvc7kzY7t5yyXeXr",
+      "sqrt_price": "15722838372575713608"
     },
     {
       "address": "FBy1oPG2HTDgtdp783wh6f32tMgYS656w2MgAEvq2JVB",
@@ -7403,11 +7527,13 @@
       "decimals_b": 9,
       "fee_bps": 1,
       "spacing": 54368,
-      "current_tick_or_bin": 0,
+      "current_tick_or_bin": 127,
       "amm_config": "JCPS6D41dkCnqv8Dtut9ALn1H6MPx3EdThKScmj6t7SL",
       "_comment": "Raydium bSOL/JitoSOL CLMM",
-      "base_reserve": 224177346570,
-      "quote_reserve": 408161443089
+      "base_reserve": 212198085840,
+      "quote_reserve": 420296031097,
+      "observation_state": "6EDAxKc2RFMgc6zrmQeRi1CRyLRae8XE3Lo86wF3nBkT",
+      "sqrt_price": "18564949506083370590"
     },
     {
       "address": "2XYeWV5FUQMjXJFCXNx6GXbmeKJ81TrUGyGWFrHmKyq2",
@@ -7420,11 +7546,13 @@
       "decimals_b": 6,
       "fee_bps": 25,
       "spacing": 65524,
-      "current_tick_or_bin": 0,
+      "current_tick_or_bin": -1,
       "amm_config": "HwmJm9YvSxyMEBoQA9z8KqRWBYzNGnureEwaehC9PxHi",
       "_comment": "Raydium bSOL/PYTH CLMM",
       "base_reserve": 306912984,
-      "quote_reserve": 53665622602
+      "quote_reserve": 53665622602,
+      "observation_state": "AfNc7mmazzWyQzuMmB7QR4W6EfjVJsbJ7cmAC2hY6ovG",
+      "sqrt_price": "18446744026002802521"
     },
     {
       "address": "7j4Bq7SkbKEDJ9LjoDVFLbjpDaDxQNZKs8x2CvgcZRAY",
@@ -7437,11 +7565,13 @@
       "decimals_b": 6,
       "fee_bps": 25,
       "spacing": 5947,
-      "current_tick_or_bin": 0,
+      "current_tick_or_bin": -18585,
       "amm_config": "J5a84916Edxn3a3MBAX27guxha7ugh7foyZMf5p8qZcQ",
       "_comment": "Raydium bSOL/USDC CLMM",
-      "base_reserve": 90158250187,
-      "quote_reserve": 4878622514
+      "base_reserve": 90139016273,
+      "quote_reserve": 4881688960,
+      "observation_state": "7RUm2YDuJzLMi5faW2SkziPV7kdcNQmnkfm5m1dWD6UV",
+      "sqrt_price": "7284261776275616504"
     },
     {
       "address": "FJTS7LvcyDLCbFkSUB4P3MumRJrZNPWA3gvts9W9MEWh",
@@ -7454,11 +7584,13 @@
       "decimals_b": 9,
       "fee_bps": 25,
       "spacing": 2741,
-      "current_tick_or_bin": 0,
+      "current_tick_or_bin": -1515,
       "amm_config": "J8V2SiKvjui5SE1FPQchGR2n25ndF68isq1Z7aR7AJmz",
       "_comment": "Raydium jupSOL/mSOL CLMM",
-      "base_reserve": 2089871516,
-      "quote_reserve": 15346090338
+      "base_reserve": 1733537692,
+      "quote_reserve": 15652479879,
+      "observation_state": "6Q6BYLzXBr9BxWMWyep1K4m3Eq5LELt1d37LGaa3Q8MJ",
+      "sqrt_price": "17101476951452432524"
     },
     {
       "address": "8xWHPtjzvcZjrGyMpWhfyRxNgVZyVvdtACavwbE7YjTx",
@@ -7471,11 +7603,13 @@
       "decimals_b": 9,
       "fee_bps": 25,
       "spacing": 13496,
-      "current_tick_or_bin": 0,
+      "current_tick_or_bin": -1502,
       "amm_config": "JDNwM8TG2JxCrxHJCB3uuYQRDbFT6bKUyiB8fUS8HAw6",
       "_comment": "Raydium jupSOL/mSOL CLMM",
       "base_reserve": 17626271464,
-      "quote_reserve": 18363271080
+      "quote_reserve": 18363271080,
+      "observation_state": "AGFyGLxCLMyyugEQo93yNHFCAq2gJZQi9ZVYyjFEUugV",
+      "sqrt_price": "17112329177719384511"
     },
     {
       "address": "Dw6B81YMBFDFqEkstZWFsrRSQoUJjStQZmrWTK8fCw2R",
@@ -7488,11 +7622,13 @@
       "decimals_b": 9,
       "fee_bps": 7,
       "spacing": 35306,
-      "current_tick_or_bin": 0,
+      "current_tick_or_bin": 725,
       "amm_config": "J8V2SiKvjui5SE1FPQchGR2n25ndF68isq1Z7aR7AJmz",
       "_comment": "Raydium mSOL/JitoSOL CLMM",
       "base_reserve": 17540392,
-      "quote_reserve": 9784909509
+      "quote_reserve": 9784909509,
+      "observation_state": "24sRGUnKGaK2WjMv4JoVWKHMxWD93H3HLKmjdrapwXnr",
+      "sqrt_price": "19128628106776993725"
     },
     {
       "address": "CiHghAc3Fat5JgBB4L6vUcY6hud89YwgL1q4nKu1rsNQ",
@@ -7505,11 +7641,13 @@
       "decimals_b": 6,
       "fee_bps": 25,
       "spacing": 1274,
-      "current_tick_or_bin": 0,
+      "current_tick_or_bin": -17961,
       "amm_config": "JDNwM8TG2JxCrxHJCB3uuYQRDbFT6bKUyiB8fUS8HAw6",
       "_comment": "Raydium mSOL/USDC CLMM",
-      "base_reserve": 130156808579,
-      "quote_reserve": 2128032796
+      "base_reserve": 130141963955,
+      "quote_reserve": 2130491995,
+      "observation_state": "8uAC3mjTz2KHsFuuVM78zPXphcTHU5BNnMZSyT2vhpYK",
+      "sqrt_price": "7515012498122863929"
     },
     {
       "address": "GNfeVT5vSWgLYtzveexZJ2Ki9NBtTTzoHAd9oGvoJKW8",
@@ -7522,11 +7660,13 @@
       "decimals_b": 6,
       "fee_bps": 25,
       "spacing": 14163,
-      "current_tick_or_bin": 0,
+      "current_tick_or_bin": -17980,
       "amm_config": "JEBsjaSYm9es6zf2feTzJABjKEW2tr4xPTRG7cnPBxW5",
       "_comment": "Raydium mSOL/USDC CLMM",
-      "base_reserve": 2268172886058,
-      "quote_reserve": 48761824436
+      "base_reserve": 2248248728840,
+      "quote_reserve": 52058295512,
+      "observation_state": "CHawdSFGMh8f45VAKD3iyJ1Pf5TmJVnkbFFaJWQpaVbf",
+      "sqrt_price": "7507952719067569391"
     },
     {
       "address": "41PGcyLdN1uuvoavo3snZbC14cntPpsS1TKWddbsbEDg",
@@ -7539,11 +7679,13 @@
       "decimals_b": 6,
       "fee_bps": 25,
       "spacing": 32516,
-      "current_tick_or_bin": 0,
+      "current_tick_or_bin": -31701,
       "amm_config": "JEBsjaSYm9es6zf2feTzJABjKEW2tr4xPTRG7cnPBxW5",
       "_comment": "Raydium stSOL/USDC CLMM",
       "base_reserve": 4042710521,
-      "quote_reserve": 3178039977
+      "quote_reserve": 3178039977,
+      "observation_state": "2T5WN7jnQZwWPiQc6DgQ388Ze6wD2QjohSxg1r1oNmM3",
+      "sqrt_price": "3780911544218443013"
     }
   ]
 }

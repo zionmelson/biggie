@@ -192,6 +192,7 @@ pub struct UnifiedPipelineStats {
     pub bundles_submitted: AtomicU64,
     pub bundles_accepted: AtomicU64,
     pub bundles_rejected: AtomicU64,
+    pub bundles_rate_limited: AtomicU64,
     pub total_profit_lamports: AtomicU64,
 
     // === General ===
@@ -305,6 +306,11 @@ pub struct UnifiedArbPipeline {
     // === Leader Schedule Cache ===
     /// Cached leader schedule to avoid per-opportunity RPC calls
     leader_cache: RwLock<LeaderScheduleCache>,
+    
+    // === Rate Limiter ===
+    /// Jito submission rate limiter (max 5/sec to avoid ResourceExhausted)
+    last_submission_ns: AtomicU64,
+    submissions_this_second: AtomicU64,
 
     // === Statistics ===
     stats: Arc<UnifiedPipelineStats>,
@@ -381,6 +387,8 @@ impl UnifiedArbPipeline {
             blockhash: Arc::new(RwLock::new((Hash::default(), 0))),
             opportunity_tx,
             leader_cache: RwLock::new(LeaderScheduleCache::default()),
+            last_submission_ns: AtomicU64::new(0),
+            submissions_this_second: AtomicU64::new(0),
             stats: Arc::new(UnifiedPipelineStats::default()),
         }
     }
@@ -463,9 +471,11 @@ impl UnifiedArbPipeline {
         let received_at = Instant::now();
         let mut all_swaps = Vec::new();
         let mut pools_to_scan: Vec<Pubkey> = Vec::new();
+        let mut total_txs = 0u64;
 
         for entry in entries {
             for transaction in entry.transactions {
+                total_txs += 1;
                 self.stats
                     .shredstream_txs_parsed
                     .fetch_add(1, Ordering::Relaxed);
@@ -490,6 +500,20 @@ impl UnifiedArbPipeline {
 
                     all_swaps.push(tx_swaps);
                 }
+            }
+        }
+        
+        // Log summary for every slot with transactions
+        if total_txs > 0 && all_swaps.is_empty() {
+            // Sample logging to diagnose why no swaps detected
+            static LOG_COUNTER: std::sync::atomic::AtomicU64 = std::sync::atomic::AtomicU64::new(0);
+            let count = LOG_COUNTER.fetch_add(1, std::sync::atomic::Ordering::Relaxed);
+            if count % 20 == 0 {
+                tracing::debug!(
+                    slot,
+                    txs_parsed = total_txs,
+                    "no DEX swaps found in slot transactions"
+                );
             }
         }
         
@@ -530,6 +554,13 @@ impl UnifiedArbPipeline {
             
             self.stats.pure_arb_opportunities.fetch_add(1, Ordering::Relaxed);
             
+            // Rate limit check: max 4 per second (leave headroom under Jito's 5/sec limit)
+            if !self.check_rate_limit() {
+                tracing::debug!(pool = %pool, "Rate limited - skipping submission");
+                self.stats.bundles_rate_limited.fetch_add(1, Ordering::Relaxed);
+                continue;
+            }
+            
             // Build and submit
             let bundle = {
                 let builder = self.bundle_builder.read().await;
@@ -555,6 +586,41 @@ impl UnifiedArbPipeline {
                 self.stats.bundles_rejected.fetch_add(1, Ordering::Relaxed);
             }
         }
+    }
+    
+    /// Check and update rate limit (max 4 submissions per second, with 250ms spacing)
+    /// Returns true if we can submit, false if rate limited
+    fn check_rate_limit(&self) -> bool {
+        let now_ns = std::time::SystemTime::now()
+            .duration_since(std::time::UNIX_EPOCH)
+            .unwrap()
+            .as_nanos() as u64;
+        
+        let last_ns = self.last_submission_ns.load(Ordering::Relaxed);
+        let elapsed_ns = now_ns.saturating_sub(last_ns);
+        
+        // Reset counter every second
+        if elapsed_ns > 1_000_000_000 {
+            self.submissions_this_second.store(1, Ordering::Relaxed);
+            self.last_submission_ns.store(now_ns, Ordering::Relaxed);
+            return true;
+        }
+        
+        // Check if under limit (4 per second max, leaves headroom under Jito's 5/sec)
+        let count = self.submissions_this_second.fetch_add(1, Ordering::Relaxed);
+        if count >= 4 {
+            self.submissions_this_second.fetch_sub(1, Ordering::Relaxed);
+            return false;
+        }
+        
+        // Minimum 200ms between submissions for smoother rate
+        if elapsed_ns < 200_000_000 {
+            self.submissions_this_second.fetch_sub(1, Ordering::Relaxed);
+            return false;
+        }
+        
+        self.last_submission_ns.store(now_ns, Ordering::Relaxed);
+        true
     }
 
     // =========================================================================
@@ -654,6 +720,7 @@ impl UnifiedArbPipeline {
         // Get current blockhash for transaction building
         let blockhash_data = self.blockhash.read().await;
         if blockhash_data.0 == Hash::default() {
+            tracing::trace!("No valid blockhash yet, skipping arb eval");
             return; // No valid blockhash yet
         }
         let current_blockhash = blockhash_data.0;
@@ -662,13 +729,27 @@ impl UnifiedArbPipeline {
         
         // Trigger pure arb scan on the updated pool
         let Some((pool, _is_base)) = pool_for_vault else {
+            tracing::trace!(vault = %vault_address, "Vault not in vault_index, skipping arb eval");
             return;
         };
+        
+        // Sample logging to track arb scanning
+        static SCAN_COUNTER: std::sync::atomic::AtomicU64 = std::sync::atomic::AtomicU64::new(0);
+        let scan_count = SCAN_COUNTER.fetch_add(1, std::sync::atomic::Ordering::Relaxed);
         
         let pure_opp = {
             let evaluator = self.evaluator.read().await;
             evaluator.scan_pure_arb_for_pool(&pool)
         };
+        
+        if scan_count % 100 == 0 {
+            tracing::debug!(
+                pool = %pool,
+                scan_count,
+                found_opportunity = pure_opp.is_some(),
+                "Pure arb scan sample"
+            );
+        }
         
         let Some(opportunity) = pure_opp else {
             return;
@@ -1342,21 +1423,18 @@ async fn run_turbine_loop(
             continue;
         }
         
-        // Handle entries - this adds pending swaps to pool state
-        let all_swaps = pipeline.handle_shredstream_entry(slot, entries).await;
+        // Handle entries - this adds pending swaps to pool state and
+        // triggers pure arb evaluation (correct for post-execution detection)
+        let _all_swaps = pipeline.handle_shredstream_entry(slot, entries).await;
         
         // Track source
         stats.tx_source_turbine.fetch_add(assembled.transactions.len() as u64, Ordering::Relaxed);
 
-        // Evaluate opportunities for each TX with swaps
-        for tx_swaps in &all_swaps {
-            let opportunities = pipeline.evaluate_opportunities(tx_swaps).await;
-
-            // Send opportunities to submission task (non-blocking!)
-            for opp in opportunities {
-                pipeline.submit_opportunity(opp).await;
-            }
-        }
+        // NOTE: We do NOT call evaluate_opportunities() here because:
+        // 1. It creates ArbOpportunity with trigger_tx (wrong for shred detection)
+        // 2. Turbine-detected TXs are already executed - can't bundle with them
+        // 3. Pure arb is already handled in handle_shredstream_entry() via
+        //    evaluate_pure_arb_for_pools() which builds single-TX bundles
     }
 
     Ok(())
@@ -1431,19 +1509,15 @@ async fn run_shredstream_loop(
             }
         };
 
-        // Handle entries - this adds pending swaps to pool state
-        let all_swaps = pipeline.handle_shredstream_entry(slot, entries).await;
-
-        // Evaluate opportunities for each TX with swaps
-        for tx_swaps in &all_swaps {
-            let opportunities = pipeline.evaluate_opportunities(tx_swaps).await;
-
-            // Send opportunities to submission task (non-blocking!)
-            // Rate limiting is handled by the submission task, not here.
-            for opp in opportunities {
-                pipeline.submit_opportunity(opp).await;
-            }
-        }
+        // Handle entries - this adds pending swaps to pool state and
+        // triggers pure arb evaluation (correct for post-execution detection)
+        let _all_swaps = pipeline.handle_shredstream_entry(slot, entries).await;
+        
+        // NOTE: We do NOT call evaluate_opportunities() here because:
+        // 1. It creates ArbOpportunity with trigger_tx (wrong for shred detection)
+        // 2. Shred-detected TXs are already executed - can't bundle with them
+        // 3. Pure arb is already handled in handle_shredstream_entry() via
+        //    evaluate_pure_arb_for_pools() which builds single-TX bundles
     }
 
     Ok(())
@@ -1627,13 +1701,18 @@ async fn run_geyser_loop(
                                     tracing::debug!(
                                         vault = %vault_address,
                                         balance = balance,
-                                        "Parsed vault balance, calling handle_geyser_vault_update"
+                                        "Parsed vault balance, triggering arb evaluation"
                                     );
-                                    pipeline.handle_geyser_vault_update(
-                                        &vault_address,
-                                        balance,
-                                        account_update.slot,
-                                    );
+                                    // Spawn async task to handle vault update AND trigger arb evaluation
+                                    let pipeline_clone = Arc::clone(&pipeline);
+                                    let slot = account_update.slot;
+                                    tokio::spawn(async move {
+                                        pipeline_clone.handle_geyser_vault_update_with_arb(
+                                            &vault_address,
+                                            balance,
+                                            slot,
+                                        ).await;
+                                    });
                                 } else {
                                     tracing::warn!(
                                         vault = %vault_address,

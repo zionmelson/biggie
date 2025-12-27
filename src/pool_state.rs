@@ -779,6 +779,17 @@ impl PoolStateManager {
             let mut vault_idx = self.vault_index.write().unwrap();
             vault_idx.insert(vault_a, (address, true)); // is_base = true
             vault_idx.insert(vault_b, (address, false)); // is_base = false
+            
+            // Log vault_index size periodically
+            let idx_size = vault_idx.len();
+            if idx_size % 100 == 0 {
+                tracing::debug!("vault_index now has {} entries", idx_size);
+            }
+        } else {
+            tracing::warn!(
+                "Pool {} has default vault addresses - won't receive Geyser updates",
+                &address.to_string()[..8]
+            );
         }
 
         // Register tick arrays for CLMM pools
@@ -909,11 +920,28 @@ impl PoolStateManager {
         balance: u64,
         slot: u64,
     ) -> bool {
-        self.stats.write().unwrap().vault_updates_received += 1;
+        let updates_rx = {
+            let mut stats = self.stats.write().unwrap();
+            stats.vault_updates_received += 1;
+            stats.vault_updates_received
+        };
 
         // Look up which pool this vault belongs to
-        let pool_info = self.vault_index.read().unwrap().get(vault_address).cloned();
+        let vault_idx = self.vault_index.read().unwrap();
+        let pool_info = vault_idx.get(vault_address).cloned();
+        let vault_idx_size = vault_idx.len();
+        drop(vault_idx);
+        
         let Some((pool, is_base)) = pool_info else {
+            // Log first few misses to diagnose
+            if updates_rx <= 5 {
+                tracing::warn!(
+                    "Vault {} not in vault_index (size={}). First {} updates all missed!",
+                    vault_address,
+                    vault_idx_size,
+                    updates_rx
+                );
+            }
             return false;
         };
 
@@ -1450,13 +1478,14 @@ impl PoolStateManager {
     pub fn stats_summary(&self) -> String {
         let s = self.stats.read().unwrap();
         format!(
-            "pools={} pending={} confirmed={} expired={} failed={} geyser_updates={} shred_swaps={} recalcs={} sig_hits={} sig_misses={}",
+            "pools={} pending={} confirmed={} expired={} failed={} vault_rx={} vault_updated={} shred_swaps={} recalcs={} sig_hits={} sig_misses={}",
             s.pools_tracked,
             s.pending_swaps_total,
             s.pending_swaps_confirmed,
             s.pending_swaps_expired,
             s.pending_swaps_failed,
-            s.geyser_updates_received,
+            s.vault_updates_received,
+            s.vault_reserves_updated,
             s.shredstream_swaps_received,
             s.predictions_recalculated,
             s.signature_index_hits,

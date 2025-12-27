@@ -84,6 +84,17 @@ impl SlotBuffer {
         }
     }
     
+    /// Get diagnostic info for logging
+    fn diagnostic_info(&self) -> (usize, usize, bool, u32, usize) {
+        (
+            self.accumulated_data.len(),
+            self.parse_cursor,
+            self.has_fec_set_zero(),
+            self.next_expected_fec,
+            self.fec_sets.len(),
+        )
+    }
+    
     /// Add a FEC set's data. Returns true if new data was added.
     fn add_fec_set(&mut self, fec_set_index: u32, data: Vec<u8>, is_last: bool) -> bool {
         if self.fec_sets.contains_key(&fec_set_index) {
@@ -145,103 +156,70 @@ impl SlotBuffer {
     
     /// Try to parse entries from accumulated data using wincode
     /// 
-    /// Entries are serialized as Vec<Entry> with BincodeLen (u64) length prefix.
-    /// We parse entries one by one to handle partial data gracefully.
+    /// Entry data in shreds is serialized as a Vec<Entry> with wincode.
+    /// The format is: [8-byte length prefix] [Entry 0] [Entry 1] ... [Entry N-1]
+    /// We must deserialize the entire Vec at once - cannot stream individual entries.
+    /// 
+    /// We wait until seen_last is true (DATA_COMPLETE_SHRED received) to ensure
+    /// we have the complete serialized Vec<Entry> before attempting deserialization.
     fn try_parse_entries(&mut self) -> Vec<SolanaEntry> {
         // Only parse if we have data starting from FEC set 0
-        if !self.has_fec_set_zero() || self.accumulated_data.len() <= self.parse_cursor {
+        if !self.has_fec_set_zero() || self.accumulated_data.is_empty() {
             return Vec::new();
         }
         
-        let unparsed = &self.accumulated_data[self.parse_cursor..];
-        
-        // Need at least the vec length prefix (8 bytes)
-        if unparsed.len() < 8 {
+        // Already parsed this slot
+        if self.parse_cursor >= self.accumulated_data.len() {
             return Vec::new();
         }
         
-        // Read Vec<Entry> length prefix
-        let vec_len = u64::from_le_bytes(unparsed[0..8].try_into().unwrap()) as usize;
-        
-        // Sanity check - vec_len shouldn't be absurdly large
-        if vec_len > 10000 {
-            warn!(
-                vec_len,
-                unparsed_len = unparsed.len(),
-                first_bytes = ?&unparsed[..std::cmp::min(32, unparsed.len())],
-                "Vec<Entry> length is suspiciously large, skipping"
-            );
-            // Try to recover by skipping these 8 bytes and looking for valid data
-            self.parse_cursor += 8;
+        // Wait for slot completion - the serialized data is a Vec<Entry> and we need
+        // the complete Vec to deserialize. Attempting partial deserialization will fail
+        // because wincode reads the length prefix and expects all entries to be present.
+        if !self.seen_last {
             return Vec::new();
         }
         
-        // Parse entries one by one
-        let mut entries = Vec::with_capacity(vec_len.min(256));
-        let mut cursor = 8usize; // Start after vec length prefix
-        
-        for _ in 0..vec_len {
-            let remaining = &unparsed[cursor..];
-            
-            // Need at least minimum entry size (8 + 32 + 8 = 48 bytes minimum)
-            if remaining.len() < 48 {
-                break;
-            }
-            
-            match wincode::deserialize::<SolanaEntry>(remaining) {
-                Ok(entry) => {
-                    if let Ok(size) = wincode::serialized_size(&entry) {
-                        cursor += size as usize;
-                        entries.push(entry);
-                    } else {
-                        // Couldn't determine size, stop parsing
-                        break;
-                    }
-                }
-                Err(_) => {
-                    // Couldn't parse entry, probably incomplete data
-                    break;
-                }
-            }
-        }
-        
-        // Update cursor to point past all successfully parsed entries
-        if !entries.is_empty() {
-            let parsed_count = entries.len();
-            let total_txs: usize = entries.iter().map(|e| e.transactions.len()).sum();
-            
-            // Only advance cursor if we parsed ALL expected entries
-            // Otherwise we'll try again when more data arrives
-            if entries.len() == vec_len {
-                self.parse_cursor += cursor;
+        // Deserialize the complete Vec<Entry> from accumulated shred data
+        match wincode::deserialize::<Vec<SolanaEntry>>(&self.accumulated_data) {
+            Ok(entries) => {
+                let total_txs: usize = entries.iter().map(|e| e.transactions.len()).sum();
+                
+                // Mark as fully parsed
+                self.parse_cursor = self.accumulated_data.len();
+                
                 info!(
-                    num_entries = parsed_count,
+                    slot = self.slot,
+                    num_entries = entries.len(),
                     total_txs,
-                    cursor_advanced = cursor,
-                    "successfully parsed complete entry batch"
+                    data_len = self.accumulated_data.len(),
+                    "successfully parsed entries from complete slot"
                 );
-            } else {
-                // Partial parse - return what we have but don't advance cursor for incomplete batch
-                // This allows us to retry when more data arrives
-                debug!(
-                    parsed = parsed_count,
-                    expected = vec_len,
-                    total_txs,
-                    unparsed_len = unparsed.len(),
-                    "partially parsed entries - waiting for more data"
+                
+                entries
+            }
+            Err(e) => {
+                // Log error with diagnostic info
+                let preview: Vec<u8> = self.accumulated_data.iter().take(64).cloned().collect();
+                let vec_len = if self.accumulated_data.len() >= 8 {
+                    u64::from_le_bytes(self.accumulated_data[0..8].try_into().unwrap_or([0u8; 8]))
+                } else { 0 };
+                
+                warn!(
+                    slot = self.slot,
+                    data_len = self.accumulated_data.len(),
+                    vec_length_prefix = vec_len,
+                    error = %e,
+                    first_64_bytes = ?preview,
+                    fec_sets_count = self.fec_sets.len(),
+                    "failed to deserialize Vec<Entry> from complete slot"
                 );
-                // Actually, let's advance past what we parsed so we can extract transactions
-                self.parse_cursor += cursor;
-                info!(
-                    num_entries = parsed_count,
-                    expected = vec_len,
-                    total_txs,
-                    "parsed partial entry batch"
-                );
+                
+                // Mark as attempted to avoid repeated failures
+                self.parse_cursor = self.accumulated_data.len();
+                Vec::new()
             }
         }
-        
-        entries
     }
     
     fn age(&self) -> Duration {
@@ -295,13 +273,30 @@ impl EntryAssembler {
         
         // Concatenate all data shred payloads from this FEC set
         let mut data = Vec::with_capacity(fec_set.data_payloads.len() * 1200);
+        let mut non_empty_payloads = 0usize;
         for payload in &fec_set.data_payloads {
+            if !payload.is_empty() {
+                non_empty_payloads += 1;
+            }
             data.extend_from_slice(payload);
+        }
+        
+        // Log every 100th FEC set to track data flow
+        if self.stats.fec_sets_processed % 100 == 1 {
+            debug!(
+                slot,
+                fec_set_index,
+                num_payloads = fec_set.data_payloads.len(),
+                non_empty_payloads,
+                total_bytes = data.len(),
+                is_last,
+                "processing FEC set"
+            );
         }
         
         if data.is_empty() {
             self.stats.empty_payloads += 1;
-            trace!(slot, fec_set_index, "empty FEC set payload");
+            debug!(slot, fec_set_index, "empty FEC set payload - all {} payloads were empty", fec_set.data_payloads.len());
             return;
         }
         
@@ -320,13 +315,20 @@ impl EntryAssembler {
         
         if entries.is_empty() {
             // No complete entries yet - data might span FEC boundaries
-            trace!(
-                slot,
-                fec_set_index,
-                accumulated_len = buffer.accumulated_data.len(),
-                parse_cursor = buffer.parse_cursor,
-                "no complete entries in accumulated data yet"
-            );
+            // Log more frequently to diagnose the issue
+            if self.stats.fec_sets_processed % 50 == 1 {
+                let (acc_len, cursor, has_zero, next_exp, fec_count) = buffer.diagnostic_info();
+                debug!(
+                    slot,
+                    fec_set_index,
+                    accumulated_len = acc_len,
+                    parse_cursor = cursor,
+                    has_fec_zero = has_zero,
+                    next_expected = next_exp,
+                    fec_sets_count = fec_count,
+                    "no entries parsed from accumulated data"
+                );
+            }
             return;
         }
         

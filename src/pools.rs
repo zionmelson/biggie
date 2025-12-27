@@ -122,10 +122,13 @@ impl PoolsFile {
             }
         }
 
+        // Log vault_index size to verify vaults are being indexed
+        let vault_count = psm.all_vaults().len();
         tracing::info!(
-            "Registered {}/{} pools with PoolStateManager",
+            "Registered {}/{} pools with PoolStateManager (vault_index has {} entries)",
             registered,
-            self.pools.len()
+            self.pools.len(),
+            vault_count
         );
 
         Ok(registered)
