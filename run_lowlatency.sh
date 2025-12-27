@@ -21,7 +21,7 @@ grep HugePages_Free /proc/meminfo
 # Pin to CPUs 4-11 (leaving 0-3 for system), use NUMA node 0
 echo "=== Starting bot pinned to CPUs 4-11 ==="
 
-cd /home/ubuntu/tre
+cd /home/ubuntu/biggie
 
 # Run with CPU pinning and real-time priority (if available)
 exec taskset -c 4-11 nice -n -20 ./target/release/tre-arb-bot --config ./config.json "$@"

@@ -39,6 +39,12 @@ pub const CODING_SHREDS_PER_FEC_BLOCK: usize = 32;
 /// Maximum shred size
 pub const SHRED_SIZE: usize = 1228;
 
+/// Size of Merkle root in shred
+pub const SIZE_OF_MERKLE_ROOT: usize = 32;
+
+/// Size of each Merkle proof entry
+pub const SIZE_OF_MERKLE_PROOF_ENTRY: usize = 20;
+
 // Wire format offsets (after signature)
 const OFFSET_SHRED_VARIANT: usize = 64;
 const OFFSET_SLOT: usize = 65;
@@ -120,6 +126,48 @@ impl ShredVariant {
                 resigned: true,
             }),
             _ => None, // Invalid or legacy shred variant
+        }
+    }
+    
+    /// Calculate data capacity for this shred variant
+    /// This is the maximum size of the entry data that can fit in the shred
+    pub fn data_capacity(&self) -> Option<usize> {
+        match self.shred_type {
+            ShredType::Data => {
+                // capacity = SIZE_OF_PAYLOAD - SIZE_OF_HEADERS - SIZE_OF_MERKLE_ROOT
+                //          - proof_size * SIZE_OF_MERKLE_PROOF_ENTRY
+                //          - (resigned ? SIZE_OF_SIGNATURE : 0)
+                let overhead = SIZE_OF_DATA_SHRED_HEADERS
+                    + SIZE_OF_MERKLE_ROOT
+                    + (self.proof_size as usize) * SIZE_OF_MERKLE_PROOF_ENTRY
+                    + if self.resigned { SIZE_OF_SIGNATURE } else { 0 };
+                DATA_SHRED_PAYLOAD_SIZE.checked_sub(overhead)
+            }
+            ShredType::Code => {
+                // For coding shreds, capacity is similar calculation
+                let overhead = SIZE_OF_CODING_SHRED_HEADERS
+                    + SIZE_OF_MERKLE_ROOT
+                    + (self.proof_size as usize) * SIZE_OF_MERKLE_PROOF_ENTRY
+                    + if self.resigned { SIZE_OF_SIGNATURE } else { 0 };
+                CODE_SHRED_PAYLOAD_SIZE.checked_sub(overhead)
+            }
+        }
+    }
+    
+    /// Get the erasure shard region for this variant type
+    /// Returns (start_offset, end_offset) within the raw shred bytes
+    pub fn erasure_shard_offsets(&self) -> Option<(usize, usize)> {
+        let capacity = self.data_capacity()?;
+        match self.shred_type {
+            ShredType::Data => {
+                // Data shreds: erasure shard is [SIZE_OF_SIGNATURE..SIZE_OF_HEADERS+capacity]
+                // This includes the headers (except signature) and the data
+                Some((SIZE_OF_SIGNATURE, SIZE_OF_DATA_SHRED_HEADERS + capacity))
+            }
+            ShredType::Code => {
+                // Coding shreds: erasure shard is [SIZE_OF_HEADERS..SIZE_OF_HEADERS+capacity]
+                Some((SIZE_OF_CODING_SHRED_HEADERS, SIZE_OF_CODING_SHRED_HEADERS + capacity))
+            }
         }
     }
 }
@@ -265,6 +313,39 @@ impl ParsedShred {
             ShredInner::Data { .. } => None,
         }
     }
+    
+    /// Get the erasure shard bytes for Reed-Solomon coding
+    /// This is the region of the shred that participates in FEC
+    pub fn erasure_shard(&self) -> Option<&[u8]> {
+        let (start, end) = self.common.variant.erasure_shard_offsets()?;
+        if end <= self.raw.len() {
+            Some(&self.raw[start..end])
+        } else {
+            // Shred is too short, use what we have
+            if start < self.raw.len() {
+                Some(&self.raw[start..])
+            } else {
+                None
+            }
+        }
+    }
+    
+    /// Get the entry data bytes (the actual payload, excluding headers and FEC overhead)
+    /// For data shreds only, returns the deserialized entry data
+    pub fn entry_data(&self) -> Option<&[u8]> {
+        match &self.inner {
+            ShredInner::Data { header, .. } => {
+                // The size field indicates total bytes including headers
+                let size = header.size as usize;
+                if size > SIZE_OF_DATA_SHRED_HEADERS && size <= self.raw.len() {
+                    Some(&self.raw[SIZE_OF_DATA_SHRED_HEADERS..size])
+                } else {
+                    None
+                }
+            }
+            ShredInner::Code { .. } => None,
+        }
+    }
 }
 
 // ============================================================================
@@ -307,6 +388,41 @@ impl fmt::Display for ParseError {
 }
 
 impl std::error::Error for ParseError {}
+
+/// Extract entry data from raw data shred bytes
+/// This is the data portion that contains serialized entries
+/// Returns None if the shred is invalid or not a data shred
+pub fn extract_entry_data(raw: &[u8]) -> Option<&[u8]> {
+    if raw.len() < SIZE_OF_DATA_SHRED_HEADERS {
+        return None;
+    }
+    
+    // Check shred type
+    let variant_byte = raw.get(OFFSET_SHRED_VARIANT)?;
+    let variant = ShredVariant::from_byte(*variant_byte)?;
+    
+    if variant.shred_type != ShredType::Data {
+        return None;
+    }
+    
+    // Get the size field from the data header
+    let size = u16::from_le_bytes(
+        raw.get(OFFSET_DATA_SIZE..OFFSET_DATA_SIZE + 2)?
+            .try_into()
+            .ok()?
+    ) as usize;
+    
+    // Validate size is reasonable
+    let capacity = variant.data_capacity()?;
+    let max_size = SIZE_OF_DATA_SHRED_HEADERS + capacity;
+    
+    if size < SIZE_OF_DATA_SHRED_HEADERS || size > max_size || size > raw.len() {
+        return None;
+    }
+    
+    // Extract the data portion
+    Some(&raw[SIZE_OF_DATA_SHRED_HEADERS..size])
+}
 
 /// Parse a raw shred packet
 ///
@@ -373,8 +489,21 @@ pub fn parse_shred(data: &[u8]) -> Result<ParsedShred, ParseError> {
                 size,
             };
 
+            // Validate size field - it should be between SIZE_OF_HEADERS and SIZE_OF_HEADERS+capacity
+            let capacity = variant.data_capacity().unwrap_or(0);
+            let max_valid_size = SIZE_OF_DATA_SHRED_HEADERS + capacity;
+            
             // Payload starts after header, size field indicates total including headers
-            let payload_end = (size as usize).min(data.len());
+            // If size is invalid, fall back to extracting up to capacity
+            let payload_end = if size as usize >= SIZE_OF_DATA_SHRED_HEADERS 
+                && size as usize <= max_valid_size 
+            {
+                (size as usize).min(data.len())
+            } else {
+                // Size field is garbage, use capacity instead
+                max_valid_size.min(data.len())
+            };
+            
             let payload = if payload_end > OFFSET_DATA_PAYLOAD {
                 data[OFFSET_DATA_PAYLOAD..payload_end].to_vec()
             } else {

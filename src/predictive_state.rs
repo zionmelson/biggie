@@ -723,6 +723,12 @@ impl PredictiveStateManager {
         let bin_arrays = state.bin_arrays.clone();
         let spacing = state.spacing.unwrap_or(64);
 
+        // Check if this pair already has pools (for arb routing)
+        let existing_pools_for_pair = {
+            let index = self.pair_index.read().unwrap();
+            index.get(&(base_mint, quote_mint)).map(|v| v.len()).unwrap_or(0)
+        };
+
         // Add to pools map
         {
             let mut pools = self.pools.write().unwrap();
@@ -769,6 +775,27 @@ impl PredictiveStateManager {
         {
             let mut stats = self.stats.write().unwrap();
             stats.pools_tracked += 1;
+        }
+
+        // Log pool registration with pair info
+        let new_count = existing_pools_for_pair + 1;
+        if new_count > 1 {
+            tracing::info!(
+                "POOL REGISTERED: {} {:?} - pair {}/{} now has {} pools (ARB ROUTE AVAILABLE)",
+                &address.to_string()[..8],
+                dex,
+                &base_mint.to_string()[..8],
+                &quote_mint.to_string()[..8],
+                new_count
+            );
+        } else {
+            tracing::debug!(
+                "POOL REGISTERED: {} {:?} base={} quote={}",
+                &address.to_string()[..8],
+                dex,
+                &base_mint.to_string()[..8],
+                &quote_mint.to_string()[..8]
+            );
         }
     }
 
@@ -1312,6 +1339,28 @@ impl PredictiveStateManager {
             s.predictions_recalculated,
             s.signature_index_hits,
             s.signature_index_misses
+        )
+    }
+
+    /// Get pair index statistics - critical for cross-pool arb routing
+    /// Shows how many token pairs have multiple pools available
+    pub fn pair_index_stats(&self) -> String {
+        let index = self.pair_index.read().unwrap();
+        let total_pairs = index.len();
+        let multi_pool_pairs = index.values().filter(|pools| pools.len() > 1).count();
+        let max_pools_for_pair = index.values().map(|p| p.len()).max().unwrap_or(0);
+        
+        // Count pairs by pool count
+        let pairs_with_2 = index.values().filter(|p| p.len() == 2).count();
+        let pairs_with_3_plus = index.values().filter(|p| p.len() >= 3).count();
+        
+        format!(
+            "total_pairs={} multi_pool={} max_pools={} pairs_2pools={} pairs_3plus={}",
+            total_pairs / 2, // Divide by 2 because we index both directions
+            multi_pool_pairs / 2,
+            max_pools_for_pair,
+            pairs_with_2 / 2,
+            pairs_with_3_plus / 2
         )
     }
 

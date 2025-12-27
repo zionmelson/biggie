@@ -5,6 +5,7 @@ pub mod constants;
 pub mod dlmm_math;
 pub mod executor;
 pub mod jito;
+pub mod pools;
 pub mod shredstream;
 
 // Geyser client - primary data source for local validator

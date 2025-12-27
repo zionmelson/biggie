@@ -15,6 +15,8 @@ use std::time::Duration;
 use tre_arb_bot::config::Config;
 use tre_arb_bot::executor::{load_lookup_tables, FlashLoanReserve};
 use tre_arb_bot::jito::{JitoClient, JitoConfig as JitoClientConfig};
+use tre_arb_bot::pools::PoolsFile;
+use tre_arb_bot::predictive_state::PredictiveStateManager;
 use tre_arb_bot::shredstream::{
     spawn_unified_pipeline, BundleBuilderConfig, UnifiedPipelineConfig,
 };
@@ -138,6 +140,28 @@ async fn run_mev_pipeline(config: Config) -> Result<(), Box<dyn std::error::Erro
         min_submission_interval: Duration::from_millis(200),
     };
 
+    // Load static pools file if configured (enables zero-RPC runtime)
+    let existing_psm = if let Some(ref pools_path) = config.geyser.pools_file {
+        tracing::info!("Loading static pools from: {}", pools_path);
+        let pools_file = PoolsFile::load(pools_path)?;
+        
+        // Create and populate PSM with pre-loaded pools
+        let psm = Arc::new(PredictiveStateManager::new());
+        let registered = pools_file.register_with_psm(&psm)?;
+        
+        tracing::info!(
+            "Pre-loaded {} pools, {} vaults ready for Geyser subscription",
+            registered,
+            psm.all_vaults().len()
+        );
+        
+        Some(psm)
+    } else {
+        tracing::info!("No pools_file configured - pools will be discovered dynamically via Geyser");
+        tracing::warn!("NOTE: Vault subscriptions will be empty until pools are discovered");
+        None
+    };
+
     // Spawn unified pipeline - ShredStream + Geyser running together
     let (pipeline, stats) = spawn_unified_pipeline(
         pipeline_config,
@@ -146,6 +170,7 @@ async fn run_mev_pipeline(config: Config) -> Result<(), Box<dyn std::error::Erro
         flash_loan_reserves,
         lookup_tables,
         jito_client,
+        existing_psm,
     )
     .await?;
 
@@ -175,6 +200,12 @@ async fn run_mev_pipeline(config: Config) -> Result<(), Box<dyn std::error::Erro
 
     // Log predictive state stats
     tracing::info!("PREDICTIVE STATE: {}", pipeline.predictive_state_stats());
+
+    // Log evaluator stats (critical for debugging why no opps are found)
+    tracing::info!("EVALUATOR: {}", pipeline.evaluator_stats().await);
+
+    // Log pair index stats (critical for cross-pool arb routing)
+    tracing::info!("PAIR INDEX: {}", pipeline.pair_index_stats());
 
     Ok(())
 }

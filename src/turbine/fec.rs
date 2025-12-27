@@ -3,15 +3,18 @@
 //! Collects shreds belonging to the same FEC set and reconstructs missing
 //! data shreds using erasure coding when enough shreds are available.
 
-use std::collections::HashMap;
+use std::collections::{HashMap, HashSet};
 use std::time::{Duration, Instant};
 use tokio::sync::mpsc;
 use tracing::{debug, warn, trace};
+use reed_solomon_erasure::galois_8::ReedSolomon;
 
 use crate::turbine::shred::{
-    ParsedShred, ShredType, ShredInner,
+    ParsedShred, ShredType, ShredInner, ShredVariant,
     DATA_SHREDS_PER_FEC_BLOCK, CODING_SHREDS_PER_FEC_BLOCK,
     DATA_SHRED_PAYLOAD_SIZE,
+    SIZE_OF_SIGNATURE, SIZE_OF_DATA_SHRED_HEADERS, SIZE_OF_CODING_SHRED_HEADERS,
+    extract_entry_data,
 };
 
 // ============================================================================
@@ -140,7 +143,11 @@ impl FecSet {
             let mut payloads = vec![Vec::new(); num_data];
             for (&idx, shred) in &self.data_shreds {
                 if (idx as usize) < num_data {
-                    if let ShredInner::Data { payload, .. } = &shred.inner {
+                    // Use entry_data() which properly validates the size field
+                    if let Some(data) = shred.entry_data() {
+                        payloads[idx as usize] = data.to_vec();
+                    } else if let ShredInner::Data { payload, .. } = &shred.inner {
+                        // Fallback to parsed payload
                         payloads[idx as usize] = payload.clone();
                     }
                 }
@@ -179,47 +186,75 @@ impl FecSet {
     }
     
     /// Reed-Solomon erasure decoding
+    /// 
+    /// IMPORTANT: Solana's RS coding operates on the "erasure shard" region of each shred:
+    /// - Data shreds: bytes [64..88+capacity] (signature excluded, headers + data included)
+    /// - Coding shreds: bytes [89..89+capacity] (all headers excluded)
+    /// 
+    /// After RS reconstruction, we need to re-parse the recovered bytes to extract entry data.
     fn reed_solomon_reconstruct(&self, num_data: usize, num_coding: usize) -> Option<CompleteFecSet> {
-        // Prepare the erasure matrix
-        // shards[0..num_data] = data shreds
-        // shards[num_data..num_data+num_coding] = coding shreds
+        // Get proof_size from any available shred to calculate shard size
+        let proof_size = self.data_shreds.values().next()
+            .map(|s| s.common.variant.proof_size)
+            .or_else(|| self.coding_shreds.values().next().map(|s| s.common.variant.proof_size))?;
         
-        let shard_size = DATA_SHRED_PAYLOAD_SIZE;
+        // Calculate the erasure shard size based on proof_size
+        // This is the size of the region that participates in RS coding
+        let variant = ShredVariant { 
+            shred_type: ShredType::Data, 
+            proof_size, 
+            resigned: false  // We don't know, assume false for size calculation
+        };
+        let capacity = variant.data_capacity()?;
+        
+        // Erasure shard for data shreds: [SIZE_OF_SIGNATURE..SIZE_OF_DATA_SHRED_HEADERS+capacity]
+        // = [64..88+capacity]
+        let data_shard_size = SIZE_OF_DATA_SHRED_HEADERS - SIZE_OF_SIGNATURE + capacity;
+        // = 88 - 64 + capacity = 24 + capacity
+        
         let total_shards = num_data + num_coding;
         
-        // Build present/missing mask
-        let mut present = vec![false; total_shards];
+        // Build shards array using proper erasure shard region
         let mut shards: Vec<Option<Vec<u8>>> = vec![None; total_shards];
+        
+        // Also keep track of raw shreds for data extraction later
+        let mut raw_shreds: Vec<Option<Vec<u8>>> = vec![None; num_data];
         
         // Fill in data shreds we have
         for (&idx, shred) in &self.data_shreds {
             let idx = idx as usize;
             if idx < num_data {
-                if let ShredInner::Data { payload, .. } = &shred.inner {
-                    // Pad or truncate to shard_size
-                    let mut shard = payload.clone();
-                    shard.resize(shard_size, 0);
+                // Extract erasure shard from raw bytes
+                let (start, end) = shred.common.variant.erasure_shard_offsets()
+                    .unwrap_or((SIZE_OF_SIGNATURE, SIZE_OF_SIGNATURE + data_shard_size));
+                
+                if shred.raw.len() >= end {
+                    let mut shard = shred.raw[start..end].to_vec();
+                    shard.resize(data_shard_size, 0);
                     shards[idx] = Some(shard);
-                    present[idx] = true;
+                    raw_shreds[idx] = Some(shred.raw.clone());
                 }
             }
         }
         
-        // Fill in coding shreds we have  
+        // Fill in coding shreds we have
         for (&pos, shred) in &self.coding_shreds {
             let idx = num_data + pos as usize;
             if idx < total_shards {
-                if let ShredInner::Code { payload, .. } = &shred.inner {
-                    let mut shard = payload.clone();
-                    shard.resize(shard_size, 0);
+                // Extract erasure shard from raw bytes
+                let (start, end) = shred.common.variant.erasure_shard_offsets()
+                    .unwrap_or((SIZE_OF_CODING_SHRED_HEADERS, SIZE_OF_CODING_SHRED_HEADERS + data_shard_size));
+                
+                if shred.raw.len() >= end {
+                    let mut shard = shred.raw[start..end].to_vec();
+                    shard.resize(data_shard_size, 0);
                     shards[idx] = Some(shard);
-                    present[idx] = true;
                 }
             }
         }
         
-        // Count how many we have
-        let present_count = present.iter().filter(|&&p| p).count();
+        // Count present shards
+        let present_count = shards.iter().filter(|s| s.is_some()).count();
         if present_count < num_data {
             debug!(
                 slot = self.id.slot,
@@ -231,11 +266,15 @@ impl FecSet {
             return None;
         }
         
-        // If we already have all data shreds, no RS needed
-        if present[..num_data].iter().all(|&p| p) {
-            let data_payloads: Vec<Vec<u8>> = shards[..num_data]
-                .iter()
-                .map(|s| s.clone().unwrap_or_default())
+        // Check if we already have all data shreds (no RS needed)
+        let data_complete = raw_shreds.iter().all(|s| s.is_some());
+        if data_complete {
+            // Extract entry data from raw shreds
+            let data_payloads: Vec<Vec<u8>> = raw_shreds.iter()
+                .map(|raw| {
+                    raw.as_ref().and_then(|r| extract_entry_data(r).map(|d| d.to_vec()))
+                        .unwrap_or_default()
+                })
                 .collect();
             
             return Some(CompleteFecSet {
@@ -246,21 +285,96 @@ impl FecSet {
             });
         }
         
-        // TODO: Use reed-solomon-simd for actual reconstruction
-        // For now, we only succeed if we have all data shreds
-        // Real implementation would use:
-        //   let decoder = ReedSolomonDecoder::new(num_data, num_coding)?;
-        //   decoder.reconstruct(&mut shards, &present)?;
+        // Need actual RS reconstruction
+        let rs = match ReedSolomon::new(num_data, num_coding) {
+            Ok(rs) => rs,
+            Err(e) => {
+                warn!(
+                    slot = self.id.slot,
+                    fec_set = self.id.fec_set_index,
+                    num_data = num_data,
+                    num_coding = num_coding,
+                    error = %e,
+                    "failed to create Reed-Solomon decoder"
+                );
+                return None;
+            }
+        };
         
-        warn!(
-            slot = self.id.slot,
-            fec_set = self.id.fec_set_index,
-            data_present = present[..num_data].iter().filter(|&&p| p).count(),
-            coding_present = present[num_data..].iter().filter(|&&p| p).count(),
-            "RS reconstruction not yet implemented, need all data shreds"
-        );
-        
-        None
+        // Perform reconstruction
+        match rs.reconstruct(&mut shards) {
+            Ok(()) => {
+                debug!(
+                    slot = self.id.slot,
+                    fec_set = self.id.fec_set_index,
+                    data_present = self.data_shreds.len(),
+                    coding_present = self.coding_shreds.len(),
+                    "RS reconstruction successful"
+                );
+                
+                // Extract entry data from reconstructed shards
+                // For shreds we already had, use the original raw bytes
+                // For reconstructed shreds, we need to rebuild the raw bytes and extract data
+                let data_payloads: Vec<Vec<u8>> = (0..num_data).map(|idx| {
+                    if let Some(raw) = &raw_shreds[idx] {
+                        // We had this shred, extract data from raw
+                        extract_entry_data(raw).map(|d| d.to_vec()).unwrap_or_default()
+                    } else {
+                        // Reconstructed shred - the shard contains bytes [64..88+capacity]
+                        // We need to extract entry data from [88..size] relative to original shred
+                        // Which is [24..size-64] relative to the shard
+                        let shard = shards[idx].as_ref().map(|s| s.as_slice()).unwrap_or(&[]);
+                        
+                        // The shard contains: [header bytes 64..88 = 24 bytes] + [data 0..capacity]
+                        // The size field is at bytes 86-87 in the original shred = bytes 22-23 in shard
+                        if shard.len() >= 24 {
+                            let size = u16::from_le_bytes([shard[22], shard[23]]) as usize;
+                            let data_len = size.saturating_sub(SIZE_OF_DATA_SHRED_HEADERS);
+                            
+                            if data_len <= capacity && data_len <= shard.len() - 24 {
+                                shard[24..24 + data_len].to_vec()
+                            } else if data_len == 0 {
+                                // Empty shred (padding at end of slot)
+                                Vec::new()
+                            } else {
+                                // Size field is invalid - this is a problem!
+                                warn!(
+                                    slot = self.id.slot,
+                                    fec_set = self.id.fec_set_index,
+                                    shred_idx = idx,
+                                    size = size,
+                                    data_len = data_len,
+                                    capacity = capacity,
+                                    "RS reconstructed shred has invalid size field!"
+                                );
+                                // Return empty to avoid corrupting the stream
+                                Vec::new()
+                            }
+                        } else {
+                            Vec::new()
+                        }
+                    }
+                }).collect();
+                
+                Some(CompleteFecSet {
+                    id: self.id,
+                    data_payloads,
+                    is_last_in_slot: self.is_last_in_slot,
+                    num_data_shreds: num_data,
+                })
+            }
+            Err(e) => {
+                warn!(
+                    slot = self.id.slot,
+                    fec_set = self.id.fec_set_index,
+                    data_present = self.data_shreds.len(),
+                    coding_present = self.coding_shreds.len(),
+                    error = %e,
+                    "RS reconstruction failed"
+                );
+                None
+            }
+        }
     }
     
     /// Get age of this FEC set
@@ -309,6 +423,10 @@ impl Default for FecAssemblerConfig {
 pub struct FecSetAssembler {
     /// FEC sets being assembled, keyed by (slot, fec_set_index)
     fec_sets: HashMap<ErasureSetId, FecSet>,
+    /// Already completed FEC sets (to avoid duplicates from redundant shreds)
+    completed_ids: HashSet<ErasureSetId>,
+    /// Minimum slot for completed_ids cleanup
+    completed_min_slot: u64,
     /// Completed FEC sets ready for entry extraction
     completed_tx: mpsc::Sender<CompleteFecSet>,
     /// Configuration
@@ -332,6 +450,8 @@ impl FecSetAssembler {
     pub fn new(completed_tx: mpsc::Sender<CompleteFecSet>, config: FecAssemblerConfig) -> Self {
         Self {
             fec_sets: HashMap::with_capacity(config.max_slots * config.max_fec_sets_per_slot),
+            completed_ids: HashSet::with_capacity(config.max_slots * config.max_fec_sets_per_slot),
+            completed_min_slot: 0,
             completed_tx,
             config,
             stats: FecAssemblerStats::default(),
@@ -348,6 +468,16 @@ impl FecSetAssembler {
         }
         
         let id = ErasureSetId::new(shred.slot(), shred.fec_set_index());
+        
+        // Skip if we already completed this FEC set (dedup redundant shreds)
+        if self.completed_ids.contains(&id) {
+            trace!(
+                slot = id.slot,
+                fec_set = id.fec_set_index,
+                "skipping shred for already-completed FEC set"
+            );
+            return;
+        }
         
         // Get or create FEC set
         let fec_set = self.fec_sets
@@ -377,8 +507,16 @@ impl FecSetAssembler {
                     warn!("failed to send completed FEC set: {}", e);
                 }
                 
-                // Remove from tracking
+                // Mark as completed and remove from tracking
+                self.completed_ids.insert(id);
                 self.fec_sets.remove(&id);
+                
+                // Update min slot for cleanup
+                if id.slot > self.completed_min_slot {
+                    self.completed_min_slot = id.slot.saturating_sub(self.config.max_slots as u64);
+                    // Clean up old completed IDs
+                    self.completed_ids.retain(|cid| cid.slot >= self.completed_min_slot);
+                }
             }
         }
         

@@ -168,6 +168,8 @@ pub struct EvaluatorStats {
     pub swaps_evaluated: std::sync::atomic::AtomicU64,
     pub swaps_too_small: std::sync::atomic::AtomicU64,
     pub swaps_no_pool_info: std::sync::atomic::AtomicU64,
+    pub swaps_no_slippage: std::sync::atomic::AtomicU64,
+    pub swaps_low_slippage: std::sync::atomic::AtomicU64,
     pub swaps_no_arb_route: std::sync::atomic::AtomicU64,
     pub opportunities_found: std::sync::atomic::AtomicU64,
     pub opportunities_below_threshold: std::sync::atomic::AtomicU64,
@@ -179,6 +181,8 @@ impl Default for EvaluatorStats {
             swaps_evaluated: std::sync::atomic::AtomicU64::new(0),
             swaps_too_small: std::sync::atomic::AtomicU64::new(0),
             swaps_no_pool_info: std::sync::atomic::AtomicU64::new(0),
+            swaps_no_slippage: std::sync::atomic::AtomicU64::new(0),
+            swaps_low_slippage: std::sync::atomic::AtomicU64::new(0),
             swaps_no_arb_route: std::sync::atomic::AtomicU64::new(0),
             opportunities_found: std::sync::atomic::AtomicU64::new(0),
             opportunities_below_threshold: std::sync::atomic::AtomicU64::new(0),
@@ -236,10 +240,12 @@ impl MevEvaluator {
     pub fn stats_summary(&self) -> String {
         use std::sync::atomic::Ordering;
         format!(
-            "evaluated={} too_small={} no_pool={} no_route={} found={} below_thresh={}",
+            "evaluated={} too_small={} no_pool={} no_slip={} low_slip={} no_route={} found={} below_thresh={}",
             self.stats.swaps_evaluated.load(Ordering::Relaxed),
             self.stats.swaps_too_small.load(Ordering::Relaxed),
             self.stats.swaps_no_pool_info.load(Ordering::Relaxed),
+            self.stats.swaps_no_slippage.load(Ordering::Relaxed),
+            self.stats.swaps_low_slippage.load(Ordering::Relaxed),
             self.stats.swaps_no_arb_route.load(Ordering::Relaxed),
             self.stats.opportunities_found.load(Ordering::Relaxed),
             self.stats
@@ -271,9 +277,19 @@ impl MevEvaluator {
             if let Some(amount) = swap.amount_in {
                 if amount < MIN_SWAP_AMOUNT_LAMPORTS {
                     self.stats.swaps_too_small.fetch_add(1, Ordering::Relaxed);
+                    tracing::trace!(
+                        pool = %swap.pool,
+                        amount = amount,
+                        min_required = MIN_SWAP_AMOUNT_LAMPORTS,
+                        "REJECT: swap amount too small"
+                    );
                     continue;
                 }
             } else {
+                tracing::trace!(
+                    pool = %swap.pool,
+                    "REJECT: no amount_in on swap"
+                );
                 continue; // No amount = can't evaluate
             }
 
@@ -284,23 +300,61 @@ impl MevEvaluator {
                     self.stats
                         .swaps_no_pool_info
                         .fetch_add(1, Ordering::Relaxed);
+                    // TRACE level: these are expected for memecoins we don't track
+                    tracing::trace!(
+                        pool = %swap.pool,
+                        dex = ?swap.dex,
+                        "unknown pool (not tracked)"
+                    );
                     continue;
                 }
             };
 
             // Filter 3: Calculate victim's slippage
+            // Try to calculate slippage from reserves; fall back to min_out ratio if reserves unavailable
             let (victim_slippage_bps, victim_amount_in, victim_min_out) =
                 match self.calculate_victim_slippage(swap, &pool_info) {
                     Some(s) => s,
-                    None => continue,
+                    None => {
+                        // Fallback: estimate slippage from min_out
+                        // If min_out is very low relative to input, assume high slippage tolerance
+                        if let (Some(amount_in), Some(min_out)) = (swap.amount_in, swap.min_amount_out) {
+                            // If min_out is 0-1, treat as unlimited slippage (common for memecoins)
+                            let estimated_slippage = if min_out <= 1 {
+                                10000 // 100% slippage tolerance
+                            } else {
+                                // Rough estimate: ratio suggests expected output, slippage is buffer
+                                // This is imprecise but allows us to proceed to arb route check
+                                500 // Default 5% assumed slippage
+                            };
+                            tracing::trace!(
+                                pool = %swap.pool,
+                                amount_in = amount_in,
+                                min_out = min_out,
+                                estimated_slippage = estimated_slippage,
+                                "Using estimated slippage (reserves unavailable)"
+                            );
+                            (estimated_slippage, amount_in, min_out)
+                        } else {
+                            self.stats.swaps_no_slippage.fetch_add(1, Ordering::Relaxed);
+                            tracing::debug!(
+                                pool = %swap.pool,
+                                amount_in = ?swap.amount_in,
+                                min_out = ?swap.min_amount_out,
+                                "REJECT: could not calculate victim slippage (missing amounts)"
+                            );
+                            continue;
+                        }
+                    }
                 };
 
             if victim_slippage_bps < MIN_VICTIM_SLIPPAGE_BPS {
+                self.stats.swaps_low_slippage.fetch_add(1, Ordering::Relaxed);
                 tracing::trace!(
                     pool = %swap.pool,
                     slippage_bps = victim_slippage_bps,
                     min_required = MIN_VICTIM_SLIPPAGE_BPS,
-                    "Skipping: victim slippage too low"
+                    "REJECT: victim slippage too low"
                 );
                 continue; // Not enough slippage to extract profit
             }
@@ -319,6 +373,14 @@ impl MevEvaluator {
                     self.stats
                         .swaps_no_arb_route
                         .fetch_add(1, Ordering::Relaxed);
+                    // TRACE level: single-pool pairs can't be arbed, this is expected
+                    tracing::trace!(
+                        pool = %swap.pool,
+                        input = %victim_input,
+                        output = %victim_output,
+                        amount = victim_amount_in,
+                        "no alternate pool for pair"
+                    );
                     continue;
                 }
             };
@@ -341,6 +403,15 @@ impl MevEvaluator {
                 self.stats
                     .opportunities_below_threshold
                     .fetch_add(1, Ordering::Relaxed);
+                // Log near-misses for diagnostics (raw profit before slippage buffer)
+                tracing::debug!(
+                    "NEAR-MISS: raw_profit={} adjusted={} min={} pool={} victim_amt={}",
+                    arb_route.expected_profit,
+                    expected_profit,
+                    MIN_PROFIT_LAMPORTS,
+                    swap.pool,
+                    victim_amount_in
+                );
                 continue;
             }
 
@@ -493,6 +564,12 @@ impl MevEvaluator {
             *victim_output
         } else {
             // Neither is an anchor - need a 3-hop route (not implemented yet)
+            tracing::trace!(
+                victim_pool = %victim_pool,
+                input = %victim_input,
+                output = %victim_output,
+                "ARB ROUTE: neither mint is an anchor (no flash loan available)"
+            );
             return None;
         };
 
@@ -562,7 +639,7 @@ impl MevEvaluator {
 
         // Build pool swap states for instruction building (from PSM pool state)
         let leg1_pool_state = self.build_pool_swap_state_from_psm(&alt_pool_state);
-        let leg2_pool_state = self.build_pool_swap_state(&alt_pool_state.address)?;
+        let leg2_pool_state = self.build_pool_swap_state(victim_pool)?;
 
         // Leg 1: swap on pool Y (unaffected by victim)
         // Leg 2: swap on pool X (post-victim, profitable direction)

@@ -269,7 +269,34 @@ impl UnifiedMevPipeline {
         jito_client: Arc<JitoClient>,
         opportunity_tx: OpportunityTx,
     ) -> Self {
-        let predictive_state = Arc::new(PredictiveStateManager::new());
+        // Create a new PSM (no pre-loaded pools)
+        Self::new_with_psm(
+            config,
+            tip_floor_cache,
+            payer,
+            flash_loan_reserves,
+            lookup_tables,
+            jito_client,
+            opportunity_tx,
+            None,
+        )
+    }
+
+    /// Create pipeline with optional pre-initialized PredictiveStateManager
+    /// 
+    /// If `existing_psm` is Some, uses that PSM with pre-loaded pools.
+    /// If None, creates a new empty PSM.
+    pub fn new_with_psm(
+        config: UnifiedPipelineConfig,
+        tip_floor_cache: Option<Arc<TipFloorCache>>,
+        payer: Arc<Keypair>,
+        flash_loan_reserves: HashMap<Pubkey, crate::executor::FlashLoanReserve>,
+        lookup_tables: Vec<solana_message::AddressLookupTableAccount>,
+        jito_client: Arc<JitoClient>,
+        opportunity_tx: OpportunityTx,
+        existing_psm: Option<Arc<PredictiveStateManager>>,
+    ) -> Self {
+        let predictive_state = existing_psm.unwrap_or_else(|| Arc::new(PredictiveStateManager::new()));
 
         // Derive anchor mints from configured flash loan reserves
         // This ensures we only try to flash loan tokens we have reserves for
@@ -337,6 +364,17 @@ impl UnifiedMevPipeline {
     /// Get predictive state statistics as a formatted string
     pub fn predictive_state_stats(&self) -> String {
         self.predictive_state.stats_summary()
+    }
+
+    /// Get evaluator statistics as a formatted string
+    pub async fn evaluator_stats(&self) -> String {
+        let evaluator = self.evaluator.read().await;
+        evaluator.stats_summary()
+    }
+
+    /// Get pair index stats (how many token pairs have multiple pools for arb)
+    pub fn pair_index_stats(&self) -> String {
+        self.predictive_state.pair_index_stats()
     }
 
     /// Get blockhash Arc for external updates
@@ -695,6 +733,11 @@ impl UnifiedMevPipeline {
     pub fn log_stats(&self) {
         tracing::info!("{}", self.stats.summary());
 
+        // Log evaluator stats (critical for debugging why no opps are found)
+        if let Ok(evaluator) = self.evaluator.try_read() {
+            tracing::info!("EVALUATOR: {}", evaluator.stats_summary());
+        }
+
         // Also log predictive state stats
         let ps_stats = self.predictive_state.stats();
         tracing::debug!(
@@ -704,6 +747,9 @@ impl UnifiedMevPipeline {
             ps_stats.pending_swaps_confirmed,
             ps_stats.pending_swaps_expired
         );
+
+        // Log pair index stats for arb route debugging
+        tracing::debug!("PAIR INDEX: {}", self.predictive_state.pair_index_stats());
     }
 }
 
@@ -720,6 +766,9 @@ impl UnifiedMevPipeline {
 /// Fallback mode (Turbine disabled):
 /// - ShredStream proxy provides early TX detection (~5-10ms)
 /// - Geyser provides ground truth confirmation
+///
+/// If `existing_psm` is provided, uses that pre-initialized PredictiveStateManager
+/// with pre-loaded pools. This enables Geyser vault subscriptions from startup.
 pub async fn spawn_unified_pipeline(
     config: UnifiedPipelineConfig,
     tip_floor_cache: Option<Arc<TipFloorCache>>,
@@ -727,11 +776,23 @@ pub async fn spawn_unified_pipeline(
     flash_loan_reserves: HashMap<Pubkey, crate::executor::FlashLoanReserve>,
     lookup_tables: Vec<solana_message::AddressLookupTableAccount>,
     jito_client: Arc<JitoClient>,
+    existing_psm: Option<Arc<PredictiveStateManager>>,
 ) -> Result<(Arc<UnifiedMevPipeline>, Arc<UnifiedPipelineStats>)> {
+    // Log pre-loaded pool count if PSM was provided
+    if let Some(ref psm) = existing_psm {
+        let stats = psm.stats();
+        let vault_count = psm.all_vaults().len();
+        tracing::info!(
+            "Using pre-initialized PSM: {} pools, {} vaults for Geyser subscription",
+            stats.pools_tracked,
+            vault_count
+        );
+    }
+
     // Create channel for async opportunity submission (bounded to prevent OOM)
     let (opportunity_tx, opportunity_rx) = mpsc::channel::<MevOpportunity>(100);
 
-    let pipeline = Arc::new(UnifiedMevPipeline::new(
+    let pipeline = Arc::new(UnifiedMevPipeline::new_with_psm(
         config.clone(),
         tip_floor_cache,
         payer,
@@ -739,6 +800,7 @@ pub async fn spawn_unified_pipeline(
         lookup_tables,
         jito_client,
         opportunity_tx,
+        existing_psm,
     ));
 
     let stats = pipeline.stats();

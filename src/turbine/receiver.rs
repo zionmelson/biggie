@@ -206,7 +206,30 @@ impl TurbineReceiver {
     
     /// Create and configure a UDP socket
     fn create_socket(&self) -> io::Result<UdpSocket> {
-        let socket = UdpSocket::bind(self.config.bind_addr)?;
+        // Use socket2 for advanced socket options (SO_REUSEPORT for multi-threaded receive)
+        use socket2::{Domain, Protocol, Socket, Type};
+        
+        let domain = if self.config.bind_addr.is_ipv4() {
+            Domain::IPV4
+        } else {
+            Domain::IPV6
+        };
+        
+        let socket = Socket::new(domain, Type::DGRAM, Some(Protocol::UDP))?;
+        
+        // Enable SO_REUSEPORT to allow multiple threads to bind the same port
+        // This distributes incoming packets across receiver threads for parallelism
+        #[cfg(unix)]
+        {
+            socket.set_reuse_port(true)?;
+        }
+        socket.set_reuse_address(true)?;
+        
+        // Bind the socket
+        socket.bind(&self.config.bind_addr.into())?;
+        
+        // Convert to std::net::UdpSocket
+        let socket: UdpSocket = socket.into();
         
         // Set large receive buffer
         socket.set_read_timeout(Some(Duration::from_millis(100)))?;

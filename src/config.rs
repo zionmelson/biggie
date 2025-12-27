@@ -263,6 +263,10 @@ pub struct GeyserPluginConfig {
     /// Skip vote transactions (recommended: true, votes are ~90% of traffic)
     #[serde(default = "default_true")]
     pub skip_votes: bool,
+    /// Path to static pools file for pre-loading pool/vault data at startup
+    /// Enables Geyser vault subscriptions without RPC calls during runtime
+    #[serde(default)]
+    pub pools_file: Option<String>,
 }
 
 fn default_geyser_endpoint() -> String {
@@ -285,6 +289,7 @@ impl Default for GeyserPluginConfig {
             connect_timeout_ms: default_connect_timeout_ms(),
             request_timeout_ms: default_request_timeout_ms(),
             skip_votes: true,
+            pools_file: None,
         }
     }
 }

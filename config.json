@@ -2,7 +2,7 @@
   "shredstream": {
     "turbine": {
       "enabled": true,
-      "bind_addr": "0.0.0.0:8011",
+      "bind_addr": "127.0.0.1:9012",
       "receiver_threads": 2,
       "recv_buffer_size": 134217728,
       "shred_channel_size": 10000,
@@ -25,7 +25,8 @@
     "endpoint": "http://localhost:10000",
     "skip_votes": true,
     "connect_timeout_ms": 10000,
-    "request_timeout_ms": 30000
+    "request_timeout_ms": 30000,
+    "pools_file": "pools.json"
   },
   "local_rpc": {
     "enabled": true,
