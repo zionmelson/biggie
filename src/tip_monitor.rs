@@ -242,7 +242,7 @@ impl DynamicTipCalculator {
         Self {
             cache,
             floor_multiplier: 1.5,  // 50% above P75 floor
-            profit_share_bps: 5000, // 50% of profit
+            profit_share_bps: 4000, // 40% of profit - keep 60% for ourselves
             max_tip_lamports: 10_000_000_000, // 10 SOL max
             min_tip_lamports: 1_000, // Jito minimum
         }
@@ -355,8 +355,8 @@ mod tests {
         let small_tip = calc.calculate_tip(100_000); // 0.0001 SOL profit
         assert!(small_tip >= 10_000, "Should use floor for small profit");
         
-        // Large profit should use profit-based tip
+        // Large profit should use profit-based tip (40% default)
         let large_tip = calc.calculate_tip(10_000_000_000); // 10 SOL profit
-        assert!(large_tip >= 5_000_000_000, "Should use 50% of profit");
+        assert!(large_tip >= 4_000_000_000, "Should use 40% of profit");
     }
 }

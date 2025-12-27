@@ -1,6 +1,6 @@
 //! DEX program IDs and instruction discriminators for swap detection.
 //!
-//! All program IDs verified from source repositories - see docs/mev_strategy.md
+//! All program IDs verified from source repositories - see docs/arb_strategy.md
 
 use solana_sdk::pubkey::Pubkey;
 use std::collections::HashMap;

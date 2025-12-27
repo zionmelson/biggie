@@ -184,7 +184,7 @@ pub fn curve_type_from_protocol(protocol: &str) -> CurveType {
 // =============================================================================
 
 /// Virtual pool state for simulating swaps without modifying actual cache.
-/// Used to calculate arb profit by simulating victim's swap then our arb legs.
+/// Used to calculate arb profit by simulating trigger's swap then our arb legs.
 #[derive(Clone, Debug)]
 pub struct VirtualPoolState {
     pub base_reserve: u64,
@@ -286,32 +286,34 @@ pub struct ArbSimulationResult {
     pub leg1_output: u64,
     /// Output from leg 2 (what we get back)
     pub leg2_output: u64,
+    /// Output from leg 3 (for 3-hop arbs, otherwise 0)
+    pub leg3_output: u64,
     /// Flash loan fee
     pub flash_loan_fee: u64,
     /// Is this a cross-pool arb (true) or sandwich (false)?
     pub is_cross_pool: bool,
 }
 
-/// Simulate a cross-pool backrun arbitrage
+/// Simulate a cross-pool cross-pool arbitrage
 ///
-/// After victim swaps A→B on Pool X:
+/// After trigger swaps A→B on Pool X:
 /// 1. Leg 1: Swap A→B on Pool Y (unaffected, B is cheap here)
-/// 2. Leg 2: Swap B→A on Pool X (post-victim, B is expensive here)
+/// 2. Leg 2: Swap B→A on Pool X (post-trigger, B is expensive here)
 ///
 /// Profit = leg2_output - borrow_amount - flash_fee
-pub fn simulate_cross_pool_backrun(
-    pool_x: &VirtualPoolState,  // Victim's pool
+pub fn simulate_cross_pool_arb(
+    pool_x: &VirtualPoolState,  // Trigger's pool
     pool_y: &VirtualPoolState,  // Alternate pool
-    victim_amount: u64,         // Victim's input amount
-    victim_base_to_quote: bool, // Victim's swap direction
+    trigger_amount: u64,         // Trigger's input amount
+    trigger_base_to_quote: bool, // Trigger's swap direction
     borrow_amount: u64,         // How much we borrow
     borrow_is_base: bool,       // Are we borrowing base token?
     flash_fee_bps: u16,         // Flash loan fee (typically 30 = 0.3%)
 ) -> Option<ArbSimulationResult> {
-    // 1. Simulate victim's swap on Pool X
-    let (_, pool_x_after_victim) = pool_x.simulate_swap(victim_amount, victim_base_to_quote);
+    // 1. Simulate trigger's swap on Pool X
+    let (_, pool_x_after_trigger) = pool_x.simulate_swap(trigger_amount, trigger_base_to_quote);
 
-    // 2. Our leg 1: Swap on Pool Y (unaffected by victim)
+    // 2. Our leg 1: Swap on Pool Y (unaffected by trigger)
     //    We swap borrow_token → intermediate_token
     //    Direction depends on what we borrowed
     let leg1_base_to_quote = borrow_is_base;
@@ -321,10 +323,10 @@ pub fn simulate_cross_pool_backrun(
         return None;
     }
 
-    // 3. Our leg 2: Swap intermediate → borrow on Pool X (post-victim)
+    // 3. Our leg 2: Swap intermediate → borrow on Pool X (post-trigger)
     //    Opposite direction from leg 1
     let leg2_base_to_quote = !borrow_is_base;
-    let (leg2_output, _) = pool_x_after_victim.simulate_swap(leg1_output, leg2_base_to_quote);
+    let (leg2_output, _) = pool_x_after_trigger.simulate_swap(leg1_output, leg2_base_to_quote);
 
     if leg2_output == 0 {
         return None;
@@ -340,6 +342,7 @@ pub fn simulate_cross_pool_backrun(
             borrow_amount,
             leg1_output,
             leg2_output,
+            leg3_output: 0,
             flash_loan_fee: flash_fee,
             is_cross_pool: true,
         })
@@ -350,40 +353,40 @@ pub fn simulate_cross_pool_backrun(
 
 /// Simulate a sandwich attack (front-run + back-run on same pool)
 ///
-/// 1. Front-run: We swap same direction as victim (before them)
-/// 2. Victim swaps (gets worse price due to our front-run)
-/// 3. Back-run: We swap opposite direction (after victim)
+/// 1. Front-run: We swap same direction as trigger (before them)
+/// 2. Trigger swaps (gets worse price due to our front-run)
+/// 3. Arb swap: We swap opposite direction (after trigger)
 ///
-/// Profit = backrun_output - frontrun_input - flash_fee
+/// Profit = arb_output - frontrun_input - flash_fee
 pub fn simulate_sandwich(
     pool: &VirtualPoolState,
-    victim_amount: u64,
-    victim_base_to_quote: bool,
+    trigger_amount: u64,
+    trigger_base_to_quote: bool,
     our_frontrun_amount: u64,
     flash_fee_bps: u16,
 ) -> Option<ArbSimulationResult> {
-    // 1. Our front-run (same direction as victim)
+    // 1. Our front-run (same direction as trigger)
     let (frontrun_output, pool_after_frontrun) =
-        pool.simulate_swap(our_frontrun_amount, victim_base_to_quote);
+        pool.simulate_swap(our_frontrun_amount, trigger_base_to_quote);
 
     if frontrun_output == 0 {
         return None;
     }
 
-    // 2. Victim's swap (worse price now)
-    let (victim_output, pool_after_victim) =
-        pool_after_frontrun.simulate_swap(victim_amount, victim_base_to_quote);
+    // 2. Trigger's swap (worse price now)
+    let (trigger_output, pool_after_trigger) =
+        pool_after_frontrun.simulate_swap(trigger_amount, trigger_base_to_quote);
 
-    // Victim must still get at least their min_out (we'd check this separately)
-    if victim_output == 0 {
+    // Trigger must still get at least their min_out (we'd check this separately)
+    if trigger_output == 0 {
         return None;
     }
 
     // 3. Our back-run (opposite direction)
-    let (backrun_output, _) =
-        pool_after_victim.simulate_swap(frontrun_output, !victim_base_to_quote);
+    let (arb_output, _) =
+        pool_after_trigger.simulate_swap(frontrun_output, !trigger_base_to_quote);
 
-    if backrun_output == 0 {
+    if arb_output == 0 {
         return None;
     }
 
@@ -391,12 +394,13 @@ pub fn simulate_sandwich(
     let flash_fee = (our_frontrun_amount as u128 * flash_fee_bps as u128 / 10_000) as u64;
     let total_cost = our_frontrun_amount.saturating_add(flash_fee);
 
-    if backrun_output > total_cost {
+    if arb_output > total_cost {
         Some(ArbSimulationResult {
-            profit: backrun_output - total_cost,
+            profit: arb_output - total_cost,
             borrow_amount: our_frontrun_amount,
             leg1_output: frontrun_output,
-            leg2_output: backrun_output,
+            leg2_output: arb_output,
+            leg3_output: 0,
             flash_loan_fee: flash_fee,
             is_cross_pool: false,
         })
@@ -410,8 +414,8 @@ pub fn simulate_sandwich(
 pub fn find_optimal_cross_pool_borrow(
     pool_x: &VirtualPoolState,
     pool_y: &VirtualPoolState,
-    victim_amount: u64,
-    victim_base_to_quote: bool,
+    trigger_amount: u64,
+    trigger_base_to_quote: bool,
     borrow_is_base: bool,
     max_borrow: u64,
     flash_fee_bps: u16,
@@ -430,11 +434,11 @@ pub fn find_optimal_cross_pool_borrow(
         // Precision of ~0.00001 SOL
         let mid = (low + high) / 2;
 
-        let profit_at_mid = simulate_cross_pool_backrun(
+        let profit_at_mid = simulate_cross_pool_arb(
             pool_x,
             pool_y,
-            victim_amount,
-            victim_base_to_quote,
+            trigger_amount,
+            trigger_base_to_quote,
             mid,
             borrow_is_base,
             flash_fee_bps,
@@ -442,11 +446,11 @@ pub fn find_optimal_cross_pool_borrow(
         .map(|r| r.profit)
         .unwrap_or(0);
 
-        let profit_at_mid_plus = simulate_cross_pool_backrun(
+        let profit_at_mid_plus = simulate_cross_pool_arb(
             pool_x,
             pool_y,
-            victim_amount,
-            victim_base_to_quote,
+            trigger_amount,
+            trigger_base_to_quote,
             mid + 10_000,
             borrow_is_base,
             flash_fee_bps,
@@ -467,11 +471,11 @@ pub fn find_optimal_cross_pool_borrow(
     }
 
     // Check final value
-    if let Some(result) = simulate_cross_pool_backrun(
+    if let Some(result) = simulate_cross_pool_arb(
         pool_x,
         pool_y,
-        victim_amount,
-        victim_base_to_quote,
+        trigger_amount,
+        trigger_base_to_quote,
         best_amount,
         borrow_is_base,
         flash_fee_bps,
@@ -485,9 +489,9 @@ pub fn find_optimal_cross_pool_borrow(
 /// Find optimal amount for sandwich attack using binary search
 pub fn find_optimal_sandwich_amount(
     pool: &VirtualPoolState,
-    victim_amount: u64,
-    victim_base_to_quote: bool,
-    victim_min_output: u64, // Must ensure victim still gets at least this
+    trigger_amount: u64,
+    trigger_base_to_quote: bool,
+    trigger_min_output: u64, // Must ensure trigger still gets at least this
     max_borrow: u64,
     flash_fee_bps: u16,
 ) -> (u64, u64) {
@@ -502,21 +506,21 @@ pub fn find_optimal_sandwich_amount(
     while high > low + 10_000 {
         let mid = (low + high) / 2;
 
-        // Simulate and check if victim still gets min_output
+        // Simulate and check if trigger still gets min_output
         let valid_and_profit = {
-            let (frontrun_out, pool_after_fr) = pool.simulate_swap(mid, victim_base_to_quote);
-            let (victim_out, pool_after_v) =
-                pool_after_fr.simulate_swap(victim_amount, victim_base_to_quote);
+            let (frontrun_out, pool_after_fr) = pool.simulate_swap(mid, trigger_base_to_quote);
+            let (trigger_out, pool_after_v) =
+                pool_after_fr.simulate_swap(trigger_amount, trigger_base_to_quote);
 
-            // Victim must get at least their min_output
-            if victim_out < victim_min_output {
+            // Trigger must get at least their min_output
+            if trigger_out < trigger_min_output {
                 None
             } else {
-                let (backrun_out, _) =
-                    pool_after_v.simulate_swap(frontrun_out, !victim_base_to_quote);
+                let (arb_out, _) =
+                    pool_after_v.simulate_swap(frontrun_out, !trigger_base_to_quote);
                 let flash_fee = (mid as u128 * flash_fee_bps as u128 / 10_000) as u64;
-                if backrun_out > mid + flash_fee {
-                    Some(backrun_out - mid - flash_fee)
+                if arb_out > mid + flash_fee {
+                    Some(arb_out - mid - flash_fee)
                 } else {
                     Some(0)
                 }
@@ -529,18 +533,18 @@ pub fn find_optimal_sandwich_amount(
         let profit_at_mid_plus = {
             let test_amount = mid + 10_000;
             let (frontrun_out, pool_after_fr) =
-                pool.simulate_swap(test_amount, victim_base_to_quote);
-            let (victim_out, pool_after_v) =
-                pool_after_fr.simulate_swap(victim_amount, victim_base_to_quote);
+                pool.simulate_swap(test_amount, trigger_base_to_quote);
+            let (trigger_out, pool_after_v) =
+                pool_after_fr.simulate_swap(trigger_amount, trigger_base_to_quote);
 
-            if victim_out < victim_min_output {
+            if trigger_out < trigger_min_output {
                 0
             } else {
-                let (backrun_out, _) =
-                    pool_after_v.simulate_swap(frontrun_out, !victim_base_to_quote);
+                let (arb_out, _) =
+                    pool_after_v.simulate_swap(frontrun_out, !trigger_base_to_quote);
                 let flash_fee = (test_amount as u128 * flash_fee_bps as u128 / 10_000) as u64;
-                if backrun_out > test_amount + flash_fee {
-                    backrun_out - test_amount - flash_fee
+                if arb_out > test_amount + flash_fee {
+                    arb_out - test_amount - flash_fee
                 } else {
                     0
                 }
@@ -633,22 +637,22 @@ impl PoolSimulator {
     }
 }
 
-/// Simulate cross-pool backrun using unified PoolSimulator.
+/// Simulate cross-pool cross-pool arb using unified PoolSimulator.
 ///
 /// This version works with any pool type (AMM, CLMM, DLMM).
-pub fn simulate_cross_pool_backrun_unified(
-    pool_x: &PoolSimulator,       // Victim's pool
+pub fn simulate_cross_pool_arb_unified(
+    pool_x: &PoolSimulator,       // Trigger's pool
     pool_y: &PoolSimulator,       // Alternate pool
-    victim_amount: u64,           // Victim's input amount
-    victim_base_to_quote: bool,   // Victim's swap direction
+    trigger_amount: u64,           // Trigger's input amount
+    trigger_base_to_quote: bool,   // Trigger's swap direction
     borrow_amount: u64,           // How much we borrow
     borrow_is_base: bool,         // Are we borrowing base token?
     flash_fee_bps: u16,           // Flash loan fee (typically 30 = 0.3%)
 ) -> Option<ArbSimulationResult> {
-    // 1. Simulate victim's swap on Pool X
-    let (_, pool_x_after_victim) = pool_x.simulate_swap(victim_amount, victim_base_to_quote);
+    // 1. Simulate trigger's swap on Pool X
+    let (_, pool_x_after_trigger) = pool_x.simulate_swap(trigger_amount, trigger_base_to_quote);
 
-    // 2. Our leg 1: Swap on Pool Y (unaffected by victim)
+    // 2. Our leg 1: Swap on Pool Y (unaffected by trigger)
     //    We swap borrow_token → intermediate_token
     let leg1_base_to_quote = borrow_is_base;
     let (leg1_output, _) = pool_y.simulate_swap(borrow_amount, leg1_base_to_quote);
@@ -657,9 +661,9 @@ pub fn simulate_cross_pool_backrun_unified(
         return None;
     }
 
-    // 3. Our leg 2: Swap intermediate → borrow on Pool X (post-victim)
+    // 3. Our leg 2: Swap intermediate → borrow on Pool X (post-trigger)
     let leg2_base_to_quote = !borrow_is_base;
-    let (leg2_output, _) = pool_x_after_victim.simulate_swap(leg1_output, leg2_base_to_quote);
+    let (leg2_output, _) = pool_x_after_trigger.simulate_swap(leg1_output, leg2_base_to_quote);
 
     if leg2_output == 0 {
         return None;
@@ -675,6 +679,7 @@ pub fn simulate_cross_pool_backrun_unified(
             borrow_amount,
             leg1_output,
             leg2_output,
+            leg3_output: 0,
             flash_loan_fee: flash_fee,
             is_cross_pool: true,
         })
@@ -687,8 +692,8 @@ pub fn simulate_cross_pool_backrun_unified(
 pub fn find_optimal_borrow_unified(
     pool_x: &PoolSimulator,
     pool_y: &PoolSimulator,
-    victim_amount: u64,
-    victim_base_to_quote: bool,
+    trigger_amount: u64,
+    trigger_base_to_quote: bool,
     borrow_is_base: bool,
     max_borrow: u64,
     flash_fee_bps: u16,
@@ -696,19 +701,19 @@ pub fn find_optimal_borrow_unified(
     let mut best_profit = 0u64;
     let mut best_amount = 0u64;
 
-    // Binary search for optimal amount
+    // Binary search for optimal amount with fine granularity
     let mut low = max_borrow / 1000;
     let mut high = max_borrow;
-    low = low.max(10_000); // At least 10k lamports
+    low = low.max(1_000); // At least 1k lamports
 
-    while high > low + 10_000 {
+    while high > low + 1_000 {
         let mid = (low + high) / 2;
 
-        let profit_at_mid = simulate_cross_pool_backrun_unified(
+        let profit_at_mid = simulate_cross_pool_arb_unified(
             pool_x,
             pool_y,
-            victim_amount,
-            victim_base_to_quote,
+            trigger_amount,
+            trigger_base_to_quote,
             mid,
             borrow_is_base,
             flash_fee_bps,
@@ -716,12 +721,12 @@ pub fn find_optimal_borrow_unified(
         .map(|r| r.profit)
         .unwrap_or(0);
 
-        let profit_at_mid_plus = simulate_cross_pool_backrun_unified(
+        let profit_at_mid_plus = simulate_cross_pool_arb_unified(
             pool_x,
             pool_y,
-            victim_amount,
-            victim_base_to_quote,
-            mid + 10_000,
+            trigger_amount,
+            trigger_base_to_quote,
+            mid + 1_000,
             borrow_is_base,
             flash_fee_bps,
         )
@@ -741,11 +746,11 @@ pub fn find_optimal_borrow_unified(
     }
 
     // Check final value
-    if let Some(result) = simulate_cross_pool_backrun_unified(
+    if let Some(result) = simulate_cross_pool_arb_unified(
         pool_x,
         pool_y,
-        victim_amount,
-        victim_base_to_quote,
+        trigger_amount,
+        trigger_base_to_quote,
         best_amount,
         borrow_is_base,
         flash_fee_bps,
@@ -754,6 +759,295 @@ pub fn find_optimal_borrow_unified(
     } else {
         (0, 0)
     }
+}
+
+// =============================================================================
+// 3-HOP ARBITRAGE (for meme-pair opportunities through anchor mints)
+// =============================================================================
+
+/// Result of a 3-hop arbitrage simulation
+#[derive(Clone, Debug)]
+pub struct ThreeHopArbResult {
+    /// Total profit after all fees
+    pub profit: u64,
+    /// Amount borrowed (anchor token)
+    pub borrow_amount: u64,
+    /// Output from leg 1: anchor → token_a
+    pub leg1_output: u64,
+    /// Output from leg 2: token_a → token_b (on trigger pool, post-trigger)
+    pub leg2_output: u64,
+    /// Output from leg 3: token_b → anchor
+    pub leg3_output: u64,
+    /// Flash loan fee
+    pub flash_loan_fee: u64,
+}
+
+/// Simulate a 3-hop cross-pool arbitrage for meme-pair swaps.
+///
+/// When trigger swaps MEME_A → MEME_B on Pool X, and neither is an anchor:
+/// 1. Borrow ANCHOR (e.g., SOL) via flash loan
+/// 2. Leg 1: ANCHOR → MEME_A on Pool A (buy what trigger sold)
+/// 3. Leg 2: MEME_A → MEME_B on Pool X (trigger's pool, post-trigger state)
+/// 4. Leg 3: MEME_B → ANCHOR on Pool B (sell what trigger bought)
+/// 5. Repay flash loan + fee
+///
+/// Profit = leg3_output - borrow_amount - flash_fee
+pub fn simulate_3hop_arb_unified(
+    pool_a: &PoolSimulator,       // ANCHOR/MEME_A pool
+    pool_x: &PoolSimulator,       // Trigger's pool (MEME_A/MEME_B)
+    pool_b: &PoolSimulator,       // MEME_B/ANCHOR pool
+    trigger_amount: u64,           // Trigger's input (MEME_A)
+    trigger_base_to_quote: bool,   // Trigger's direction on pool_x
+    borrow_amount: u64,           // How much ANCHOR we borrow
+    leg1_base_to_quote: bool,     // Direction for ANCHOR→MEME_A on pool_a
+    leg3_base_to_quote: bool,     // Direction for MEME_B→ANCHOR on pool_b
+    flash_fee_bps: u16,
+) -> Option<ThreeHopArbResult> {
+    // 1. Simulate trigger's swap on Pool X
+    let (_, pool_x_after_trigger) = pool_x.simulate_swap(trigger_amount, trigger_base_to_quote);
+
+    // 2. Leg 1: ANCHOR → MEME_A on pool_a
+    let (leg1_output, _) = pool_a.simulate_swap(borrow_amount, leg1_base_to_quote);
+    if leg1_output == 0 {
+        return None;
+    }
+
+    // 3. Leg 2: MEME_A → MEME_B on pool_x (post-trigger)
+    // Direction is same as trigger since we're buying what they bought
+    let (leg2_output, _) = pool_x_after_trigger.simulate_swap(leg1_output, trigger_base_to_quote);
+    if leg2_output == 0 {
+        return None;
+    }
+
+    // 4. Leg 3: MEME_B → ANCHOR on pool_b
+    let (leg3_output, _) = pool_b.simulate_swap(leg2_output, leg3_base_to_quote);
+    if leg3_output == 0 {
+        return None;
+    }
+
+    // 5. Calculate profit
+    let flash_fee = (borrow_amount as u128 * flash_fee_bps as u128 / 10_000) as u64;
+    let total_cost = borrow_amount.saturating_add(flash_fee);
+
+    if leg3_output > total_cost {
+        Some(ThreeHopArbResult {
+            profit: leg3_output - total_cost,
+            borrow_amount,
+            leg1_output,
+            leg2_output,
+            leg3_output,
+            flash_loan_fee: flash_fee,
+        })
+    } else {
+        None
+    }
+}
+
+/// Find optimal borrow for 3-hop arbitrage using binary search.
+pub fn find_optimal_3hop_borrow_unified(
+    pool_a: &PoolSimulator,
+    pool_x: &PoolSimulator,
+    pool_b: &PoolSimulator,
+    trigger_amount: u64,
+    trigger_base_to_quote: bool,
+    leg1_base_to_quote: bool,
+    leg3_base_to_quote: bool,
+    max_borrow: u64,
+    flash_fee_bps: u16,
+) -> (u64, u64) {
+    let mut best_profit = 0u64;
+    let mut best_amount = 0u64;
+
+    // Binary search with fine granularity for 3-hop arbs
+    let mut low = max_borrow / 1000;
+    let mut high = max_borrow;
+    low = low.max(1_000);
+
+    while high > low + 1_000 {
+        let mid = (low + high) / 2;
+
+        let profit_at_mid = simulate_3hop_arb_unified(
+            pool_a, pool_x, pool_b,
+            trigger_amount, trigger_base_to_quote,
+            mid,
+            leg1_base_to_quote, leg3_base_to_quote,
+            flash_fee_bps,
+        )
+        .map(|r| r.profit)
+        .unwrap_or(0);
+
+        let profit_at_mid_plus = simulate_3hop_arb_unified(
+            pool_a, pool_x, pool_b,
+            trigger_amount, trigger_base_to_quote,
+            mid + 1_000,
+            leg1_base_to_quote, leg3_base_to_quote,
+            flash_fee_bps,
+        )
+        .map(|r| r.profit)
+        .unwrap_or(0);
+
+        if profit_at_mid_plus > profit_at_mid {
+            low = mid;
+        } else {
+            high = mid;
+        }
+
+        if profit_at_mid > best_profit {
+            best_profit = profit_at_mid;
+            best_amount = mid;
+        }
+    }
+
+    (best_amount, best_profit)
+}
+
+// =============================================================================
+// PURE ARBITRAGE (no trigger transaction - triggered by price drift)
+// =============================================================================
+
+/// Result of pure arbitrage simulation (cross-pool price discrepancy)
+#[derive(Clone, Debug)]
+pub struct PureArbResult {
+    /// Profit after flash loan repayment
+    pub profit: u64,
+    /// Amount to trade
+    pub trade_amount: u64,
+    /// Output from leg 1
+    pub leg1_output: u64,
+    /// Output from leg 2 (what we get back)
+    pub leg2_output: u64,
+    /// Flash loan fee
+    pub flash_loan_fee: u64,
+    /// Direction: true = buy on pool_a, sell on pool_b
+    pub direction: bool,
+}
+
+/// Simulate pure arbitrage between two pools trading the same pair.
+///
+/// No trigger transaction - just exploits natural price differences.
+/// 
+/// If pool_a has better price for buying X:
+///   Leg 1: Buy X on pool_a (cheaper)
+///   Leg 2: Sell X on pool_b (more expensive)
+///
+/// Returns the best direction automatically.
+pub fn simulate_pure_arb_unified(
+    pool_a: &PoolSimulator,
+    pool_b: &PoolSimulator,
+    trade_amount: u64,
+    flash_fee_bps: u16,
+) -> Option<PureArbResult> {
+    // Try direction 1: buy on A (base→quote), sell on B (quote→base)
+    let dir1_profit = {
+        let (leg1_out, _) = pool_a.simulate_swap(trade_amount, true);
+        if leg1_out == 0 {
+            0
+        } else {
+            let (leg2_out, _) = pool_b.simulate_swap(leg1_out, false);
+            let flash_fee = (trade_amount as u128 * flash_fee_bps as u128 / 10_000) as u64;
+            let total_cost = trade_amount.saturating_add(flash_fee);
+            if leg2_out > total_cost {
+                leg2_out - total_cost
+            } else {
+                0
+            }
+        }
+    };
+
+    // Try direction 2: buy on B, sell on A
+    let dir2_profit = {
+        let (leg1_out, _) = pool_b.simulate_swap(trade_amount, true);
+        if leg1_out == 0 {
+            0
+        } else {
+            let (leg2_out, _) = pool_a.simulate_swap(leg1_out, false);
+            let flash_fee = (trade_amount as u128 * flash_fee_bps as u128 / 10_000) as u64;
+            let total_cost = trade_amount.saturating_add(flash_fee);
+            if leg2_out > total_cost {
+                leg2_out - total_cost
+            } else {
+                0
+            }
+        }
+    };
+
+    // Return the more profitable direction
+    if dir1_profit > dir2_profit && dir1_profit > 0 {
+        let (leg1_out, _) = pool_a.simulate_swap(trade_amount, true);
+        let (leg2_out, _) = pool_b.simulate_swap(leg1_out, false);
+        let flash_fee = (trade_amount as u128 * flash_fee_bps as u128 / 10_000) as u64;
+        Some(PureArbResult {
+            profit: dir1_profit,
+            trade_amount,
+            leg1_output: leg1_out,
+            leg2_output: leg2_out,
+            flash_loan_fee: flash_fee,
+            direction: true,
+        })
+    } else if dir2_profit > 0 {
+        let (leg1_out, _) = pool_b.simulate_swap(trade_amount, true);
+        let (leg2_out, _) = pool_a.simulate_swap(leg1_out, false);
+        let flash_fee = (trade_amount as u128 * flash_fee_bps as u128 / 10_000) as u64;
+        Some(PureArbResult {
+            profit: dir2_profit,
+            trade_amount,
+            leg1_output: leg1_out,
+            leg2_output: leg2_out,
+            flash_loan_fee: flash_fee,
+            direction: false,
+        })
+    } else {
+        None
+    }
+}
+
+/// Find optimal trade amount for pure arbitrage using binary search.
+pub fn find_optimal_pure_arb_unified(
+    pool_a: &PoolSimulator,
+    pool_b: &PoolSimulator,
+    max_trade: u64,
+    flash_fee_bps: u16,
+) -> Option<PureArbResult> {
+    let mut best_result: Option<PureArbResult> = None;
+    let mut best_profit = 0u64;
+
+    let mut low = max_trade / 1000;
+    let mut high = max_trade;
+    low = low.max(10_000);
+
+    while high > low + 10_000 {
+        let mid = (low + high) / 2;
+
+        let profit_at_mid = simulate_pure_arb_unified(pool_a, pool_b, mid, flash_fee_bps)
+            .map(|r| r.profit)
+            .unwrap_or(0);
+
+        let profit_at_mid_plus = simulate_pure_arb_unified(pool_a, pool_b, mid + 10_000, flash_fee_bps)
+            .map(|r| r.profit)
+            .unwrap_or(0);
+
+        if profit_at_mid_plus > profit_at_mid {
+            low = mid;
+        } else {
+            high = mid;
+        }
+
+        if profit_at_mid > best_profit {
+            best_profit = profit_at_mid;
+            if let Some(result) = simulate_pure_arb_unified(pool_a, pool_b, mid, flash_fee_bps) {
+                best_result = Some(result);
+            }
+        }
+    }
+
+    // Final check at best amount
+    if let Some(result) = simulate_pure_arb_unified(pool_a, pool_b, best_result.as_ref().map(|r| r.trade_amount).unwrap_or(low), flash_fee_bps) {
+        if result.profit > best_profit {
+            return Some(result);
+        }
+    }
+
+    best_result
 }
 
 #[cfg(test)]
@@ -795,16 +1089,16 @@ mod tests {
             30,
         );
 
-        // Victim wants to swap 10 SOL
+        // Trigger wants to swap 10 SOL
         let result = simulate_sandwich(
             &pool,
-            10_000_000_000, // victim amount
+            10_000_000_000, // trigger amount
             true,           // base to quote
             5_000_000_000,  // our frontrun: 5 SOL
             30,             // flash fee
         );
 
-        // Should be profitable (victim's slippage is our profit)
+        // Should be profitable (trigger's slippage is our profit)
         if let Some(r) = result {
             println!("Sandwich profit: {} lamports", r.profit);
             assert!(r.profit > 0, "Sandwich should be profitable");

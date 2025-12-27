@@ -1,18 +1,34 @@
 //! Turbine Integration
 //!
-//! Integrates direct Turbine UDP reception with the MEV pipeline,
-//! using ShredStream as a fallback.
+//! Integrates direct Turbine UDP reception with the arbitrage pipeline.
+//!
+//! # Why Turbine Matters
+//!
+//! Turbine provides the FASTEST way to learn about state changes:
+//! - ~0.5-2ms after a block is produced by the leader
+//! - vs ~5-10ms for ShredStream proxy
+//! - vs ~5-15ms for Geyser
+//!
+//! This speed advantage means we're first to:
+//! - See that a swap moved a pool's price
+//! - Detect cross-pool arbitrage opportunity
+//! - Submit our arb TX to Jito
+//!
+//! # What Turbine Does NOT Provide
+//!
+//! Turbine does NOT give us "early" or "pending" transactions.
+//! The transactions in shreds have ALREADY BEEN EXECUTED by the leader.
+//! We are updating our state as fast as possible, not predicting the future.
 
-use std::sync::Arc;
 use std::time::{Duration, Instant};
 use tokio::sync::mpsc;
-use tracing::{info, warn, debug, error};
+use tracing::{info, warn};
 
 use solana_sdk::transaction::VersionedTransaction;
 
 use crate::turbine::{
     TurbineReceiver, TurbineConfig, TurbineStatsSnapshot,
-    CompleteFecSet, AssembledEntries, run_entry_assembler,
+    AssembledEntries, run_entry_assembler,
 };
 
 // ============================================================================

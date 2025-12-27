@@ -1,12 +1,31 @@
-//! Backrun Bundle Builder
+//! Arbitrage Transaction Builder
 //!
-//! Constructs MEV bundles for backrunning victim transactions.
-//! Bundle format: [victim_tx, arb_tx]
+//! Constructs atomic arbitrage transactions for cross-pool price divergence.
 //!
-//! The victim transaction executes first, moving the pool price.
-//! Our arb transaction executes immediately after, capturing the price delta.
+//! # Primary Strategy: Pure Arbitrage (Single-TX Bundle)
+//!
+//! When we detect price divergence between pools:
+//! 1. Flash loan the anchor token (SOL/USDC)
+//! 2. Buy on the cheap pool
+//! 3. Sell on the expensive pool
+//! 4. Repay flash loan + fee
+//! 5. Keep profit
+//!
+//! This is submitted as a **single-TX Jito bundle** for priority inclusion.
+//!
+//! # Why NOT Same-Block Bundling
+//!
+//! We receive transactions via Turbine/Shreds AFTER they've been executed.
+//! The "triggering TX" is already in a block - we can't bundle with it.
+//! Our arb TX goes in the NEXT block.
+//!
+//! # Legacy: TwoTxBundle struct
+//!
+//! The `TwoTxBundle` struct (with trigger_tx) is kept for potential future
+//! integration with Jito's pending transaction stream, which WOULD allow
+//! true same-block arb_bundlening. Currently unused.
 
-use super::evaluator::{ArbLeg, MevOpportunity};
+use super::evaluator::{ArbLeg, ArbOpportunity, PureArbOpportunity};
 use super::programs::DexType;
 use crate::constants::{ATA_PROGRAM, SYSTEM_PROGRAM, TOKEN_PROGRAM};
 use crate::executor::FlashLoanReserve;
@@ -28,13 +47,13 @@ use solana_system_interface::instruction as system_instruction;
 use std::collections::HashMap;
 use std::sync::Arc;
 
-/// A complete backrun bundle ready for submission
+/// A complete arb_bundle bundle ready for submission (legacy - for future pending TX stream)
 #[derive(Debug, Clone)]
-pub struct BackrunBundle {
+pub struct TwoTxBundle {
     /// Unique bundle ID
     pub id: String,
-    /// The victim transaction (executed first)
-    pub victim_tx: VersionedTransaction,
+    /// The triggering transaction (executed first) - requires pending TX stream
+    pub trigger_tx: VersionedTransaction,
     /// Our arbitrage transaction (executed second)
     pub arb_tx: VersionedTransaction,
     /// Expected profit in lamports
@@ -45,10 +64,32 @@ pub struct BackrunBundle {
     pub opportunity_id: String,
 }
 
-impl BackrunBundle {
+/// A pure arbitrage bundle (no trigger transaction - single TX bundle)
+#[derive(Debug, Clone)]
+pub struct PureArbBundle {
+    /// Unique bundle ID
+    pub id: String,
+    /// Our arbitrage transaction (single TX bundle)
+    pub arb_tx: VersionedTransaction,
+    /// Expected profit in lamports
+    pub expected_profit_lamports: u64,
+    /// Tip amount included
+    pub tip_lamports: u64,
+    /// The opportunity this bundle was built from
+    pub opportunity_id: String,
+}
+
+impl PureArbBundle {
+    /// Get transaction as a vector for Jito submission (single TX bundle)
+    pub fn transactions(&self) -> Vec<VersionedTransaction> {
+        vec![self.arb_tx.clone()]
+    }
+}
+
+impl TwoTxBundle {
     /// Get both transactions as a vector for Jito submission
     pub fn transactions(&self) -> Vec<VersionedTransaction> {
-        vec![self.victim_tx.clone(), self.arb_tx.clone()]
+        vec![self.trigger_tx.clone(), self.arb_tx.clone()]
     }
 }
 
@@ -75,18 +116,18 @@ impl Default for BundleBuilderConfig {
     fn default() -> Self {
         Self {
             compute_units: 400_000,
-            compute_unit_price: 1000,   // 1000 micro-lamports
-            base_tip_lamports: 25_000,  // Higher base for minimum competitiveness
-            tip_profit_share_bps: 7000, // 70% - aggressive bidding wins auctions
-            max_tip_profit_bps: 9000,   // 90% max - keep 10% minimum profit
-            slippage_bps: 200,          // 2% - tighter for more accurate profit
-            tip_floor_multiplier: 3.0,  // 3x P75 floor - outbid competitors
+            compute_unit_price: 1000,   // 1000 micro-lamports (~400 lamports total)
+            base_tip_lamports: 1_000,   // Jito minimum - let market tip logic handle the rest
+            tip_profit_share_bps: 5000, // 50% max - split profit evenly
+            max_tip_profit_bps: 5000,   // 50% max - never tip more than half
+            slippage_bps: 50,           // 0.5% - tighter slippage for accuracy
+            tip_floor_multiplier: 1.3,  // 1.3x P75 floor - competitive baseline
         }
     }
 }
 
-/// Bundle builder for MEV backruns
-pub struct BackrunBundleBuilder {
+/// Bundle builder for arbitrage bundles
+pub struct ArbBundleBuilder {
     config: BundleBuilderConfig,
     payer: Arc<Keypair>,
     flash_loan_reserves: HashMap<Pubkey, FlashLoanReserve>,
@@ -94,7 +135,7 @@ pub struct BackrunBundleBuilder {
     tip_floor_cache: Option<Arc<TipFloorCache>>,
 }
 
-impl BackrunBundleBuilder {
+impl ArbBundleBuilder {
     pub fn new(
         config: BundleBuilderConfig,
         payer: Arc<Keypair>,
@@ -121,10 +162,10 @@ impl BackrunBundleBuilder {
         self.tip_floor_cache = Some(cache);
     }
 
-    /// Build a backrun bundle from an MEV opportunity
-    pub fn build(&self, opportunity: &MevOpportunity, blockhash: Hash) -> Result<BackrunBundle> {
-        // Validate victim transaction
-        self.validate_victim_tx(&opportunity.victim_tx)?;
+    /// Build a arb_bundle bundle from an arbitrage opportunity (requires pending TX stream)
+    pub fn build(&self, opportunity: &ArbOpportunity, blockhash: Hash) -> Result<TwoTxBundle> {
+        // Validate trigger transaction
+        self.validate_trigger_tx(&opportunity.trigger_tx)?;
 
         // Get flash loan reserve for the borrow mint
         let reserve = self
@@ -141,9 +182,9 @@ impl BackrunBundleBuilder {
         // Calculate tip
         let tip = self.calculate_tip(opportunity.expected_profit_lamports);
 
-        Ok(BackrunBundle {
+        Ok(TwoTxBundle {
             id: format!("br_{}", opportunity.id),
-            victim_tx: opportunity.victim_tx.clone(),
+            trigger_tx: opportunity.trigger_tx.clone(),
             arb_tx,
             expected_profit_lamports: opportunity.expected_profit_lamports,
             tip_lamports: tip,
@@ -151,28 +192,156 @@ impl BackrunBundleBuilder {
         })
     }
 
-    /// Validate the victim transaction before including in bundle
-    fn validate_victim_tx(&self, tx: &VersionedTransaction) -> Result<()> {
+    /// Build a pure arbitrage bundle from a cross-pool price discrepancy
+    /// 
+    /// Unlike arb_bundle bundles, pure arb bundles contain only our transaction.
+    /// No trigger TX is needed - we're exploiting natural price drift between pools.
+    pub fn build_pure_arb(&self, opportunity: &PureArbOpportunity, blockhash: Hash) -> Result<PureArbBundle> {
+        // Get flash loan reserve for the borrow mint
+        let reserve = self
+            .flash_loan_reserves
+            .get(&opportunity.borrow_mint)
+            .ok_or_else(|| anyhow!("No flash loan reserve for {}", opportunity.borrow_mint))?;
+
+        let payer_pubkey = self.payer.pubkey();
+        let borrow_ata = derive_ata(&payer_pubkey, &opportunity.borrow_mint);
+
+        // Build the arb transaction
+        let arb_tx = self.build_pure_arb_transaction(opportunity, reserve, borrow_ata, blockhash)?;
+
+        // Calculate tip
+        let tip = self.calculate_tip(opportunity.expected_profit_lamports);
+
+        Ok(PureArbBundle {
+            id: format!("pa_{}", opportunity.id),
+            arb_tx,
+            expected_profit_lamports: opportunity.expected_profit_lamports,
+            tip_lamports: tip,
+            opportunity_id: opportunity.id.clone(),
+        })
+    }
+
+    /// Build the pure arbitrage transaction
+    ///
+    /// Structure: flash borrow → swap1 (buy cheap) → swap2 (sell high) → flash repay → tip
+    fn build_pure_arb_transaction(
+        &self,
+        opportunity: &PureArbOpportunity,
+        reserve: &FlashLoanReserve,
+        borrow_ata: Pubkey,
+        blockhash: Hash,
+    ) -> Result<VersionedTransaction> {
+        let payer_pubkey = self.payer.pubkey();
+
+        // Pre-allocate with capacity for pure arb (avoids reallocations)
+        // 2 compute budget + 2 ATA creates + 1 borrow + 2 swaps + 1 repay + 1 tip = 9 instructions
+        let mut instructions = Vec::with_capacity(9);
+
+        // 1. Compute budget
+        instructions.push(ComputeBudgetInstruction::set_compute_unit_limit(
+            self.config.compute_units,
+        ));
+        instructions.push(ComputeBudgetInstruction::set_compute_unit_price(
+            self.config.compute_unit_price,
+        ));
+
+        // 2. Create ATAs (idempotent)
+        // ATA for borrow mint (quote token - e.g., SOL/USDC)
+        instructions.push(create_ata_idempotent(
+            &payer_pubkey,
+            &payer_pubkey,
+            &opportunity.borrow_mint,
+            &TOKEN_PROGRAM,
+        ));
+
+        // ATA for base mint (the token we're arbitraging)
+        if opportunity.base_mint != opportunity.borrow_mint {
+            instructions.push(create_ata_idempotent(
+                &payer_pubkey,
+                &payer_pubkey,
+                &opportunity.base_mint,
+                &TOKEN_PROGRAM,
+            ));
+        }
+
+        // Track instruction index for flash loan repay reference
+        let borrow_ix_index = instructions.len() as u8;
+
+        // 3. Flash borrow
+        instructions.push(self.build_borrow_instruction(
+            reserve,
+            opportunity.trade_amount,
+            borrow_ata,
+        ));
+
+        // 4. Swap leg 1: Buy on cheaper pool (quote -> base)
+        let buy_leg = ArbLeg {
+            pool: opportunity.buy_pool,
+            dex: opportunity.buy_dex,
+            input_mint: opportunity.borrow_mint,
+            output_mint: opportunity.base_mint,
+            estimated_output: opportunity.leg1_output,
+            pool_state: opportunity.buy_pool_state.clone(),
+        };
+        let swap1 = self.build_swap_instruction(&buy_leg, opportunity.trade_amount)?;
+        instructions.push(swap1);
+
+        // 5. Swap leg 2: Sell on expensive pool (base -> quote)
+        let sell_leg = ArbLeg {
+            pool: opportunity.sell_pool,
+            dex: opportunity.sell_dex,
+            input_mint: opportunity.base_mint,
+            output_mint: opportunity.borrow_mint,
+            estimated_output: opportunity.leg2_output,
+            pool_state: opportunity.sell_pool_state.clone(),
+        };
+        let swap2 = self.build_swap_instruction(&sell_leg, opportunity.leg1_output)?;
+        instructions.push(swap2);
+
+        // 6. Flash repay
+        instructions.push(self.build_repay_instruction(
+            reserve,
+            opportunity.trade_amount,
+            borrow_ata,
+            borrow_ix_index,
+        ));
+
+        // 7. Tip
+        let tip = self.calculate_tip(opportunity.expected_profit_lamports);
+        instructions.push(self.build_tip_instruction(tip));
+
+        // Build versioned message
+        let message =
+            v0::Message::try_compile(&payer_pubkey, &instructions, &self.lookup_tables, blockhash)?;
+
+        let versioned_message = VersionedMessage::V0(message);
+        let tx = VersionedTransaction::try_new(versioned_message, &[self.payer.as_ref()])?;
+
+        Ok(tx)
+    }
+
+    /// Validate the trigger transaction before including in bundle
+    fn validate_trigger_tx(&self, tx: &VersionedTransaction) -> Result<()> {
         // Check that transaction has at least one signature
         if tx.signatures.is_empty() {
-            bail!("Victim transaction has no signatures");
+            bail!("Trigger transaction has no signatures");
         }
 
         // Verify the first signature is not all zeros (invalid)
         let first_sig = &tx.signatures[0];
         if first_sig.as_ref().iter().all(|&b| b == 0) {
-            bail!("Victim transaction has invalid signature (all zeros)");
+            bail!("Trigger transaction has invalid signature (all zeros)");
         }
 
         // Check transaction has a valid message with instructions
         if tx.message.instructions().is_empty() {
-            bail!("Victim transaction has no instructions");
+            bail!("Trigger transaction has no instructions");
         }
 
         // Verify blockhash is not default (would indicate a problem)
         let recent_blockhash = tx.message.recent_blockhash();
         if *recent_blockhash == Hash::default() {
-            bail!("Victim transaction has default blockhash");
+            bail!("Trigger transaction has default blockhash");
         }
 
         // Note: We cannot verify blockhash validity without RPC access
@@ -187,7 +356,7 @@ impl BackrunBundleBuilder {
     /// Typical bundle has: 2 compute budget + 2 ATA creates + 1 borrow + 2 swaps + 1 repay + 1 tip = 9 instructions
     fn build_arb_transaction(
         &self,
-        opportunity: &MevOpportunity,
+        opportunity: &ArbOpportunity,
         reserve: &FlashLoanReserve,
         borrow_ata: Pubkey,
         blockhash: Hash,
@@ -223,6 +392,20 @@ impl BackrunBundleBuilder {
             ));
         }
 
+        // For 3-hop routes, also create ATA for second intermediate token
+        if opportunity.arb_route.is_three_hop {
+            if opportunity.arb_route.leg2.output_mint != opportunity.borrow_mint
+                && opportunity.arb_route.leg2.output_mint != opportunity.arb_route.leg1.output_mint
+            {
+                instructions.push(create_ata_idempotent(
+                    &payer_pubkey,
+                    &payer_pubkey,
+                    &opportunity.arb_route.leg2.output_mint,
+                    &TOKEN_PROGRAM,
+                ));
+            }
+        }
+
         // Track instruction index for flash loan repay reference
         let borrow_ix_index = instructions.len() as u8;
 
@@ -238,10 +421,17 @@ impl BackrunBundleBuilder {
             self.build_swap_instruction(&opportunity.arb_route.leg1, opportunity.borrow_amount)?;
         instructions.push(swap1);
 
-        // 5. Swap leg 2: intermediate -> borrow_mint
+        // 5. Swap leg 2: intermediate -> borrow_mint (or intermediate2 for 3-hop)
         let leg2_input = opportunity.arb_route.leg1.estimated_output;
         let swap2 = self.build_swap_instruction(&opportunity.arb_route.leg2, leg2_input)?;
         instructions.push(swap2);
+
+        // 5b. Swap leg 3 (for 3-hop arbs only): intermediate2 -> borrow_mint
+        if let Some(ref leg3) = opportunity.arb_route.leg3 {
+            let leg3_input = opportunity.arb_route.leg2.estimated_output;
+            let swap3 = self.build_swap_instruction(leg3, leg3_input)?;
+            instructions.push(swap3);
+        }
 
         // 6. Flash repay
         instructions.push(self.build_repay_instruction(
@@ -754,72 +944,64 @@ impl BackrunBundleBuilder {
         system_instruction::transfer(&self.payer.pubkey(), &tip_account, tip_lamports)
     }
 
-    /// Calculate dynamic tip based on expected profit
+    /// Calculate competitive tip based on MARKET CONDITIONS, not profit percentage
     ///
-    /// Uses tip floor data from Jito if available, otherwise falls back
-    /// Profit-tiered tipping strategy for maximum competitiveness.
-    ///
-    /// Key insight: In NY with good infra, you'll tie other top searchers on latency.
-    /// The bundle auction is won by TIP, so we tip aggressively based on profit tier.
+    /// Key insight: Jito auctions are won by having the highest tip among competing bundles.
+    /// The tip floor API tells us what tips are actually landing.
     ///
     /// Strategy:
-    /// - Small profits (<0.01 SOL): Tip 85% - these are competitive, guarantee the win
-    /// - Medium profits (0.01-0.1 SOL): Tip 75% - still aggressive
-    /// - Large profits (>0.1 SOL): Tip 65% - keep more, still competitive
+    /// 1. Use P75 as baseline (beats 75% of competition)
+    /// 2. Add buffer based on opportunity value (more profit = can afford higher tip)
+    /// 3. NEVER tip more than 50% of profit (keep meaningful profit)
+    /// 4. Return 0 if we can't afford competitive tip (skip opportunity)
     ///
-    /// Always use MAX(floor-based, profit-share) to handle different market conditions.
+    /// This beats the old approach of tipping 85% of small profits (wasteful)
+    /// or under-tipping competitive opportunities.
     fn calculate_tip(&self, expected_profit: u64) -> u64 {
         // Sanity cap: max tip is 10 SOL even for huge profits
         const MAX_TIP: u64 = 10_000_000_000; // 10 SOL
+        
+        // Minimum we'll ever keep (ensures we're not losing money after gas)
+        const MIN_KEEPER_LAMPORTS: u64 = 5_000; // ~$0.001
 
-        // Profit-tiered tip percentage (in bps)
-        // Small profits: tip more aggressively to guarantee win
-        // Large profits: can afford to keep more, still competitive
-        let tier_bps = if expected_profit < 10_000_000 {
-            // < 0.01 SOL: small profit, tip 85%
-            8500
-        } else if expected_profit < 100_000_000 {
-            // 0.01 - 0.1 SOL: medium profit, tip 75%
-            7500
+        // Get market floors
+        let (p75, p95) = if let Some(cache) = &self.tip_floor_cache {
+            (cache.get_p75(), cache.get_p95())
         } else {
-            // > 0.1 SOL: large profit, tip 65%
-            6500
+            // Fallback: use reasonable defaults based on typical market
+            (10_000, 100_000) // ~P75 and P95 from typical market
         };
 
-        // Calculate profit-share tip
-        let profit_share_tip = (expected_profit as u128 * tier_bps as u128 / 10000) as u64;
-
-        // Calculate floor-based tip (if available)
-        let floor_tip = if let Some(cache) = &self.tip_floor_cache {
-            let p75 = cache.get_p75();
-            let p95 = cache.get_p95();
-            if p75 > 0 {
-                // Use P95 for small profits (guarantee win), P75*3 for larger
-                if expected_profit < 10_000_000 {
-                    // Small profit: use P95 * 2 to dominate
-                    p95.saturating_mul(2)
-                } else {
-                    // Larger profit: P75 * multiplier
-                    ((p75 as f64) * self.config.tip_floor_multiplier) as u64
-                }
-            } else {
-                0
-            }
+        // Calculate the competitive tip based on market
+        // For most arb, P75 + 20% buffer is enough to land
+        // For high-value opportunities, we can afford to go higher
+        let market_tip = if expected_profit > 1_000_000_000 {
+            // > 1 SOL profit: Very valuable, use P95 to guarantee landing
+            (p95 as f64 * 1.1) as u64
+        } else if expected_profit > 100_000_000 {
+            // 0.1 - 1 SOL: High value, use P75 * 2
+            p75.saturating_mul(2)
         } else {
-            0
+            // Normal: P75 + 30% buffer
+            (p75 as f64 * 1.3) as u64
         };
 
-        // Use MAX of floor-based and profit-share
-        // This ensures competitiveness in both high-activity and low-activity periods
-        let tip = profit_share_tip.max(floor_tip);
+        // Calculate max we're willing to tip (50% of profit)
+        // This ensures we always keep meaningful profit
+        let max_tip_from_profit = expected_profit / 2;
 
-        // Cap at max_tip_profit_bps of profit and absolute MAX_TIP
-        let max_tip_pct =
-            (expected_profit as u128 * self.config.max_tip_profit_bps as u128 / 10000) as u64;
+        // We need to keep at least MIN_KEEPER after tip
+        let max_tip_after_keeper = expected_profit.saturating_sub(MIN_KEEPER_LAMPORTS);
 
-        tip.min(max_tip_pct)
-            .min(MAX_TIP)
-            .max(self.config.base_tip_lamports)
+        // The actual max tip is the minimum of these constraints
+        let effective_max = max_tip_from_profit.min(max_tip_after_keeper).min(MAX_TIP);
+
+        // If we can't afford the market tip, we'll still try with what we can afford
+        // The bundle might still land if competition is low
+        let tip = market_tip.min(effective_max);
+
+        // Apply absolute minimum (Jito requires >= 1000 lamports)
+        tip.max(self.config.base_tip_lamports).max(1_000)
     }
 }
 
@@ -877,24 +1059,29 @@ mod tests {
     fn test_tip_calculation() {
         let config = BundleBuilderConfig::default();
         let payer = Arc::new(Keypair::new());
-        let builder = BackrunBundleBuilder::new(config.clone(), payer, HashMap::new(), Vec::new());
+        let builder = ArbBundleBuilder::new(config.clone(), payer, HashMap::new(), Vec::new());
 
         // Test minimum tip (base_tip_lamports is returned for 0 profit)
         assert_eq!(builder.calculate_tip(0), config.base_tip_lamports);
 
-        // Test small profit tier (< 0.01 SOL = 10_000_000 lamports): 85% tip
+        // Test small profit: market-based tip (no cache = fallback 10k * 1.3 = 13k)
+        // But capped at 50% of profit
         let small_profit = 100_000;
-        let expected_small = small_profit * 8500 / 10000; // 85%
-        assert_eq!(builder.calculate_tip(small_profit), expected_small);
+        // Fallback P75 = 10k, tip = 10k * 1.3 = 13k, but max 50% of 100k = 50k, so tip = 13k
+        let tip_small = builder.calculate_tip(small_profit);
+        assert!(tip_small >= 1_000, "Tip should be >= Jito minimum");
+        assert!(tip_small <= small_profit / 2, "Tip should be <= 50% of profit");
 
-        // Test medium profit tier (0.01-0.1 SOL): 75% tip
+        // Test medium profit: tip should scale with market floor
         let medium_profit = 50_000_000; // 0.05 SOL
-        let expected_medium = medium_profit * 7500 / 10000; // 75%
-        assert_eq!(builder.calculate_tip(medium_profit), expected_medium);
+        let tip_medium = builder.calculate_tip(medium_profit);
+        assert!(tip_medium <= medium_profit / 2, "Tip should be <= 50% of profit");
+        assert!(tip_medium >= 1_000, "Tip should be >= Jito minimum");
 
-        // Test large profit tier (> 0.1 SOL): 65% tip
-        let large_profit = 200_000_000; // 0.2 SOL
-        let expected_large = large_profit * 6500 / 10000; // 65%
-        assert_eq!(builder.calculate_tip(large_profit), expected_large);
+        // Test large profit: should use P95-based tip
+        let large_profit = 2_000_000_000; // 2 SOL
+        let tip_large = builder.calculate_tip(large_profit);
+        assert!(tip_large <= large_profit / 2, "Tip should be <= 50% of profit");
+        assert!(tip_large >= 1_000, "Tip should be >= Jito minimum");
     }
 }

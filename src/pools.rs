@@ -2,7 +2,7 @@
 //!
 //! Loads pool data from a JSON file at startup, enabling Geyser subscriptions
 //! for vault accounts before dynamic discovery begins. This eliminates RPC
-//! calls during runtime by pre-populating the PredictiveStateManager.
+//! calls during runtime by pre-populating the PoolStateManager.
 //!
 //! The pools file contains:
 //! - Pool address and DEX type
@@ -15,7 +15,7 @@ use crate::pool_discovery::{
     derive_dlmm_bin_arrays, derive_raydium_amm_authority, derive_raydium_clmm_tick_arrays,
     derive_whirlpool_oracle, derive_whirlpool_tick_arrays,
 };
-use crate::predictive_state::{PoolPredictiveState, PredictiveStateManager};
+use crate::pool_state::{PoolState, PoolStateManager};
 use crate::shredstream::programs::DexType;
 use anyhow::{Context, Result};
 use serde::{Deserialize, Serialize};
@@ -102,8 +102,8 @@ impl PoolsFile {
         Ok(pools_file)
     }
 
-    /// Register all pools with the PredictiveStateManager
-    pub fn register_with_psm(&self, psm: &PredictiveStateManager) -> Result<usize> {
+    /// Register all pools with the PoolStateManager
+    pub fn register_with_psm(&self, psm: &PoolStateManager) -> Result<usize> {
         let mut registered = 0;
 
         for pool in &self.pools {
@@ -123,7 +123,7 @@ impl PoolsFile {
         }
 
         tracing::info!(
-            "Registered {}/{} pools with PredictiveStateManager",
+            "Registered {}/{} pools with PoolStateManager",
             registered,
             self.pools.len()
         );
@@ -157,8 +157,8 @@ impl StaticPool {
         }
     }
 
-    /// Convert to PoolPredictiveState for registration
-    pub fn to_pool_state(&self) -> Result<PoolPredictiveState> {
+    /// Convert to PoolState for registration
+    pub fn to_pool_state(&self) -> Result<PoolState> {
         let address = Pubkey::from_str(&self.address)
             .with_context(|| format!("Invalid pool address: {}", self.address))?;
         let dex = self.parse_dex()?;
@@ -196,7 +196,7 @@ impl StaticPool {
             .with_context(|| "Invalid bin_array_bitmap_extension")?;
 
         // Create base state
-        let mut state = PoolPredictiveState::new(
+        let mut state = PoolState::new(
             address,
             dex,
             token_mint_a,

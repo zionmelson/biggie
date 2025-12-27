@@ -1,19 +1,19 @@
-//! ShredStream + Geyser Unified MEV Pipeline
+//! ShredStream + Geyser Unified Arbitrage Pipeline
 //!
 //! # Architecture
 //!
 //! ```text
-//! ShredStream (early TX) ──┐
-//!                          ├──► PredictiveStateManager ──► MEV Evaluator ──► Bundle Builder ──► Jito
+//! Turbine (fast state) ────┐
+//!                          ├──► Pool State Manager ──► Arb Evaluator ──► Bundle Builder ──► Jito
 //! Geyser (ground truth) ───┘
 //! ```
 //!
 //! The unified pipeline uses:
-//! - **ShredStream** for early transaction detection (before confirmation)
-//! - **Geyser** for ground truth state confirmation
-//! - **PredictiveStateManager** to bridge the gap between early detection and confirmation
+//! - **Turbine/ShredStream** for fast state updates (~0.5-2ms after block)
+//! - **Geyser** for ground truth state confirmation (~5-15ms)
+//! - **Pool State Manager** to track vault balances from both sources
 
-pub mod backrun;
+pub mod arb_bundle;
 pub mod evaluator;
 pub mod parser;
 pub mod programs;
@@ -23,13 +23,13 @@ pub mod unified_pipeline;
 pub use parser::{ParsedSwap, SwapDirection, TransactionSwaps};
 pub use programs::{get_dex_type, is_swap_instruction, DexType};
 
-// MEV evaluation
-pub use evaluator::{MevEvaluator, MevOpportunity, PoolInfo};
+// Arbitrage evaluation
+pub use evaluator::{ArbEvaluator, ArbOpportunity, PoolInfo};
 
 // Bundle building
-pub use backrun::{BackrunBundle, BackrunBundleBuilder, BundleBuilderConfig};
+pub use arb_bundle::{TwoTxBundle, ArbBundleBuilder, BundleBuilderConfig};
 
 // Unified pipeline
 pub use unified_pipeline::{
-    spawn_unified_pipeline, UnifiedMevPipeline, UnifiedPipelineConfig, UnifiedPipelineStats,
+    spawn_unified_pipeline, UnifiedArbPipeline, UnifiedPipelineConfig, UnifiedPipelineStats,
 };

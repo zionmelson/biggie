@@ -1,4 +1,4 @@
-//! Executor utilities for MEV bundle construction.
+//! Executor utilities for arbitrage bundle construction.
 //!
 //! Provides flash loan reserve configuration, lookup table loading, and
 //! fee calculation helpers.

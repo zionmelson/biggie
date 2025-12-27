@@ -44,7 +44,7 @@
 //! │              Entry Assembler                             │
 //! │  • Concatenate data shred payloads                      │
 //! │  • Deserialize into Vec<Entry>                          │
-//! │  • Send to MEV pipeline                                 │
+//! │  • Send to arb pipeline                                 │
 //! └─────────────────────────────────────────────────────────┘
 //! ```
 //!
@@ -84,7 +84,7 @@
 //! ShredStream Proxy: Validator → Jito Relay → Proxy → gRPC → Bot (~5-10ms)
 //! Direct UDP:        Validator → UDP → Bot (~0.5-2ms)
 //!
-//! This 5-8ms advantage is critical for winning MEV auctions.
+//! This 5-8ms advantage is critical for winning arb opportunities.
 
 pub mod assembler;
 pub mod fec;

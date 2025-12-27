@@ -1,7 +1,7 @@
 //! Jito Block Engine client for bundle submission and result streaming.
 //!
 //! This module provides a gRPC client that connects to Jito's block engine,
-//! handles authentication, and submits transaction bundles for MEV extraction.
+//! handles authentication, and submits transaction bundles for arbitrage.
 
 use anyhow::{anyhow, bail, Result};
 use regex::Regex;

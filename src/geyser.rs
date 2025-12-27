@@ -179,7 +179,7 @@ impl GeyserClient {
 
     /// Subscribe to transaction updates (non-vote transactions)
     /// 
-    /// This is the primary stream for MEV - gives us full transaction data
+    /// This is the primary stream for arb - gives us full transaction data
     /// as transactions are processed by the validator.
     pub async fn subscribe_transactions(
         &self,

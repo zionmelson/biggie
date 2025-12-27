@@ -96,9 +96,9 @@ pub struct ShredstreamConfig {
     /// Only used if turbine.enabled = false
     #[serde(default = "default_shredstream_endpoint")]
     pub endpoint: String,
-    /// MEV strategy settings
+    /// Arbitrage strategy settings
     #[serde(default)]
-    pub mev: MevConfig,
+    pub arb: ArbConfig,
     /// Direct Turbine UDP configuration (bypasses shredstream proxy for lower latency)
     #[serde(default)]
     pub turbine: TurbineUdpConfig,
@@ -169,21 +169,21 @@ impl Default for TurbineUdpConfig {
     }
 }
 
-/// MEV strategy configuration
+/// Arbitrage strategy configuration
 #[derive(Clone, Debug, Serialize, Deserialize)]
-pub struct MevConfig {
-    /// Enable backrunning (follow victim swaps)
+pub struct ArbConfig {
+    /// Enable arbitrage detection and submission
     #[serde(default = "default_true")]
-    pub backrun_enabled: bool,
-    /// Minimum swap amount in lamports to consider for MEV
+    pub arb_enabled: bool,
+    /// Minimum swap amount in lamports to consider as trigger
     #[serde(default = "default_min_swap_amount")]
     pub min_swap_amount: u64,
     /// Minimum expected profit in lamports to submit a bundle
     #[serde(default = "default_min_profit")]
     pub min_profit_lamports: u64,
-    /// Minimum victim slippage in bps to consider for MEV
+    /// Minimum trigger swap slippage in bps to consider
     #[serde(default = "default_min_slippage")]
-    pub min_victim_slippage_bps: u64,
+    pub min_trigger_slippage_bps: u64,
     /// Compute units to request per transaction
     #[serde(default = "default_compute_units")]
     pub compute_units: u32,
@@ -217,13 +217,13 @@ fn default_tip_share() -> u64 {
     5000
 } // 50%
 
-impl Default for MevConfig {
+impl Default for ArbConfig {
     fn default() -> Self {
         Self {
-            backrun_enabled: true,
+            arb_enabled: true,
             min_swap_amount: default_min_swap_amount(),
             min_profit_lamports: default_min_profit(),
-            min_victim_slippage_bps: default_min_slippage(),
+            min_trigger_slippage_bps: default_min_slippage(),
             compute_units: default_compute_units(),
             compute_unit_price: default_compute_price(),
             tip_profit_share_bps: default_tip_share(),
@@ -239,7 +239,7 @@ impl Default for ShredstreamConfig {
     fn default() -> Self {
         Self {
             endpoint: default_shredstream_endpoint(),
-            mev: MevConfig::default(),
+            arb: ArbConfig::default(),
             turbine: TurbineUdpConfig::default(),
         }
     }

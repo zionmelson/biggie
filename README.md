@@ -1,12 +1,12 @@
-# tre MEV Bot
+# tre Arb Bot
 
-`tre` is a high-performance Solana MEV bot using a **unified ShredStream + Geyser architecture** for ultra-low-latency transaction interception. It combines early transaction detection via ShredStream with ground-truth confirmation from Geyser, using a predictive state manager to bridge the gap for optimal MEV extraction.
+`tre` is a high-performance Solana cross-pool arbitrage bot using a **unified Turbine + Geyser architecture**. It detects state changes from confirmed transactions via low-latency shred data, then executes cross-pool arbitrage when price discrepancies exist between pools.
 
 ## Feature Highlights
 
-- **Unified ShredStream + Geyser architecture:** ShredStream provides early TX detection (~0-5ms), Geyser provides ground truth confirmation—both work together via `PredictiveStateManager`.
-- **Predictive state management:** Simulates pending swaps before confirmation for accurate MEV evaluation with state prediction.
-- **Direct Turbine UDP deshredding:** Optional bypass of ShredStream proxy for minimum latency (~0.5-2ms vs ~5-10ms).
+- **Unified Turbine + Geyser architecture:** Turbine UDP provides fast state updates (~0.5-2ms), Geyser provides authoritative vault balance confirmation—both work together via `PoolStateManager`.
+- **Pool state management:** Tracks pool states from Geyser account updates for accurate arbitrage evaluation.
+- **Direct Turbine UDP deshredding:** Minimum latency shred reception (~0.5-2ms vs ~5-10ms from proxy).
 - **Multi-protocol support:** Parses swaps from Raydium AMM/CLMM, Orca Whirlpool, Meteora DLMM/DAMM, and PancakeSwap CLMM.
 - **Flash loan integration:** Uses Solend flash loans for capital-efficient arbitrage execution.
 - **Jito bundle submission:** Atomic bundle submission via Jito block engine with dynamic tip floor monitoring.
@@ -16,35 +16,34 @@
 
 ```
 ┌─────────────────────────────────────────────────────────────────────────┐
-│                       UNIFIED MEV PIPELINE                              │
+│                       UNIFIED ARB PIPELINE                              │
 ├─────────────────────────────────────────────────────────────────────────┤
 │                                                                         │
-│  SHREDSTREAM TASK                    GEYSER TASK                        │
-│  (Early TX Detection)                (Ground Truth)                     │
-│  • Subscribe entries                 • Subscribe transactions           │
-│  • Parse transactions                • Subscribe accounts (vaults)      │
-│  • Detect swaps EARLY                • Subscribe slots                  │
+│  TURBINE/SHREDSTREAM TASK             GEYSER TASK                       │
+│  (Fast State Updates)                 (Authoritative State)             │
+│  • Receive shreds                     • Subscribe transactions          │
+│  • Parse transactions                 • Subscribe accounts (vaults)     │
+│  • Detect state changes               • Subscribe slots                 │
 │         │                                   │                           │
 │         ▼                                   ▼                           │
 │  ┌─────────────────────────────────────────────────────────────────┐   │
-│  │              PREDICTIVE STATE MANAGER (shared)                   │   │
-│  │  • Adds pending swaps ◄── ShredStream                           │   │
-│  │  • Confirms/removes pending ◄── Geyser TX updates               │   │
-│  │  • Updates confirmed state ◄── Geyser account updates           │   │
-│  │  • Computes predicted state = confirmed + pending               │   │
+│  │                POOL STATE MANAGER (shared)                       │   │
+│  │  • Updates pool state ◄── Turbine shreds (fast)                 │   │
+│  │  • Confirms state ◄── Geyser account updates (authoritative)    │   │
+│  │  • Tracks vault balances for all monitored pools                │   │
 │  └─────────────────────────────────────────────────────────────────┘   │
 │                              │                                          │
 │                              ▼                                          │
 │  ┌─────────────────────────────────────────────────────────────────┐   │
-│  │              MEV EVALUATOR (uses predicted state)                │   │
-│  │  • Evaluates opportunities against PREDICTED state              │   │
-│  │  • Finds cross-pool arb routes                                  │   │
-│  │  • Calculates profit with state prediction                      │   │
+│  │              ARB EVALUATOR (uses pool state)                     │   │
+│  │  • Evaluates cross-pool arbitrage opportunities                 │   │
+│  │  • Finds routes where price discrepancies exist                 │   │
+│  │  • Calculates profit after fees and slippage                    │   │
 │  └─────────────────────────────────────────────────────────────────┘   │
 │                              │                                          │
 │                              ▼                                          │
 │  ┌─────────────────────────────────────────────────────────────────┐   │
-│  │              BUNDLE BUILDER & JITO SUBMISSION                    │   │
+│  │              ARB BUNDLE BUILDER & JITO SUBMISSION                │   │
 │  └─────────────────────────────────────────────────────────────────┘   │
 │                                                                         │
 └─────────────────────────────────────────────────────────────────────────┘
@@ -52,21 +51,20 @@
 
 ### Core Components
 
-- **`UnifiedMevPipeline`** ([src/shredstream/unified_pipeline.rs](src/shredstream/unified_pipeline.rs)): Main pipeline orchestrating ShredStream + Geyser integration.
-- **`PredictiveStateManager`** ([src/predictive_state.rs](src/predictive_state.rs)): Unified state manager bridging early detection and ground truth—the single source of truth for pool state.
+- **`UnifiedArbPipeline`** ([src/shredstream/unified_pipeline.rs](src/shredstream/unified_pipeline.rs)): Main pipeline orchestrating Turbine + Geyser integration.
+- **`PoolStateManager`** ([src/pool_state.rs](src/pool_state.rs)): Unified state manager tracking pool states—the single source of truth for pool reserves.
 - **`GeyserClient`** ([src/geyser.rs](src/geyser.rs)): gRPC client for transaction, account, and slot streaming from local validator.
-- **`TurbineReceiver`** ([src/turbine/](src/turbine/)): Direct UDP shred receiver for minimum latency (bypasses ShredStream proxy).
+- **`TurbineReceiver`** ([src/turbine/](src/turbine/)): Direct UDP shred receiver for minimum latency.
 - **`VaultTracker`** ([src/pool_discovery.rs](src/pool_discovery.rs)): Dynamic pool discovery and state tracking via Geyser account updates.
 - **`TipFloorMonitor`** ([src/tip_monitor.rs](src/tip_monitor.rs)): Real-time Jito tip floor monitoring for competitive tipping.
 - **`JitoClient`** ([src/jito.rs](src/jito.rs)): Bundle submission to Jito block engine.
-- **`BackrunBundleBuilder`** ([src/shredstream/backrun.rs](src/shredstream/backrun.rs)): Constructs atomic backrun bundles with flash loans.
+- **`ArbBundleBuilder`** ([src/shredstream/arb_bundle.rs](src/shredstream/arb_bundle.rs)): Constructs atomic arbitrage bundles with flash loans.
 
 ## Prerequisites
 
 - Rust `1.77` or newer (Rustup recommended).
 - `protoc` in `PATH` for compiling Geyser/Jito protobufs.
 - **Local Solana validator** with Geyser plugin (Yellowstone gRPC recommended).
-- **ShredStream proxy** running locally (connects to Jito for early TX detection).
 - Jito auth keypair for bundle submission.
 
 ## Building & Running
@@ -83,9 +81,9 @@ Logs are written to `/tmp/tre-arb.log`. Press `Ctrl+C` to stop.
 
 ## Configuration (`config.json`)
 
-### Turbine UDP Settings (Ultra-Low-Latency TX Detection - DEFAULT)
+### Turbine UDP Settings (Ultra-Low-Latency - DEFAULT)
 
-Direct Turbine UDP reception bypasses the ShredStream proxy for minimum latency (~0.5-2ms vs ~5-10ms).
+Direct Turbine UDP reception provides minimum latency (~0.5-2ms).
 
 ```json
 {
@@ -99,11 +97,11 @@ Direct Turbine UDP reception bypasses the ShredStream proxy for minimum latency 
       "max_fec_sets": 1000,
       "fec_timeout_ms": 2000
     },
-    "mev": {
-      "backrun_enabled": true,
+    "arb": {
+      "arb_enabled": true,
       "min_swap_amount": 10000000,
       "min_profit_lamports": 50000,
-      "min_victim_slippage_bps": 30,
+      "min_trigger_slippage_bps": 30,
       "compute_units": 400000,
       "compute_unit_price": 1000,
       "tip_profit_share_bps": 5000
@@ -145,11 +143,11 @@ To use ShredStream proxy instead of direct Turbine UDP, disable Turbine:
       "enabled": false
     },
     "endpoint": "http://127.0.0.1:10000",
-    "mev": {
-      "backrun_enabled": true,
+    "arb": {
+      "arb_enabled": true,
       "min_swap_amount": 10000000,
       "min_profit_lamports": 50000,
-      "min_victim_slippage_bps": 30,
+      "min_trigger_slippage_bps": 30,
       "compute_units": 400000,
       "compute_unit_price": 1000,
       "tip_profit_share_bps": 5000
@@ -158,7 +156,7 @@ To use ShredStream proxy instead of direct Turbine UDP, disable Turbine:
 }
 ```
 
-### Geyser Settings (Ground Truth Confirmation)
+### Geyser Settings (Authoritative State)
 
 ```json
 {
@@ -198,17 +196,17 @@ To use ShredStream proxy instead of direct Turbine UDP, disable Turbine:
 }
 ```
 
-### MEV Strategy Settings
+### Arb Strategy Settings
 
 ```json
 {
   "shredstream": {
     "endpoint": "http://127.0.0.1:10000",
-    "mev": {
-      "backrun_enabled": true,
+    "arb": {
+      "arb_enabled": true,
       "min_swap_amount": 10000000,
       "min_profit_lamports": 50000,
-      "min_victim_slippage_bps": 30,
+      "min_trigger_slippage_bps": 30,
       "compute_units": 400000,
       "compute_unit_price": 1000,
       "tip_profit_share_bps": 5000
@@ -244,40 +242,40 @@ To use ShredStream proxy instead of direct Turbine UDP, disable Turbine:
 
 ## How It Works
 
-1. **Dual Data Sources:** Connects to both ShredStream (for early TX detection) and Geyser (for ground truth confirmation).
+1. **Dual Data Sources:** Connects to both Turbine/ShredStream (for fast state updates) and Geyser (for authoritative state confirmation).
 
-2. **Early Transaction Detection (ShredStream):**
+2. **Fast State Updates (Turbine/ShredStream):**
 
-   - Receives shred entries before block confirmation
+   - Receives shreds containing confirmed transactions
    - Parses transactions for DEX swap instructions
-   - Adds detected swaps to `PredictiveStateManager` as pending
+   - Detects swaps that may create cross-pool price discrepancies
 
-3. **Ground Truth Confirmation (Geyser):**
+3. **Authoritative State (Geyser):**
 
    - Subscribes to `TransactionUpdates` for TX confirmation
    - Subscribes to `AccountUpdates` for vault balance changes
-   - Confirms/removes pending swaps and updates confirmed state
+   - Provides ground truth pool state data
 
-4. **Predictive State Management:**
+4. **Pool State Management:**
 
-   - Maintains `ConfirmedState` (from Geyser) + `PendingSwaps` (from ShredStream)
-   - Computes `PredictedState = ConfirmedState + simulate(PendingSwaps)`
-   - MEV evaluation ALWAYS uses predicted state for accuracy
+   - Maintains current vault balances for all monitored pools
+   - Updates state from Geyser account updates
+   - Provides accurate reserves for arbitrage calculations
 
-5. **MEV Evaluation:** Filters opportunities based on:
+5. **Arb Evaluation:** Filters opportunities based on:
 
-   - Minimum swap amount threshold
-   - Available predicted pool state
+   - Trigger swap that created price discrepancy
+   - Cross-pool routes with profitable spreads
    - Expected profit after fees and tips
 
 6. **Bundle Construction:** For profitable opportunities:
 
    - Builds flash loan borrow instruction (Solend)
-   - Constructs backrun swap instruction
+   - Constructs arbitrage swap instruction(s)
    - Adds flash loan repay instruction
    - Includes dynamic Jito tip (from tip floor monitor)
 
-7. **Bundle Submission:** Submits atomic bundle to Jito block engine with competitive tip.
+7. **Bundle Submission:** Submits atomic bundle to Jito block engine for next-block inclusion.
 
 ## Project Structure
 
@@ -286,9 +284,9 @@ src/
 ├── main.rs              # Entry point (unified pipeline mode)
 ├── lib.rs               # Library exports
 ├── config.rs            # Configuration parsing
-├── geyser.rs            # Geyser gRPC client (ground truth)
+├── geyser.rs            # Geyser gRPC client (authoritative state)
 ├── pool_discovery.rs    # Dynamic pool discovery via Geyser
-├── predictive_state.rs  # Unified state manager (ShredStream + Geyser)
+├── pool_state.rs        # Unified pool state manager
 ├── tip_monitor.rs       # Jito tip floor monitoring
 ├── multi_region.rs      # Multi-region parallel bundle submission
 ├── amm_math.rs          # AMM swap math (constant product, slippage)
@@ -299,10 +297,10 @@ src/
 ├── constants.rs         # Program IDs and constants
 ├── shredstream/
 │   ├── mod.rs           # Module exports
-│   ├── unified_pipeline.rs  # Main pipeline (ShredStream + Geyser)
+│   ├── unified_pipeline.rs  # Main pipeline (Turbine + Geyser)
 │   ├── parser.rs        # Transaction → ParsedSwap
-│   ├── evaluator.rs     # MEV opportunity evaluation
-│   ├── backrun.rs       # Bundle construction
+│   ├── evaluator.rs     # Arbitrage opportunity evaluation
+│   ├── arb_bundle.rs    # Bundle construction
 │   └── programs.rs      # DEX program IDs
 ├── turbine/
 │   ├── mod.rs           # Direct UDP shred receiver
@@ -320,30 +318,24 @@ geyser/                  # Geyser protobuf definitions
 jito/                    # Jito protobuf definitions
 solend/                  # Solend CPI library
 docs/
-├── mev_strategy.md      # MEV strategy documentation
+├── arb_strategy.md      # Arb strategy documentation
 ├── error_codes.md       # Protocol error reference
 └── rpc_node_setup.md    # Validator setup guide
 ```
 
-## Timing Advantage
+## Timing
 
 ```
 Transaction lifecycle (unified pipeline):
-├── t=0ms      TX enters validator mempool
-├── t=0-2ms    ShredStream: Entry received → swap detected → added to PendingSwaps
-├── t=1-3ms    PredictedState recalculated (includes victim's impact)
-├── t=2-5ms    MEV Evaluator uses PredictedState → finds opportunity
-├── t=3-8ms    Bundle built and submitted to Jito
-├── t=5-15ms   Geyser: Victim TX confirmed → PendingSwap removed
-├── t=400ms    Block finalized
-└── t=500ms    Confirmation propagates
-
-Direct Turbine UDP (optional, even lower latency):
-├── t=0ms      Shred broadcast from validator TVU
-├── t=0.5-2ms  Direct UDP receive → FEC decode → Entry assembled
-├── t=1-3ms    Swap detected → MEV evaluation
+├── t=0ms      Trigger TX included in validator block
+├── t=0.5-2ms  Turbine: Shred received → TX parsed → state change detected
+├── t=1-3ms    Pool state updated, arb evaluator triggered
+├── t=2-5ms    Cross-pool opportunity found, bundle built
+├── t=3-8ms    Bundle submitted to Jito for next-block inclusion
+├── t=5-15ms   Geyser: Account updates confirm vault balances
+├── t=400ms    Next block finalized (arb TX included if successful)
 ```
 
 ## Further Reading
 
-See [docs/mev_strategy.md](docs/mev_strategy.md) for MEV strategy details, and [docs/rpc_node_setup.md](docs/rpc_node_setup.md) for local validator setup.
+See [docs/arb_strategy.md](docs/arb_strategy.md) for arb strategy details, and [docs/rpc_node_setup.md](docs/rpc_node_setup.md) for local validator setup.

@@ -1,19 +1,19 @@
-# RPC Node + Geyser + ShredStream Setup for MEV Bot
+# RPC Node + Geyser + Turbine Setup for tre Arb Bot
 
-This document outlines hardware requirements and setup for running a Solana RPC node (non-voting) with Geyser plugin and ShredStream proxy for the tre MEV bot.
+This document outlines hardware requirements and setup for running a Solana RPC node (non-voting) with Geyser plugin for the tre arbitrage bot.
 
-## Why Local Validator + Geyser + ShredStream?
+## Why Local Validator + Geyser + Turbine?
 
-The tre bot uses a **unified ShredStream + Geyser architecture** that requires:
+The tre bot uses a **unified Turbine + Geyser architecture** that requires:
 
-1. **Local validator with Yellowstone gRPC Geyser plugin** - Provides ground truth state confirmation
-2. **ShredStream proxy** - Provides early transaction detection before confirmation
+1. **Local validator with Yellowstone gRPC Geyser plugin** - Provides authoritative state via AccountUpdates
+2. **Direct Turbine UDP** - Provides fast shred reception for quick state updates
 
 This combination provides:
 
-- **Ultra-low latency:** ShredStream detects TXs ~0-5ms before confirmation
-- **Accurate state:** Geyser provides ground truth via AccountUpdates
-- **Predictive evaluation:** PredictiveStateManager bridges early detection and confirmation
+- **Ultra-low latency:** Turbine shreds received ~0.5-2ms after validator broadcast
+- **Accurate state:** Geyser provides authoritative vault balances via AccountUpdates
+- **Fast reaction:** PoolStateManager processes state changes for arb evaluation
 - **No rate limits:** Process unlimited transactions per second
 
 ## Current Machine Specs
@@ -29,7 +29,7 @@ This combination provides:
 
 ## Hardware Requirements: Priority Ranking
 
-For MEV bot use case (RPC + Geyser, no voting):
+For arb bot use case (RPC + Geyser, no voting):
 
 | Priority | Component     | Why It Matters                                               | Minimum   | Sweet Spot |
 | -------- | ------------- | ------------------------------------------------------------ | --------- | ---------- |
@@ -45,7 +45,7 @@ For MEV bot use case (RPC + Geyser, no voting):
 Accounts DB in RAM:     ~180-220 GB (and growing monthly)
 OS + buffers:           ~20 GB
 Geyser plugin:          ~10-30 GB (depends on filters)
-MEV bot application:    ~5 GB
+arb bot application:    ~5 GB
 Safety margin:          ~50 GB
 ────────────────────────────────────────────────────────
 MINIMUM TOTAL:          256 GB
@@ -243,8 +243,8 @@ Once your validator is running with Geyser, configure tre for the unified pipeli
 {
   "shredstream": {
     "endpoint": "http://127.0.0.1:10000",
-    "mev": {
-      "backrun_enabled": true,
+    "arb": {
+      "arb_enabled": true,
       "min_swap_amount": 10000000,
       "min_profit_lamports": 50000,
       "tip_profit_share_bps": 5000

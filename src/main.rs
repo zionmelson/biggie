@@ -1,7 +1,7 @@
-//! MEV Bot - ShredStream + Geyser unified architecture
+//! tre Arb Bot - Turbine + Geyser unified architecture
 //!
-//! Uses ShredStream for early TX detection and Geyser for ground truth confirmation.
-//! Both sources work together via PredictiveStateManager for optimal MEV extraction.
+//! Uses Turbine UDP for fast shred reception and Geyser for authoritative state.
+//! Both sources work together via PoolStateManager for cross-pool arbitrage.
 
 use clap::Parser;
 use solana_client::nonblocking::rpc_client::RpcClient;
@@ -16,7 +16,7 @@ use tre_arb_bot::config::Config;
 use tre_arb_bot::executor::{load_lookup_tables, FlashLoanReserve};
 use tre_arb_bot::jito::{JitoClient, JitoConfig as JitoClientConfig};
 use tre_arb_bot::pools::PoolsFile;
-use tre_arb_bot::predictive_state::PredictiveStateManager;
+use tre_arb_bot::pool_state::PoolStateManager;
 use tre_arb_bot::shredstream::{
     spawn_unified_pipeline, BundleBuilderConfig, UnifiedPipelineConfig,
 };
@@ -26,7 +26,7 @@ use tre_arb_bot::tip_monitor::TipFloorMonitor;
 #[command(
     author,
     version,
-    about = "tre MEV bot - local validator Geyser backrunner"
+    about = "tre arb bot - cross-pool arbitrage with Turbine + Geyser"
 )]
 struct Args {
     /// Path to the configuration file.
@@ -51,13 +51,13 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     let args = Args::parse();
     let config = Config::load(&args.config)?;
 
-    run_mev_pipeline(config).await
+    run_arb_pipeline(config).await
 }
 
-/// Run the unified ShredStream + Geyser MEV pipeline
-async fn run_mev_pipeline(config: Config) -> Result<(), Box<dyn std::error::Error>> {
-    tracing::info!("Starting tre MEV bot (ShredStream + Geyser unified pipeline)");
-    println!("tre MEV bot started. Logs: /tmp/tre-arb.log. Press Ctrl+C to stop.");
+/// Run the unified Turbine + Geyser arb pipeline
+async fn run_arb_pipeline(config: Config) -> Result<(), Box<dyn std::error::Error>> {
+    tracing::info!("Starting tre arb bot (Turbine + Geyser unified pipeline)");
+    println!("tre arb bot started. Logs: /tmp/tre-arb.log. Press Ctrl+C to stop.");
 
     if !config.geyser.enabled {
         return Err("Geyser must be enabled. Set geyser.enabled=true in config".into());
@@ -97,8 +97,8 @@ async fn run_mev_pipeline(config: Config) -> Result<(), Box<dyn std::error::Erro
         load_lookup_tables(&rpc_client, &config.lookup_tables, &payer_pubkey).await?;
     tracing::info!("Loaded {} address lookup tables", lookup_tables.len());
 
-    // Build unified pipeline config from MEV settings
-    let mev_config = &config.shredstream.mev;
+    // Build unified pipeline config from arb settings
+    let arb_config = &config.shredstream.arb;
     let turbine_config = &config.shredstream.turbine;
 
     // Log the TX source mode
@@ -114,9 +114,9 @@ async fn run_mev_pipeline(config: Config) -> Result<(), Box<dyn std::error::Erro
     }
     tracing::info!("Geyser endpoint: {}", config.geyser.endpoint);
     tracing::info!(
-        "MEV config: backrun={} min_profit={} lamports",
-        mev_config.backrun_enabled,
-        mev_config.min_profit_lamports
+        "Arb config: enabled={} min_profit={} lamports",
+        arb_config.arb_enabled,
+        arb_config.min_profit_lamports
     );
 
     let pipeline_config = UnifiedPipelineConfig {
@@ -128,10 +128,10 @@ async fn run_mev_pipeline(config: Config) -> Result<(), Box<dyn std::error::Erro
         request_timeout: Duration::from_millis(config.geyser.request_timeout_ms),
         skip_votes: config.geyser.skip_votes,
         bundle_config: BundleBuilderConfig {
-            compute_units: mev_config.compute_units,
-            compute_unit_price: mev_config.compute_unit_price,
+            compute_units: arb_config.compute_units,
+            compute_unit_price: arb_config.compute_unit_price,
             base_tip_lamports: 10_000,
-            tip_profit_share_bps: mev_config.tip_profit_share_bps,
+            tip_profit_share_bps: arb_config.tip_profit_share_bps,
             max_tip_profit_bps: 8000,
             slippage_bps: 100,
             tip_floor_multiplier: 2.0,
@@ -146,7 +146,7 @@ async fn run_mev_pipeline(config: Config) -> Result<(), Box<dyn std::error::Erro
         let pools_file = PoolsFile::load(pools_path)?;
         
         // Create and populate PSM with pre-loaded pools
-        let psm = Arc::new(PredictiveStateManager::new());
+        let psm = Arc::new(PoolStateManager::new());
         let registered = pools_file.register_with_psm(&psm)?;
         
         tracing::info!(
@@ -174,7 +174,7 @@ async fn run_mev_pipeline(config: Config) -> Result<(), Box<dyn std::error::Erro
     )
     .await?;
 
-    tracing::info!("MEV pipeline started (shredstream + geyser + predictive_state)");
+    tracing::info!("Arbitrage pipeline started (turbine + geyser + pool_state)");
 
     // Note: Pool state updates (DEX program accounts, vault balances) are now handled
     // by the unified pipeline's consolidated Geyser connection - no separate task needed.
@@ -198,8 +198,8 @@ async fn run_mev_pipeline(config: Config) -> Result<(), Box<dyn std::error::Erro
         s.total_profit_lamports.load(std::sync::atomic::Ordering::Relaxed) as f64 / 1e9
     );
 
-    // Log predictive state stats
-    tracing::info!("PREDICTIVE STATE: {}", pipeline.predictive_state_stats());
+    // Log pool state stats
+    tracing::info!("POOL STATE: {}", pipeline.pool_state_stats());
 
     // Log evaluator stats (critical for debugging why no opps are found)
     tracing::info!("EVALUATOR: {}", pipeline.evaluator_stats().await);

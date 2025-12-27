@@ -60,18 +60,19 @@ pub const TIP_PROFIT_SHARE_BPS: u64 = 5000;
 pub const MAX_TIP_PROFIT_BPS: u64 = 8000;
 
 // =============================================================================
-// MEV EVALUATION THRESHOLDS
+// ARB EVALUATION THRESHOLDS
 // =============================================================================
 
-/// Minimum swap amount in lamports to consider for MEV (filters dust)
+/// Minimum swap amount in lamports to consider for arb (filters dust)
 /// Lower = more opportunities, but more noise
-pub const MIN_SWAP_AMOUNT_LAMPORTS: u64 = 500_000; // 0.0005 SOL - capture smaller swaps
+pub const MIN_SWAP_AMOUNT_LAMPORTS: u64 = 1_000_000; // 0.001 SOL - filter tiny swaps
 /// Minimum expected profit in lamports to submit a bundle
-/// Lower threshold = more opportunities, but tip must still be competitive
-pub const MIN_PROFIT_LAMPORTS: u64 = 5_000; // 0.000005 SOL - capture more opps
-/// Minimum victim slippage to consider for MEV
+/// Must be >= 2x typical P75 tip floor (~10k) to be profitable after tipping
+/// Set higher to avoid wasting bundles on unprofitable opportunities
+pub const MIN_PROFIT_LAMPORTS: u64 = 25_000; // 0.000025 SOL - covers P75 tip + keeper
+/// Minimum slippage of the triggering swap to consider for arb
 /// Lower = more opportunities but tighter margins
-pub const MIN_VICTIM_SLIPPAGE_BPS: u64 = 5; // 0.05% - very tight slippage still exploitable
+pub const MIN_TRIGGER_SLIPPAGE_BPS: u64 = 10; // 0.1% - need some margin to profit
 
 // =============================================================================
 // FEE CALCULATION HELPERS
@@ -100,7 +101,7 @@ pub fn min_output_for_flash_loan(borrow_amount: u64, buffer_bps: u64) -> u64 {
 // ANCHOR MINTS
 // =============================================================================
 // NOTE: Anchor mints are now derived dynamically from configured flash loan reserves
-// at startup in UnifiedMevPipeline::new(). This ensures we only attempt flash loans
+// at startup in UnifiedArbPipeline::new(). This ensures we only attempt flash loans
 // for tokens where Solend reserves are configured in config.json.
 
 // =============================================================================

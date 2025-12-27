@@ -8,7 +8,7 @@ pub mod jito;
 pub mod pools;
 pub mod shredstream;
 
-// Geyser client - primary data source for local validator
+// Geyser client - authoritative state source for vault balances
 pub mod geyser;
 
 // Tick/Bin array caches for accurate CLMM/DLMM simulation
@@ -22,12 +22,15 @@ pub mod pool_discovery;
 // Jito tip floor monitoring for competitive tipping
 pub mod tip_monitor;
 
-// Unified predictive state management (ShredStream + Geyser integration)
-pub mod predictive_state;
+// Pool state manager - single source of truth for pool reserves
+// Updated by Turbine (fast) and Geyser (authoritative)
+// Triggers arb evaluation on every state change
+pub mod pool_state;
 
 // Multi-region parallel bundle submission for maximum competitiveness
 pub mod multi_region;
 
-// Direct Turbine UDP deshredding - bypasses ShredStream proxy for minimum latency
-// Receives shreds directly from local validator's TVU broadcast
+// Direct Turbine UDP reception - fastest way to learn about block contents
+// Receives shreds directly from validator's TVU broadcast (~0.5-2ms latency)
+// Note: Shreds are POST-EXECUTION data, not pending transactions
 pub mod turbine;

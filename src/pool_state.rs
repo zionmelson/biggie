@@ -1,40 +1,49 @@
-//! Unified Predictive State Manager
+//! Pool State Manager
 //!
-//! Tightly integrates ShredStream (early TX detection) and Geyser (ground truth)
-//! for accurate MEV opportunity evaluation with state prediction.
+//! Manages pool state from two sources with different latency/reliability tradeoffs:
+//! - **Turbine/ShredStream**: Fast (~0.5-2ms) but derived from TX parsing
+//! - **Geyser**: Authoritative (~5-15ms) direct vault balance updates
+//!
+//! # IMPORTANT: Shreds Are Post-Execution
+//!
+//! Transactions seen in shreds have ALREADY BEEN EXECUTED. We are not "predicting"
+//! future state - we are updating our view of current state as fast as possible.
 //!
 //! # Architecture
 //!
 //! ```text
 //! ┌─────────────────────────────────────────────────────────────────┐
-//! │                    PredictiveStateManager                       │
+//! │                      PoolStateManager                           │
 //! ├─────────────────────────────────────────────────────────────────┤
-//! │  ConfirmedState ◄── Geyser AccountUpdates (ground truth)        │
-//! │       │                                                         │
-//! │       ▼                                                         │
-//! │  PendingSwaps ◄── ShredStream entries (early detection)         │
-//! │       │                                                         │
-//! │       ▼                                                         │
-//! │  PredictedState = ConfirmedState + simulate(PendingSwaps)       │
+//! │                                                                 │
+//! │  FAST PATH (Turbine ~0.5-2ms):                                  │
+//! │  • Parse swap TXs from shreds                                   │
+//! │  • Simulate reserve changes                                     │
+//! │  • Update pool state immediately                                │
+//! │  • TRIGGER: evaluate arb for affected pair                      │
+//! │                                                                 │
+//! │  RELIABLE PATH (Geyser ~5-15ms):                                │
+//! │  • Receive actual vault balances                                │
+//! │  • Update pool state authoritatively                            │
+//! │  • TRIGGER: evaluate arb for affected pair                      │
+//! │                                                                 │
+//! │  PAIR INDEX:                                                    │
+//! │  • (base_mint, quote_mint) → [pool1, pool2, ...]                │
+//! │  • Enables cross-pool arb evaluation                            │
+//! │                                                                 │
 //! └─────────────────────────────────────────────────────────────────┘
 //! ```
 //!
-//! # Key Invariants
-//!
-//! 1. **ConfirmedState** is ONLY updated by Geyser (never ShredStream)
-//! 2. **PendingSwaps** are added by ShredStream, removed by Geyser confirmation
-//! 3. **PredictedState** is recomputed on every state change
-//! 4. **MEV evaluation** ALWAYS uses PredictedState, never ConfirmedState directly
-//!
-//! # Timing Flow
+//! # Timing Reality
 //!
 //! ```text
-//! t=0ms   ShredStream: Victim TX detected → added to PendingSwaps
-//! t=0ms   PredictedState recalculated (includes victim's impact)
-//! t=1ms   MEV Evaluator uses PredictedState → finds opportunity
-//! t=5ms   Geyser: Victim TX confirmed → PendingSwap removed
-//! t=5ms   ConfirmedState updated → PredictedState recalculated
-//! t=6ms   Future evaluations use fresh ground truth
+//! Block N produced by leader:
+//! t=0ms      Swap executed in block (we have no visibility)
+//! t=0.5-2ms  Turbine: Shreds arrive → parse → update state
+//! t=1-3ms    Arb evaluation triggered → opportunity found
+//! t=2-5ms    Arb TX submitted to Jito for Block N+1
+//! t=5-15ms   Geyser: Vault update confirms state
+//! t=400ms    Block N+1: Our arb TX included (if we won)
 //! ```
 
 use crate::amm_math::{CurveType, PoolSimulator, VirtualPoolState};
@@ -90,6 +99,21 @@ pub struct PendingSwap {
     pub status: PendingSwapStatus,
 }
 
+/// Route information for 3-hop arbitrage through an anchor mint
+#[derive(Clone, Debug)]
+pub struct ThreeHopRoute {
+    /// Pool A: routes anchor → token_a
+    pub pool_a: PoolState,
+    /// Pool B: routes token_b → anchor
+    pub pool_b: PoolState,
+    /// The anchor mint used for flash loan (SOL, USDC, etc.)
+    pub anchor_mint: Pubkey,
+    /// Swap direction for leg 1 (anchor → token_a)
+    pub leg1_base_to_quote: bool,
+    /// Swap direction for leg 3 (token_b → anchor)
+    pub leg3_base_to_quote: bool,
+}
+
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
 pub enum PendingSwapStatus {
     /// Detected via ShredStream, awaiting Geyser confirmation
@@ -103,12 +127,12 @@ pub enum PendingSwapStatus {
 }
 
 // =============================================================================
-// POOL PREDICTIVE STATE
+// POOL STATE
 // =============================================================================
 
 /// Complete state for a single pool with prediction capability
 #[derive(Clone, Debug)]
-pub struct PoolPredictiveState {
+pub struct PoolState {
     /// Pool address
     pub address: Pubkey,
     /// DEX type
@@ -184,7 +208,7 @@ pub struct PoolPredictiveState {
     pub pending_swap_count: usize,
 }
 
-impl PoolPredictiveState {
+impl PoolState {
     /// Create a new pool state (initially confirmed = predicted)
     pub fn new(
         address: Pubkey,
@@ -520,16 +544,18 @@ impl PoolPredictiveState {
         self.predicted_tick_or_bin = Some(clmm_state.tick);
     }
 
-    /// Get a VirtualPoolState for simulation using PREDICTED reserves
+    /// Get a VirtualPoolState for simulation using CONFIRMED reserves
+    /// Note: We use confirmed state directly (Geyser-authoritative) - pending swap simulation removed for simplicity
     pub fn predicted_virtual_state(&self) -> VirtualPoolState {
         VirtualPoolState::new(
-            self.predicted_base_reserve,
-            self.predicted_quote_reserve,
+            self.confirmed_base_reserve,
+            self.confirmed_quote_reserve,
             self.fee_bps,
         )
     }
 
-    /// Get a PoolSimulator using PREDICTED state with curve-specific math.
+    /// Get a PoolSimulator using CONFIRMED state with curve-specific math.
+    /// Note: We use confirmed state directly (Geyser-authoritative) - pending swap simulation removed for simplicity
     ///
     /// This is the preferred method for accurate simulation:
     /// - ConstantProduct pools → VirtualPoolState
@@ -538,10 +564,10 @@ impl PoolPredictiveState {
     pub fn predicted_simulator(&self) -> PoolSimulator {
         match self.curve {
             CurveType::ConcentratedLiquidity => {
-                // Build CLMM state from predicted values
+                // Build CLMM state from confirmed values
                 if let (Some(sqrt_price), Some(tick), Some(spacing), Some(liquidity)) = (
-                    self.predicted_sqrt_price.or(self.confirmed_sqrt_price),
-                    self.predicted_tick_or_bin.or(self.confirmed_tick_or_bin),
+                    self.confirmed_sqrt_price,
+                    self.confirmed_tick_or_bin,
                     self.spacing,
                     self.active_liquidity,
                 ) {
@@ -557,9 +583,9 @@ impl PoolPredictiveState {
                 PoolSimulator::ConstantProduct(self.predicted_virtual_state())
             }
             CurveType::Dlmm => {
-                // Build DLMM state from predicted values
+                // Build DLMM state from confirmed values
                 if let (Some(bin_id), Some(spacing)) = (
-                    self.predicted_tick_or_bin.or(self.confirmed_tick_or_bin),
+                    self.confirmed_tick_or_bin,
                     self.spacing,
                 ) {
                     let fee_rate = (self.fee_bps as u32) * 100_000; // bps to millionths
@@ -588,32 +614,32 @@ impl PoolPredictiveState {
         )
     }
 
-    /// Get the spot price using PREDICTED state
+    /// Get the spot price using CONFIRMED state
+    /// Note: We use confirmed state directly (Geyser-authoritative)
     pub fn predicted_spot_price(&self) -> Option<f64> {
-        if self.predicted_base_reserve == 0 {
+        if self.confirmed_base_reserve == 0 {
             return None;
         }
 
         match self.curve {
             CurveType::ConcentratedLiquidity => {
-                // Use predicted sqrt_price if available
-                if let Some(sqrt_price) = self.predicted_sqrt_price {
+                // Use confirmed sqrt_price
+                if let Some(sqrt_price) = self.confirmed_sqrt_price {
                     let sqrt = (sqrt_price as f64) / ((1u128 << 64) as f64);
                     return Some(sqrt * sqrt);
                 }
-                // Fallback to predicted reserve ratio (less accurate for CLMM)
                 None
             }
             CurveType::Dlmm => {
                 // DLMM uses bin_id directly for price: price = 1.0001^bin_id
-                if let Some(bin_id) = self.predicted_tick_or_bin {
+                if let Some(bin_id) = self.confirmed_tick_or_bin {
                     let price = 1.0001_f64.powi(bin_id);
                     return Some(price);
                 }
                 None
             }
             CurveType::ConstantProduct => {
-                Some(self.predicted_quote_reserve as f64 / self.predicted_base_reserve as f64)
+                Some(self.confirmed_quote_reserve as f64 / self.confirmed_base_reserve as f64)
             }
         }
     }
@@ -630,16 +656,16 @@ impl PoolPredictiveState {
 }
 
 // =============================================================================
-// PREDICTIVE STATE MANAGER
+// POOL STATE MANAGER
 // =============================================================================
 
-/// Central manager for all pool predictive states
+/// Central manager for all pool states
 ///
-/// This is the SINGLE SOURCE OF TRUTH for pool state in MEV evaluation.
-/// Both ShredStream and Geyser feed into this manager.
-pub struct PredictiveStateManager {
+/// This is the SINGLE SOURCE OF TRUTH for pool state in arbitrage evaluation.
+/// Both Turbine and Geyser feed into this manager.
+pub struct PoolStateManager {
     /// Pool states indexed by address
-    pools: RwLock<HashMap<Pubkey, PoolPredictiveState>>,
+    pools: RwLock<HashMap<Pubkey, PoolState>>,
     /// Index: (mint_a, mint_b) → pool addresses
     pair_index: RwLock<HashMap<(Pubkey, Pubkey), Vec<Pubkey>>>,
     /// Index: vault address → (pool address, is_base_vault)
@@ -650,7 +676,7 @@ pub struct PredictiveStateManager {
     /// Last cleanup time
     last_cleanup: RwLock<Instant>,
     /// Statistics
-    pub stats: RwLock<PredictiveStateStats>,
+    pub stats: RwLock<PoolStateStats>,
     /// Tick array cache for accurate CLMM simulation
     /// Populated via Geyser subscriptions to tick array accounts
     tick_cache: Arc<TickArrayCache>,
@@ -660,7 +686,7 @@ pub struct PredictiveStateManager {
 }
 
 #[derive(Debug, Default, Clone)]
-pub struct PredictiveStateStats {
+pub struct PoolStateStats {
     pub pools_tracked: u64,
     pub pending_swaps_total: u64,
     pub pending_swaps_confirmed: u64,
@@ -683,7 +709,7 @@ pub struct PredictiveStateStats {
     pub dlmm_fallbacks: u64,
 }
 
-impl PredictiveStateManager {
+impl PoolStateManager {
     pub fn new() -> Self {
         Self {
             pools: RwLock::new(HashMap::new()),
@@ -691,7 +717,7 @@ impl PredictiveStateManager {
             vault_index: RwLock::new(HashMap::new()),
             signature_to_pools: RwLock::new(HashMap::new()),
             last_cleanup: RwLock::new(Instant::now()),
-            stats: RwLock::new(PredictiveStateStats::default()),
+            stats: RwLock::new(PoolStateStats::default()),
             tick_cache: Arc::new(TickArrayCache::new()),
             bin_cache: Arc::new(BinArrayCache::new()),
         }
@@ -712,7 +738,7 @@ impl PredictiveStateManager {
     // =========================================================================
 
     /// Register a new pool for tracking
-    pub fn register_pool(&self, state: PoolPredictiveState) {
+    pub fn register_pool(&self, state: PoolState) {
         let address = state.address;
         let base_mint = state.base_mint;
         let quote_mint = state.quote_mint;
@@ -1069,12 +1095,12 @@ impl PredictiveStateManager {
     }
 
     // =========================================================================
-    // STATE ACCESS (for MEV Evaluation)
+    // STATE ACCESS (for Arb Evaluation)
     // =========================================================================
 
     /// Get PREDICTED state for a pool (includes pending swaps)
-    /// This is what MEV evaluation should use
-    pub fn get_predicted_state(&self, pool: &Pubkey) -> Option<PoolPredictiveState> {
+    /// This is what arb evaluation should use
+    pub fn get_predicted_state(&self, pool: &Pubkey) -> Option<PoolState> {
         self.maybe_run_cleanup();
         let pools = self.pools.read().unwrap();
         pools.get(pool).cloned()
@@ -1087,7 +1113,8 @@ impl PredictiveStateManager {
         pools.get(pool).map(|s| s.predicted_virtual_state())
     }
 
-    /// Get PREDICTED simulator with curve-specific math
+    /// Get simulator with curve-specific math using CONFIRMED state
+    /// Note: We use confirmed state directly (Geyser-authoritative) - pending swap simulation bypassed
     ///
     /// This returns a PoolSimulator that uses the correct math for the pool type:
     /// - CLMM pools use tick-based simulation (with cached tick data)
@@ -1102,8 +1129,8 @@ impl PredictiveStateManager {
         match state.curve {
             CurveType::ConcentratedLiquidity => {
                 if let (Some(sqrt_price), Some(tick), Some(spacing), Some(liquidity)) = (
-                    state.predicted_sqrt_price.or(state.confirmed_sqrt_price),
-                    state.predicted_tick_or_bin.or(state.confirmed_tick_or_bin),
+                    state.confirmed_sqrt_price,
+                    state.confirmed_tick_or_bin,
                     state.spacing,
                     state.active_liquidity,
                 ) {
@@ -1125,7 +1152,7 @@ impl PredictiveStateManager {
             }
             CurveType::Dlmm => {
                 if let (Some(bin_id), Some(spacing)) = (
-                    state.predicted_tick_or_bin.or(state.confirmed_tick_or_bin),
+                    state.confirmed_tick_or_bin,
                     state.spacing,
                 ) {
                     let fee_rate = (state.fee_bps as u32) * 100_000; // bps to millionths
@@ -1165,19 +1192,19 @@ impl PredictiveStateManager {
         index.get(&(*mint_a, *mint_b)).cloned().unwrap_or_default()
     }
 
-    /// Find an alternate pool for a token pair (excluding the victim pool)
+    /// Find an alternate pool for a token pair (excluding the source pool)
     /// Returns the pool with valid metadata if available
     pub fn find_alternate_pool(
         &self,
-        victim_pool: &Pubkey,
+        source_pool: &Pubkey,
         mint_a: &Pubkey,
         mint_b: &Pubkey,
-    ) -> Option<PoolPredictiveState> {
+    ) -> Option<PoolState> {
         let pool_addresses = self.get_pools_for_pair(mint_a, mint_b);
         let pools = self.pools.read().unwrap();
 
         for addr in pool_addresses {
-            if addr != *victim_pool {
+            if addr != *source_pool {
                 if let Some(state) = pools.get(&addr) {
                     // Prefer pools with valid metadata
                     if state.has_metadata() {
@@ -1189,10 +1216,105 @@ impl PredictiveStateManager {
 
         // If no pool with metadata, return any alternate
         for addr in self.get_pools_for_pair(mint_a, mint_b) {
-            if addr != *victim_pool {
+            if addr != *source_pool {
                 if let Some(state) = pools.get(&addr) {
                     return Some(state.clone());
                 }
+            }
+        }
+
+        None
+    }
+
+    /// Find ALL alternate pools for a token pair (excluding the source pool)
+    /// Returns all pools with valid metadata for multi-pool route evaluation
+    pub fn find_all_alternate_pools(
+        &self,
+        source_pool: &Pubkey,
+        mint_a: &Pubkey,
+        mint_b: &Pubkey,
+    ) -> Vec<PoolState> {
+        let pool_addresses = self.get_pools_for_pair(mint_a, mint_b);
+        let pools = self.pools.read().unwrap();
+        let mut result = Vec::new();
+
+        for addr in pool_addresses {
+            if addr != *source_pool {
+                if let Some(state) = pools.get(&addr) {
+                    // Only include pools with valid metadata
+                    if state.has_metadata() {
+                        result.push(state.clone());
+                    }
+                }
+            }
+        }
+
+        result
+    }
+
+    /// Find routing through an anchor mint for 3-hop arbitrage.
+    ///
+    /// When a swap occurs token_a → token_b and neither is an anchor:
+    /// 1. Find a pool that routes anchor → token_a (Pool A)
+    /// 2. Use source pool for token_a → token_b (Pool X)
+    /// 3. Find a pool that routes token_b → anchor (Pool B)
+    ///
+    /// Returns: (pool_a, pool_b, anchor_mint, leg1_base_to_quote, leg3_base_to_quote)
+    pub fn find_anchor_route(
+        &self,
+        source_pool: &Pubkey,
+        token_a: &Pubkey,
+        token_b: &Pubkey,
+        anchor_mints: &[Pubkey],
+    ) -> Option<ThreeHopRoute> {
+        let pools = self.pools.read().unwrap();
+        let index = self.pair_index.read().unwrap();
+
+        for anchor in anchor_mints {
+            // Skip if either token IS the anchor (should use 2-hop instead)
+            if token_a == anchor || token_b == anchor {
+                continue;
+            }
+
+            // Find Pool A: anchor/token_a pair
+            let pool_a_candidates = index.get(&(*anchor, *token_a))
+                .or_else(|| index.get(&(*token_a, *anchor)));
+            
+            let pool_a = pool_a_candidates.and_then(|addrs| {
+                addrs.iter()
+                    .filter(|addr| *addr != source_pool)
+                    .find_map(|addr| {
+                        pools.get(addr).filter(|s| s.has_metadata()).cloned()
+                    })
+            });
+
+            // Find Pool B: token_b/anchor pair
+            let pool_b_candidates = index.get(&(*token_b, *anchor))
+                .or_else(|| index.get(&(*anchor, *token_b)));
+            
+            let pool_b = pool_b_candidates.and_then(|addrs| {
+                addrs.iter()
+                    .filter(|addr| *addr != source_pool)
+                    .find_map(|addr| {
+                        pools.get(addr).filter(|s| s.has_metadata()).cloned()
+                    })
+            });
+
+            if let (Some(pool_a_state), Some(pool_b_state)) = (pool_a, pool_b) {
+                // Determine swap directions for each leg
+                // Leg 1: ANCHOR → token_a on pool_a
+                let leg1_base_to_quote = pool_a_state.base_mint == *anchor;
+                
+                // Leg 3: token_b → ANCHOR on pool_b
+                let leg3_base_to_quote = pool_b_state.base_mint == *token_b;
+
+                return Some(ThreeHopRoute {
+                    pool_a: pool_a_state,
+                    pool_b: pool_b_state,
+                    anchor_mint: *anchor,
+                    leg1_base_to_quote,
+                    leg3_base_to_quote,
+                });
             }
         }
 
@@ -1320,7 +1442,7 @@ impl PredictiveStateManager {
     }
 
     /// Get statistics
-    pub fn stats(&self) -> PredictiveStateStats {
+    pub fn stats(&self) -> PoolStateStats {
         self.stats.read().unwrap().clone()
     }
 
@@ -1364,6 +1486,31 @@ impl PredictiveStateManager {
         )
     }
 
+    /// Get all token pairs that have multiple pools (for pure arb scanning)
+    /// Returns: Vec<(base_mint, quote_mint, pool_addresses)>
+    pub fn get_multi_pool_pairs(&self) -> Vec<(Pubkey, Pubkey, Vec<Pubkey>)> {
+        let index = self.pair_index.read().unwrap();
+        let mut result = Vec::new();
+        let mut seen = std::collections::HashSet::new();
+
+        for ((base, quote), pools) in index.iter() {
+            if pools.len() < 2 {
+                continue;
+            }
+            
+            // Avoid duplicates (we index both directions)
+            let key = if base < quote { (*base, *quote) } else { (*quote, *base) };
+            if seen.contains(&key) {
+                continue;
+            }
+            seen.insert(key);
+
+            result.push((*base, *quote, pools.clone()));
+        }
+
+        result
+    }
+
     /// Get the current size of the signature index
     pub fn signature_index_size(&self) -> usize {
         self.signature_to_pools.read().unwrap().len()
@@ -1376,42 +1523,42 @@ impl PredictiveStateManager {
     }
 }
 
-impl Default for PredictiveStateManager {
+impl Default for PoolStateManager {
     fn default() -> Self {
         Self::new()
     }
 }
 
 // =============================================================================
-// HELPER: SIMULATE ARB WITH PREDICTED STATE
+// HELPER: SIMULATE ARB WITH POOL STATE
 // =============================================================================
 
-/// Simulate a cross-pool backrun using PREDICTED state
+/// Simulate a cross-pool arbitrage using current pool state
 ///
-/// This is the key function that uses state prediction for accurate profit calculation.
+/// This uses the current pool state for accurate profit calculation.
 ///
 /// # Flow
-/// 1. Get predicted state for both pools (includes pending swaps)
-/// 2. Simulate victim's swap on pool X (from predicted state)
-/// 3. Simulate our arb legs on predicted states
-/// 4. Calculate profit accounting for the victim + pending swaps
-pub fn simulate_backrun_with_prediction(
-    manager: &PredictiveStateManager,
-    victim_pool: &Pubkey,
+/// 1. Get current state for both pools
+/// 2. Simulate triggering swap on pool X (from current state)
+/// 3. Simulate our arb legs on current states
+/// 4. Calculate profit
+pub fn simulate_arb_with_state(
+    manager: &PoolStateManager,
+    trigger_pool: &Pubkey,
     alternate_pool: &Pubkey,
-    victim_amount: u64,
-    victim_base_to_quote: bool,
+    trigger_amount: u64,
+    trigger_base_to_quote: bool,
     borrow_amount: u64,
     borrow_is_base: bool,
     flash_fee_bps: u16,
-) -> Option<BackrunSimulationResult> {
-    // Get PREDICTED states (includes all pending swaps)
-    let pool_x = manager.get_predicted_virtual_state(victim_pool)?;
+) -> Option<ArbSimulationResult> {
+    // Get current states
+    let pool_x = manager.get_predicted_virtual_state(trigger_pool)?;
     let pool_y = manager.get_predicted_virtual_state(alternate_pool)?;
 
-    // Now simulate: victim on pool_x, then our arb
-    // 1. Victim's swap on pool X (predicted state)
-    let (_, pool_x_after_victim) = pool_x.simulate_swap(victim_amount, victim_base_to_quote);
+    // Now simulate: trigger swap on pool_x, then our arb
+    // 1. Trigger's swap on pool X (current state)
+    let (_, pool_x_after_trigger) = pool_x.simulate_swap(trigger_amount, trigger_base_to_quote);
 
     // 2. Our leg 1: Swap on Pool Y (borrow_token → intermediate)
     let leg1_base_to_quote = borrow_is_base;
@@ -1420,9 +1567,9 @@ pub fn simulate_backrun_with_prediction(
         return None;
     }
 
-    // 3. Our leg 2: Swap on Pool X post-victim (intermediate → borrow)
+    // 3. Our leg 2: Swap on Pool X post-trigger (intermediate → borrow)
     let leg2_base_to_quote = !borrow_is_base;
-    let (leg2_output, _) = pool_x_after_victim.simulate_swap(leg1_output, leg2_base_to_quote);
+    let (leg2_output, _) = pool_x_after_trigger.simulate_swap(leg1_output, leg2_base_to_quote);
     if leg2_output == 0 {
         return None;
     }
@@ -1432,28 +1579,28 @@ pub fn simulate_backrun_with_prediction(
     let repay_amount = borrow_amount.saturating_add(flash_fee);
     let profit = leg2_output.saturating_sub(repay_amount);
 
-    Some(BackrunSimulationResult {
+    Some(ArbSimulationResult {
         profit,
         borrow_amount,
         leg1_output,
         leg2_output,
         flash_loan_fee: flash_fee,
-        pending_swaps_in_victim_pool: manager.pending_swap_count(victim_pool),
+        pending_swaps_in_trigger_pool: manager.pending_swap_count(trigger_pool),
         pending_swaps_in_alternate_pool: manager.pending_swap_count(alternate_pool),
     })
 }
 
-/// Result of simulating a backrun with state prediction
+/// Result of simulating an arbitrage
 #[derive(Clone, Debug)]
-pub struct BackrunSimulationResult {
+pub struct ArbSimulationResult {
     pub profit: u64,
     pub borrow_amount: u64,
     pub leg1_output: u64,
     pub leg2_output: u64,
     pub flash_loan_fee: u64,
-    /// How many pending swaps were factored into victim pool prediction
-    pub pending_swaps_in_victim_pool: usize,
-    /// How many pending swaps were factored into alternate pool prediction
+    /// How many pending swaps were factored into trigger pool
+    pub pending_swaps_in_trigger_pool: usize,
+    /// How many pending swaps were factored into alternate pool
     pub pending_swaps_in_alternate_pool: usize,
 }
 
@@ -1465,8 +1612,8 @@ pub struct BackrunSimulationResult {
 mod tests {
     use super::*;
 
-    fn make_test_pool(address: Pubkey, base: u64, quote: u64) -> PoolPredictiveState {
-        PoolPredictiveState::new(
+    fn make_test_pool(address: Pubkey, base: u64, quote: u64) -> PoolState {
+        PoolState::new(
             address,
             DexType::RaydiumAmm,
             Pubkey::new_unique(),
@@ -1544,7 +1691,7 @@ mod tests {
 
     #[test]
     fn test_manager_integration() {
-        let manager = PredictiveStateManager::new();
+        let manager = PoolStateManager::new();
 
         let pool_addr = Pubkey::new_unique();
         let pool = make_test_pool(pool_addr, 1_000_000_000, 1_000_000);
