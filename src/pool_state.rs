@@ -1,13 +1,26 @@
 //! Pool State Manager
 //!
-//! Manages pool state from two sources with different latency/reliability tradeoffs:
-//! - **Turbine/ShredStream**: Fast (~0.5-2ms) but derived from TX parsing
-//! - **Geyser**: Authoritative (~5-15ms) direct vault balance updates
+//! # Geyser-First Architecture
 //!
-//! # IMPORTANT: Shreds Are Post-Execution
+//! **Geyser is the single source of truth for all pool state.**
 //!
-//! Transactions seen in shreds have ALREADY BEEN EXECUTED. We are not "predicting"
-//! future state - we are updating our view of current state as fast as possible.
+//! This module manages pool reserves and metadata with updates coming exclusively
+//! from Geyser vault balance subscriptions. Shreds are NOT used for state updates.
+//!
+//! ## Why Geyser-First?
+//!
+//! Attempting to simulate pool state from parsed swap transactions is error-prone:
+//! - Each DEX has different instruction layouts and account ordering
+//! - Simulation math must exactly match on-chain behavior
+//! - Edge cases: partial fills, failed inner TXs, Token-2022 fees, CLMM tick crossings
+//! - Every DEX upgrade requires parser updates
+//!
+//! ## What Shreds Provide
+//!
+//! Shreds serve as **activity signals** only (handled in `shredstream` module):
+//! - Early hint that a pool had activity (~5-10ms before Geyser confirms)
+//! - Pre-warming for tick/bin arrays
+//! - Latency metrics (shred arrival → Geyser confirmation)
 //!
 //! # Architecture
 //!
@@ -16,20 +29,19 @@
 //! │                      PoolStateManager                           │
 //! ├─────────────────────────────────────────────────────────────────┤
 //! │                                                                 │
-//! │  FAST PATH (Turbine ~0.5-2ms):                                  │
-//! │  • Parse swap TXs from shreds                                   │
-//! │  • Simulate reserve changes                                     │
-//! │  • Update pool state immediately                                │
-//! │  • TRIGGER: evaluate arb for affected pair                      │
-//! │                                                                 │
-//! │  RELIABLE PATH (Geyser ~5-15ms):                                │
-//! │  • Receive actual vault balances                                │
-//! │  • Update pool state authoritatively                            │
+//! │  GEYSER (sole state source, ~5-15ms):                           │
+//! │  • Subscribe to vault accounts                                  │
+//! │  • Receive authoritative balances                               │
+//! │  • Update pool state                                            │
 //! │  • TRIGGER: evaluate arb for affected pair                      │
 //! │                                                                 │
 //! │  PAIR INDEX:                                                    │
 //! │  • (base_mint, quote_mint) → [pool1, pool2, ...]                │
 //! │  • Enables cross-pool arb evaluation                            │
+//! │                                                                 │
+//! │  VAULT INDEX:                                                   │
+//! │  • vault_address → (pool, is_base_vault)                        │
+//! │  • Enables fast vault→pool lookups                              │
 //! │                                                                 │
 //! └─────────────────────────────────────────────────────────────────┘
 //! ```
@@ -39,10 +51,8 @@
 //! ```text
 //! Block N produced by leader:
 //! t=0ms      Swap executed in block (we have no visibility)
-//! t=0.5-2ms  Turbine: Shreds arrive → parse → update state
-//! t=1-3ms    Arb evaluation triggered → opportunity found
-//! t=2-5ms    Arb TX submitted to Jito for Block N+1
-//! t=5-15ms   Geyser: Vault update confirms state
+//! t=0.5-2ms  Shreds arrive → emit activity signal (NO state update)
+//! t=5-15ms   Geyser vault update → update state → evaluate arb → submit
 //! t=400ms    Block N+1: Our arb TX included (if we won)
 //! ```
 

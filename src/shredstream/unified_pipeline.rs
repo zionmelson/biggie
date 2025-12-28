@@ -1,42 +1,48 @@
-//! Cross-Pool Arbitrage Pipeline
+//! Cross-Pool Arbitrage Pipeline (Geyser-First Architecture)
 //!
-//! This pipeline finds and executes cross-pool arbitrage opportunities by
-//! tracking pool state from two sources:
+//! This pipeline finds and executes cross-pool arbitrage opportunities using
+//! **Geyser as the single source of truth** for pool state.
 //!
-//! - **Turbine UDP** (~0.5-2ms): Parse swaps from shreds, simulate reserve changes
-//! - **Geyser** (~5-15ms): Authoritative vault balance updates
+//! # Geyser-First Design
 //!
-//! # CRITICAL: Shreds Are Post-Execution
+//! - **Geyser** (~5-15ms): Sole source of pool state via vault balance updates
+//! - **Shreds** (~0.5-2ms): Activity signals only (no state updates)
 //!
-//! Transactions in shreds have ALREADY BEEN EXECUTED. We cannot "arb_bundle" them
-//! in the same block. Our strategy is:
+//! ## Why Not Simulate State from Shreds?
 //!
-//! 1. See swap executed in Block N (via Turbine/Shreds)
-//! 2. Update our state to reflect the new reserves
-//! 3. Detect price divergence across pools for that pair
-//! 4. Submit arb TX for Block N+1
+//! Attempting to simulate pool state from parsed swap transactions is error-prone:
+//! - Each DEX has different instruction layouts and account ordering
+//! - Simulation math must exactly match on-chain behavior  
+//! - Edge cases: partial fills, failed inner TXs, Token-2022 fees, CLMM tick crossings
+//! - Every DEX upgrade requires parser updates
+//!
+//! ## What Shreds Provide
+//!
+//! Instead of state simulation, shreds serve as **activity signals**:
+//! - Early hint that a pool had activity (~5-10ms before Geyser confirms)
+//! - Pre-warming for tick/bin array caches
+//! - Latency metrics (shred arrival → Geyser confirmation)
 //!
 //! # Data Flow
 //!
 //! ```text
 //! ┌─────────────────────────────────────────────────────────────────────────┐
-//! │                    CROSS-POOL ARBITRAGE PIPELINE                        │
+//! │              CROSS-POOL ARBITRAGE PIPELINE (Geyser-First)               │
 //! ├─────────────────────────────────────────────────────────────────────────┤
 //! │                                                                         │
-//! │  TURBINE (fast path)                 GEYSER (reliable path)             │
-//! │  ═══════════════════                 ═══════════════════                │
-//! │  • Receive shreds via UDP            • Subscribe vault accounts         │
-//! │  • Parse executed swaps              • Get authoritative balances       │
-//! │  • Simulate reserve change           • Update state directly            │
-//! │         │                                   │                           │
-//! │         └─────────────┬─────────────────────┘                           │
-//! │                       │                                                 │
-//! │                       ▼ ON ANY STATE CHANGE                             │
+//! │  SHREDS (activity signals)           GEYSER (sole state source)         │
+//! │  ═══════════════════════             ═══════════════════════            │
+//! │  • Emit PoolActivitySignal           • Subscribe vault accounts         │
+//! │  • Track latency metrics             • Get authoritative balances       │
+//! │  • Pre-warm tick/bin arrays          • Update state directly            │
+//! │  • ✗ NO state updates                • ✓ TRIGGER arb evaluation         │
+//! │                                             │                           │
+//! │                                             ▼ ON VAULT UPDATE           │
 //! │  ┌─────────────────────────────────────────────────────────────────┐   │
 //! │  │                    POOL STATE MANAGER                            │   │
 //! │  │  • Single source of truth for all pool reserves                 │   │
 //! │  │  • Pair index: (base, quote) → [pool1, pool2, ...]              │   │
-//! │  │  • Update triggers arb evaluation                               │   │
+//! │  │  • Vault index: vault → (pool, is_base_vault)                   │   │
 //! │  └─────────────────────────────────────────────────────────────────┘   │
 //! │                       │                                                 │
 //! │                       ▼                                                 │
@@ -58,23 +64,22 @@
 //! ```
 
 use crate::amm_math::CurveType;
+use crate::config::TurbineUdpConfig;
 use crate::geyser::{GeyserClient, GeyserConfig, SlotStatus};
 use crate::jito::{BundleStatus, JitoClient};
 use crate::pool_discovery::parse_pool_account;
 use crate::pool_state::{PoolState, PoolStateManager};
 use crate::shredstream::arb_bundle::{ArbBundleBuilder, BundleBuilderConfig};
 use crate::shredstream::evaluator::{ArbEvaluator, ArbOpportunity};
-use crate::shredstream::parser::{parse_transaction, TransactionSwaps};
+use crate::shredstream::parser::parse_transaction;
 use crate::shredstream::programs::{
-    DexType, METEORA_DAMM, METEORA_DLMM, ORCA_WHIRLPOOL, PANCAKESWAP_CLMM, RAYDIUM_AMM, RAYDIUM_CLMM,
+    DexType, METEORA_DAMM, METEORA_DLMM, ORCA_WHIRLPOOL, PANCAKESWAP_CLMM, RAYDIUM_AMM,
+    RAYDIUM_CLMM,
 };
 use crate::tip_monitor::TipFloorCache;
 use crate::turbine::{
-    TurbineReceiver, TurbineConfig, TurbineStatsSnapshot,
-    AssembledEntries, run_entry_assembler,
-    fec::FecAssemblerConfig,
+    fec::FecAssemblerConfig, run_entry_assembler, AssembledEntries, TurbineConfig, TurbineReceiver,
 };
-use crate::config::TurbineUdpConfig;
 
 use anyhow::{Context, Result};
 use bincode::Options;
@@ -86,7 +91,7 @@ use solana_sdk::signature::{Keypair, Signature};
 use solana_sdk::transaction::VersionedTransaction;
 use std::collections::HashMap;
 use std::net::SocketAddr;
-use std::sync::atomic::{AtomicU64, AtomicBool, Ordering};
+use std::sync::atomic::{AtomicU64, Ordering};
 use std::sync::Arc;
 use std::time::{Duration, Instant};
 use tokio::sync::mpsc;
@@ -110,7 +115,7 @@ pub struct UnifiedPipelineConfig {
     pub use_turbine_udp: bool,
     /// Turbine UDP configuration
     pub turbine_config: TurbineUdpConfig,
-    
+
     // === ShredStream settings (fallback) ===
     /// ShredStream proxy gRPC endpoint (only used if use_turbine_udp = false)
     pub shredstream_endpoint: String,
@@ -163,20 +168,28 @@ pub struct UnifiedPipelineStats {
     pub turbine_coding_shreds: AtomicU64,
     pub turbine_fec_completed: AtomicU64,
     pub turbine_entries_assembled: AtomicU64,
-    
-    // === ShredStream stats (fallback) ===
+
+    // === ShredStream stats (activity signals only) ===
     pub shredstream_entries_received: AtomicU64,
     pub shredstream_txs_parsed: AtomicU64,
     pub shredstream_swaps_detected: AtomicU64,
     pub shredstream_reconnects: AtomicU64,
+    /// Count of pools that had shred activity signals
+    pub shred_activity_signals: AtomicU64,
 
-    // === Geyser stats ===
+    // === Geyser stats (sole source of truth for state) ===
     pub geyser_txs_received: AtomicU64,
     pub geyser_account_updates: AtomicU64,
     pub geyser_pool_updates: AtomicU64,
     pub geyser_slot_updates: AtomicU64,
     pub geyser_votes_skipped: AtomicU64,
     pub geyser_reconnects: AtomicU64,
+
+    // === Latency Tracking (shred → Geyser) ===
+    /// Total shred-to-Geyser latency in microseconds (for averaging)
+    pub shred_to_geyser_latency_us_total: AtomicU64,
+    /// Number of latency samples
+    pub shred_to_geyser_latency_samples: AtomicU64,
 
     // === Arb stats ===
     pub opportunities_evaluated: AtomicU64,
@@ -200,22 +213,26 @@ impl UnifiedPipelineStats {
     pub fn summary(&self) -> String {
         let turbine_pkts = self.turbine_packets_received.load(Ordering::Relaxed);
         let shred_entries = self.shredstream_entries_received.load(Ordering::Relaxed);
-        
+
         // Determine active source
         let source_str = if turbine_pkts > 0 {
-            format!("TURBINE[pkts={} data={} code={} fec={} entries={}]",
+            format!(
+                "TURBINE[pkts={} data={} code={} fec={} entries={}]",
                 turbine_pkts,
                 self.turbine_data_shreds.load(Ordering::Relaxed),
                 self.turbine_coding_shreds.load(Ordering::Relaxed),
                 self.turbine_fec_completed.load(Ordering::Relaxed),
-                self.turbine_entries_assembled.load(Ordering::Relaxed))
+                self.turbine_entries_assembled.load(Ordering::Relaxed)
+            )
         } else {
-            format!("SHRED[entries={} txs={} swaps={}]",
+            format!(
+                "SHRED[entries={} txs={} swaps={}]",
                 shred_entries,
                 self.shredstream_txs_parsed.load(Ordering::Relaxed),
-                self.shredstream_swaps_detected.load(Ordering::Relaxed))
+                self.shredstream_swaps_detected.load(Ordering::Relaxed)
+            )
         };
-        
+
         format!(
             "{} GEYSER[txs={} accts={}] ARB[opps={} submitted={} accepted={}] profit={:.6} SOL",
             source_str,
@@ -259,7 +276,7 @@ impl LeaderScheduleCache {
     fn is_stale(&self) -> bool {
         self.refreshed_at.elapsed() > Duration::from_millis(400)
     }
-    
+
     /// Get slots until next Jito leader, accounting for time passed since fetch
     fn slots_until_leader(&self, current_slot: u64) -> u64 {
         self.next_leader_slot.saturating_sub(current_slot)
@@ -274,13 +291,19 @@ impl LeaderScheduleCache {
 pub type OpportunityTx = mpsc::Sender<ArbOpportunity>;
 pub type OpportunityRx = mpsc::Receiver<ArbOpportunity>;
 
-/// The unified arbitrage pipeline with tightly coupled Turbine + Geyser
+/// The unified arbitrage pipeline with Geyser-first architecture
+///
+/// # Geyser-First Design
+///
+/// - **Geyser** is the sole source of truth for pool state
+/// - **Shreds** provide activity signals for prioritization and latency metrics
+/// - Arb evaluation is triggered by Geyser vault updates, NOT shreds
 pub struct UnifiedArbPipeline {
     config: UnifiedPipelineConfig,
 
-    // === Shared State (the coupling point) ===
+    // === Shared State (Geyser-updated only) ===
     /// Pool state manager - THE SINGLE SOURCE OF TRUTH for pool state
-    /// Also handles vault→pool mapping internally via vault_index
+    /// Updated ONLY by Geyser vault balance updates
     pool_state: Arc<PoolStateManager>,
 
     // === Components ===
@@ -296,7 +319,12 @@ pub struct UnifiedArbPipeline {
     // === Leader Schedule Cache ===
     /// Cached leader schedule to avoid per-opportunity RPC calls
     leader_cache: RwLock<LeaderScheduleCache>,
-    
+
+    // === Pool Activity Tracking (Shred Signals) ===
+    /// Tracks when pools had activity detected via shreds (for latency metrics)
+    /// Key: pool pubkey, Value: when shred was received
+    pool_activity: RwLock<HashMap<Pubkey, Instant>>,
+
     // === Rate Limiter ===
     /// Jito submission rate limiter (max 5/sec to avoid ResourceExhausted)
     last_submission_ns: AtomicU64,
@@ -330,7 +358,7 @@ impl UnifiedArbPipeline {
     }
 
     /// Create pipeline with optional pre-initialized PoolStateManager
-    /// 
+    ///
     /// If `existing_psm` is Some, uses that PSM with pre-loaded pools.
     /// If None, creates a new empty PSM.
     pub fn new_with_psm(
@@ -377,6 +405,7 @@ impl UnifiedArbPipeline {
             blockhash: Arc::new(RwLock::new((Hash::default(), 0))),
             opportunity_tx,
             leader_cache: RwLock::new(LeaderScheduleCache::default()),
+            pool_activity: RwLock::new(HashMap::new()),
             last_submission_ns: AtomicU64::new(0),
             submissions_this_second: AtomicU64::new(0),
             stats: Arc::new(UnifiedPipelineStats::default()),
@@ -444,24 +473,33 @@ impl UnifiedArbPipeline {
     }
 
     // =========================================================================
-    // SHREDSTREAM HANDLER (Early TX Detection)
+    // SHREDSTREAM HANDLER (Activity Signals Only - NO State Updates)
     // =========================================================================
 
-    /// Handle a ShredStream entry - parse transactions and detect swaps
-    /// 
-    /// When we see a swap in shreds, we update pool state and trigger pure arb
-    /// evaluation on the affected pool. This gives us ~5-15ms head start over
-    /// waiting for Geyser.
+    /// Handle a ShredStream entry - parse transactions and emit activity signals
+    ///
+    /// # Geyser-First Architecture
+    ///
+    /// Shreds are used for **signaling only**, NOT for state updates:
+    /// - Emit `PoolActivitySignal` for pools that had swap activity
+    /// - Record timing for latency metrics (shred arrival → Geyser confirmation)
+    /// - Pre-warm tick/bin array caches based on swap direction hints
+    ///
+    /// **State updates and arb evaluation are triggered by Geyser**, not shreds.
+    /// This avoids error-prone swap simulation and ensures we always use
+    /// authoritative on-chain state.
     #[allow(deprecated)] // solana_entry::entry::Entry is marked for Agave Unstable API
     pub async fn handle_shredstream_entry(
         &self,
         slot: u64,
         entries: Vec<SolanaEntry>,
-    ) -> Vec<TransactionSwaps> {
+    ) -> Vec<crate::shredstream::PoolActivitySignal> {
+        use crate::shredstream::PoolActivitySignal;
+
         let received_at = Instant::now();
-        let mut all_swaps = Vec::new();
-        let mut pools_to_scan: Vec<Pubkey> = Vec::new();
+        let mut activity_signals: HashMap<Pubkey, PoolActivitySignal> = HashMap::new();
         let mut total_txs = 0u64;
+        let mut swap_count = 0u64;
 
         for entry in entries {
             for transaction in entry.transactions {
@@ -471,111 +509,82 @@ impl UnifiedArbPipeline {
                     .fetch_add(1, Ordering::Relaxed);
 
                 let versioned_tx: VersionedTransaction = transaction.into();
-                let signature = versioned_tx.signatures.first().cloned().unwrap_or_default();
 
-                // Parse for swaps
+                // Parse for swaps - just to detect activity, NOT for state simulation
                 if let Some(tx_swaps) = parse_transaction(&versioned_tx, slot, received_at, None) {
+                    swap_count += tx_swaps.swaps.len() as u64;
                     self.stats
                         .shredstream_swaps_detected
                         .fetch_add(tx_swaps.swaps.len() as u64, Ordering::Relaxed);
 
-                    // Track pools affected by these swaps for pure arb evaluation
+                    // Build activity signals (aggregate by pool)
                     for swap in &tx_swaps.swaps {
-                        if !pools_to_scan.contains(&swap.pool) {
-                            pools_to_scan.push(swap.pool);
-                        }
+                        activity_signals
+                            .entry(swap.pool)
+                            .and_modify(|sig| sig.swap_count += 1)
+                            .or_insert_with(|| {
+                                let mut sig = PoolActivitySignal::new(swap.pool, slot);
+                                sig.shred_received_at = received_at;
+                                if let Some(dir) = swap.direction {
+                                    sig.direction_hint = Some(dir);
+                                }
+                                sig
+                            });
                     }
-
-                    all_swaps.push(tx_swaps);
                 }
             }
         }
-        
-        // Log summary for every slot with transactions
-        if total_txs > 0 && all_swaps.is_empty() {
-            // Sample logging to diagnose why no swaps detected
+
+        // Record activity signals for latency tracking
+        // These will be matched with Geyser updates to measure shred→Geyser delay
+        if !activity_signals.is_empty() {
+            self.record_pool_activity(&activity_signals).await;
+        }
+
+        // Log summary periodically
+        if total_txs > 0 {
             static LOG_COUNTER: std::sync::atomic::AtomicU64 = std::sync::atomic::AtomicU64::new(0);
             let count = LOG_COUNTER.fetch_add(1, std::sync::atomic::Ordering::Relaxed);
-            if count % 20 == 0 {
+            if count % 50 == 0 {
                 tracing::debug!(
                     slot,
                     txs_parsed = total_txs,
-                    "no DEX swaps found in slot transactions"
+                    swaps_detected = swap_count,
+                    pools_with_activity = activity_signals.len(),
+                    "shred activity summary"
                 );
             }
         }
-        
-        // Trigger pure arb evaluation on affected pools
-        if !pools_to_scan.is_empty() {
-            self.evaluate_pure_arb_for_pools(&pools_to_scan).await;
+
+        activity_signals.into_values().collect()
+    }
+
+    /// Record pool activity signals for latency tracking
+    ///
+    /// When Geyser confirms state for these pools, we can calculate:
+    /// latency = geyser_confirm_time - shred_received_time
+    async fn record_pool_activity(
+        &self,
+        signals: &HashMap<Pubkey, crate::shredstream::PoolActivitySignal>,
+    ) {
+        let mut activity = self.pool_activity.write().await;
+        for (pool, signal) in signals {
+            activity.insert(*pool, signal.shred_received_at);
         }
 
-        all_swaps
+        // Prune old entries (older than 30 seconds)
+        let cutoff = Instant::now() - Duration::from_secs(30);
+        activity.retain(|_, received_at| *received_at > cutoff);
     }
-    
-    /// Evaluate pure arb opportunities for a list of pools
-    async fn evaluate_pure_arb_for_pools(&self, pools: &[Pubkey]) {
-        // Get current blockhash
-        let blockhash_data = self.blockhash.read().await;
-        if blockhash_data.0 == Hash::default() {
-            return;
-        }
-        let current_blockhash = blockhash_data.0;
-        let current_slot = blockhash_data.1;
-        drop(blockhash_data);
-        
-        // Check leader schedule once for all pools
-        let (is_jito_leader, slots_until) = self.check_jito_leader(current_slot).await;
-        if !is_jito_leader || slots_until > 10 {
-            return;
-        }
-        
-        for pool in pools {
-            let pure_opp = {
-                let evaluator = self.evaluator.read().await;
-                evaluator.scan_pool(pool)
-            };
-            
-            let Some(opportunity) = pure_opp else {
-                continue;
-            };
-            
-            self.stats.pure_arb_opportunities.fetch_add(1, Ordering::Relaxed);
-            
-            // Rate limit check: max 4 per second (leave headroom under Jito's 5/sec limit)
-            if !self.check_rate_limit() {
-                tracing::debug!(pool = %pool, "Rate limited - skipping submission");
-                self.stats.bundles_rate_limited.fetch_add(1, Ordering::Relaxed);
-                continue;
-            }
-            
-            // Build and submit
-            let bundle = {
-                let builder = self.bundle_builder.read().await;
-                match builder.build(&opportunity, current_blockhash) {
-                    Ok(b) => b,
-                    Err(e) => {
-                        tracing::debug!(error = %e, "Failed to build pure arb bundle");
-                        continue;
-                    }
-                }
-            };
-            
-            tracing::info!(
-                pool = %pool,
-                profit = opportunity.expected_profit_lamports,
-                tip = bundle.tip_lamports,
-                "Submitting pure arb (shred-triggered)"
-            );
-            
-            self.stats.bundles_submitted.fetch_add(1, Ordering::Relaxed);
-            if let Err(e) = self.jito_client.send_versioned_bundle(bundle.transactions()).await {
-                tracing::warn!(error = %e, "Failed to submit pure arb bundle");
-                self.stats.bundles_rejected.fetch_add(1, Ordering::Relaxed);
-            }
-        }
+
+    /// Get shred-to-Geyser latency for a pool (if we saw it in shreds first)
+    ///
+    /// Call this when processing a Geyser vault update to track latency
+    pub async fn get_shred_latency(&self, pool: &Pubkey) -> Option<Duration> {
+        let activity = self.pool_activity.read().await;
+        activity.get(pool).map(|received_at| received_at.elapsed())
     }
-    
+
     /// Check and update rate limit (max 4 submissions per second, with 250ms spacing)
     /// Returns true if we can submit, false if rate limited
     fn check_rate_limit(&self) -> bool {
@@ -583,30 +592,30 @@ impl UnifiedArbPipeline {
             .duration_since(std::time::UNIX_EPOCH)
             .unwrap()
             .as_nanos() as u64;
-        
+
         let last_ns = self.last_submission_ns.load(Ordering::Relaxed);
         let elapsed_ns = now_ns.saturating_sub(last_ns);
-        
+
         // Reset counter every second
         if elapsed_ns > 1_000_000_000 {
             self.submissions_this_second.store(1, Ordering::Relaxed);
             self.last_submission_ns.store(now_ns, Ordering::Relaxed);
             return true;
         }
-        
+
         // Check if under limit (4 per second max, leaves headroom under Jito's 5/sec)
         let count = self.submissions_this_second.fetch_add(1, Ordering::Relaxed);
         if count >= 4 {
             self.submissions_this_second.fetch_sub(1, Ordering::Relaxed);
             return false;
         }
-        
+
         // Minimum 200ms between submissions for smoother rate
         if elapsed_ns < 200_000_000 {
             self.submissions_this_second.fetch_sub(1, Ordering::Relaxed);
             return false;
         }
-        
+
         self.last_submission_ns.store(now_ns, Ordering::Relaxed);
         true
     }
@@ -643,26 +652,78 @@ impl UnifiedArbPipeline {
 
     /// Handle Geyser vault account update - updates pool reserves via PSM's vault_index
     ///
-    /// This is the PRIMARY trigger for pure arb opportunities.
+    /// This is the PRIMARY trigger for pure arb opportunities (Geyser-first architecture).
     /// When a vault balance changes, we immediately check if this creates
     /// a cross-pool price discrepancy we can arbitrage.
-    pub async fn handle_geyser_vault_update_with_arb(&self, vault_address: &Pubkey, balance: u64, slot: u64) {
+    ///
+    /// Also tracks shred-to-Geyser latency if we saw this pool in shreds first.
+    pub async fn handle_geyser_vault_update_with_arb(
+        &self,
+        vault_address: &Pubkey,
+        balance: u64,
+        slot: u64,
+    ) {
         // Count vault updates received
         self.stats
             .geyser_account_updates
             .fetch_add(1, Ordering::Relaxed);
-        
+
         // Get the pool this vault belongs to (before updating)
         let pool_for_vault = self.pool_state.get_pool_for_vault(vault_address);
-        
+
+        // Track shred-to-Geyser latency if we saw this pool in shreds
+        if let Some((pool, _)) = &pool_for_vault {
+            if let Some(latency) = self.get_shred_latency(pool).await {
+                let latency_us = latency.as_micros() as u64;
+                self.stats
+                    .shred_to_geyser_latency_us_total
+                    .fetch_add(latency_us, Ordering::Relaxed);
+                self.stats
+                    .shred_to_geyser_latency_samples
+                    .fetch_add(1, Ordering::Relaxed);
+
+                // Log significant latency samples periodically
+                static LATENCY_LOG_COUNTER: std::sync::atomic::AtomicU64 =
+                    std::sync::atomic::AtomicU64::new(0);
+                let count = LATENCY_LOG_COUNTER.fetch_add(1, std::sync::atomic::Ordering::Relaxed);
+                if count % 100 == 0 {
+                    let total_us = self
+                        .stats
+                        .shred_to_geyser_latency_us_total
+                        .load(Ordering::Relaxed);
+                    let samples = self
+                        .stats
+                        .shred_to_geyser_latency_samples
+                        .load(Ordering::Relaxed);
+                    let avg_ms = if samples > 0 {
+                        (total_us / samples) as f64 / 1000.0
+                    } else {
+                        0.0
+                    };
+                    tracing::info!(
+                        pool = %pool,
+                        latency_ms = latency.as_millis(),
+                        avg_latency_ms = avg_ms,
+                        samples,
+                        "shred→Geyser latency"
+                    );
+                }
+
+                // Remove from activity tracking (we've matched it)
+                let mut activity = self.pool_activity.write().await;
+                activity.remove(pool);
+            }
+        }
+
         // PSM handles the vault→pool lookup and reserve update internally
-        let updated = self.pool_state
+        let updated = self
+            .pool_state
             .on_geyser_vault_address_update(vault_address, balance, slot);
-        
+
         if !updated {
             return;
         }
-        
+
         // Get current blockhash for transaction building
         let blockhash_data = self.blockhash.read().await;
         if blockhash_data.0 == Hash::default() {
@@ -672,22 +733,22 @@ impl UnifiedArbPipeline {
         let current_blockhash = blockhash_data.0;
         let current_slot = blockhash_data.1;
         drop(blockhash_data);
-        
+
         // Trigger pure arb scan on the updated pool
         let Some((pool, _is_base)) = pool_for_vault else {
             tracing::trace!(vault = %vault_address, "Vault not in vault_index, skipping arb eval");
             return;
         };
-        
+
         // Sample logging to track arb scanning
         static SCAN_COUNTER: std::sync::atomic::AtomicU64 = std::sync::atomic::AtomicU64::new(0);
         let scan_count = SCAN_COUNTER.fetch_add(1, std::sync::atomic::Ordering::Relaxed);
-        
+
         let pure_opp = {
             let evaluator = self.evaluator.read().await;
             evaluator.scan_pool(&pool)
         };
-        
+
         if scan_count % 100 == 0 {
             tracing::debug!(
                 pool = %pool,
@@ -696,13 +757,15 @@ impl UnifiedArbPipeline {
                 "Pure arb scan sample"
             );
         }
-        
+
         let Some(opportunity) = pure_opp else {
             return;
         };
-        
-        self.stats.pure_arb_opportunities.fetch_add(1, Ordering::Relaxed);
-        
+
+        self.stats
+            .pure_arb_opportunities
+            .fetch_add(1, Ordering::Relaxed);
+
         // Check if Jito leader is coming up (use cached schedule)
         // Skip this check for local testing - always attempt submission
         let (is_jito_leader, slots_until) = self.check_jito_leader(current_slot).await;
@@ -715,7 +778,7 @@ impl UnifiedArbPipeline {
             );
             return;
         }
-        
+
         // Build and submit pure arb bundle
         let bundle = {
             let builder = self.bundle_builder.read().await;
@@ -727,7 +790,7 @@ impl UnifiedArbPipeline {
                 }
             }
         };
-        
+
         tracing::info!(
             pool = %pool,
             profit = opportunity.expected_profit_lamports,
@@ -739,10 +802,14 @@ impl UnifiedArbPipeline {
             trade_amount = opportunity.trade_amount,
             "Submitting pure arb bundle"
         );
-        
+
         // Submit to Jito
         self.stats.bundles_submitted.fetch_add(1, Ordering::Relaxed);
-        match self.jito_client.send_versioned_bundle(bundle.transactions()).await {
+        match self
+            .jito_client
+            .send_versioned_bundle(bundle.transactions())
+            .await
+        {
             Ok(uuid) => {
                 tracing::info!(bundle_uuid = %uuid, "Pure arb bundle submitted");
             }
@@ -760,7 +827,8 @@ impl UnifiedArbPipeline {
             .geyser_account_updates
             .fetch_add(1, Ordering::Relaxed);
         // PSM handles the vault→pool lookup and reserve update internally
-        let updated = self.pool_state
+        let updated = self
+            .pool_state
             .on_geyser_vault_address_update(vault_address, balance, slot);
         if updated {
             tracing::trace!(
@@ -826,9 +894,10 @@ impl UnifiedArbPipeline {
         // Determine curve type from DEX type
         // NOTE: Meteora DAMM v2 uses CLMM math (sqrt_price/liquidity), NOT constant product!
         let curve = match pool.dex {
-            DexType::OrcaWhirlpool | DexType::RaydiumClmm | DexType::PancakeSwapClmm | DexType::MeteoraDamm => {
-                CurveType::ConcentratedLiquidity
-            }
+            DexType::OrcaWhirlpool
+            | DexType::RaydiumClmm
+            | DexType::PancakeSwapClmm
+            | DexType::MeteoraDamm => CurveType::ConcentratedLiquidity,
             DexType::MeteoraDlmm => CurveType::Dlmm,
             _ => CurveType::ConstantProduct,
         };
@@ -930,12 +999,12 @@ impl UnifiedArbPipeline {
                 return (cache.next_leader_slot > 0, slots_until);
             }
         }
-        
+
         // Cache is stale, refresh it
         match self.jito_client.get_next_scheduled_leader().await {
             Ok(resp) => {
                 let slots_until = resp.next_leader_slot.saturating_sub(resp.current_slot);
-                
+
                 // Update cache
                 {
                     let mut cache = self.leader_cache.write().await;
@@ -943,7 +1012,7 @@ impl UnifiedArbPipeline {
                     cache.fetched_at_slot = resp.current_slot;
                     cache.refreshed_at = Instant::now();
                 }
-                
+
                 // Jito leader is scheduled - worth submitting
                 (resp.next_leader_slot > 0, slots_until)
             }
@@ -961,7 +1030,7 @@ impl UnifiedArbPipeline {
         if blockhash == Hash::default() {
             anyhow::bail!("No blockhash available");
         }
-        
+
         // Check if Jito validator is leader soon (uses cached schedule)
         // If no Jito leader for 10+ slots, skip to avoid wasted submission
         let (is_jito_leader, slots_until) = self.check_jito_leader(current_slot).await;
@@ -973,8 +1042,8 @@ impl UnifiedArbPipeline {
                 "Skipping submission - no Jito leader soon"
             );
             // Don't bail - return a status indicating we skipped
-            return Ok(BundleStatus::Submitted { 
-                bundle_id: format!("skipped_no_leader_{}", opp.id) 
+            return Ok(BundleStatus::Submitted {
+                bundle_id: format!("skipped_no_leader_{}", opp.id),
             });
         }
 
@@ -1098,7 +1167,7 @@ pub async fn spawn_unified_pipeline(
             threads = config.turbine_config.receiver_threads,
             "Starting Turbine UDP receiver (ultra-low-latency mode)"
         );
-        
+
         let pipeline_for_turbine = Arc::clone(&pipeline);
         let turbine_config = config.turbine_config.clone();
         let stats_for_turbine = Arc::clone(&stats);
@@ -1110,7 +1179,7 @@ pub async fn spawn_unified_pipeline(
             endpoint = %config.shredstream_endpoint,
             "Starting ShredStream proxy client (fallback mode)"
         );
-        
+
         let pipeline_for_shred = Arc::clone(&pipeline);
         let shred_config = config.clone();
         tokio::spawn(async move {
@@ -1233,7 +1302,7 @@ async fn run_bundle_submission_task(
         // NO RATE LIMITING - submit immediately
         // Speed is everything in arb. Jito dedupes on their end.
         let start = Instant::now();
-        
+
         match pipeline.process_opportunity(&opp).await {
             Ok(status) => {
                 let submit_time_us = start.elapsed().as_micros();
@@ -1279,7 +1348,11 @@ async fn run_turbine_task(
     let bind_addr: SocketAddr = match turbine_config.bind_addr.parse() {
         Ok(addr) => addr,
         Err(e) => {
-            tracing::error!("Invalid Turbine bind address '{}': {}", turbine_config.bind_addr, e);
+            tracing::error!(
+                "Invalid Turbine bind address '{}': {}",
+                turbine_config.bind_addr,
+                e
+            );
             return;
         }
     };
@@ -1323,45 +1396,55 @@ async fn run_turbine_loop(
 ) -> Result<()> {
     // Start receiver and get FEC completion channel
     let fec_rx = receiver.start().await?;
-    
+
     // Create channel for assembled entries
     let (entries_tx, mut entries_rx) = mpsc::channel::<AssembledEntries>(1000);
-    
+
     // Spawn entry assembler task
     tokio::spawn(async move {
         run_entry_assembler(fec_rx, entries_tx).await;
     });
-    
+
     tracing::info!("Turbine UDP receiver started - waiting for shreds from validator TVU");
 
     // Process assembled entries
     while let Some(assembled) = entries_rx.recv().await {
         let slot = assembled.slot;
-        
+
         // Update Turbine stats
         stats.turbine_fec_completed.fetch_add(1, Ordering::Relaxed);
-        stats.turbine_entries_assembled.fetch_add(assembled.entries.len() as u64, Ordering::Relaxed);
-        
+        stats
+            .turbine_entries_assembled
+            .fetch_add(assembled.entries.len() as u64, Ordering::Relaxed);
+
         // Also update receiver stats
         let turbine_stats = receiver.stats();
-        stats.turbine_packets_received.store(turbine_stats.packets_received, Ordering::Relaxed);
-        stats.turbine_data_shreds.store(turbine_stats.data_shreds, Ordering::Relaxed);
-        stats.turbine_coding_shreds.store(turbine_stats.coding_shreds, Ordering::Relaxed);
-        
+        stats
+            .turbine_packets_received
+            .store(turbine_stats.packets_received, Ordering::Relaxed);
+        stats
+            .turbine_data_shreds
+            .store(turbine_stats.data_shreds, Ordering::Relaxed);
+        stats
+            .turbine_coding_shreds
+            .store(turbine_stats.coding_shreds, Ordering::Relaxed);
+
         // Convert AssembledEntries to Vec<SolanaEntry> for pipeline processing
         // The entries are already SolanaEntry type from the assembler
         let entries = assembled.entries;
-        
+
         if entries.is_empty() {
             continue;
         }
-        
+
         // Handle entries - this adds pending swaps to pool state and
         // triggers pure arb evaluation (correct for post-execution detection)
         let _all_swaps = pipeline.handle_shredstream_entry(slot, entries).await;
-        
+
         // Track source
-        stats.tx_source_turbine.fetch_add(assembled.transactions.len() as u64, Ordering::Relaxed);
+        stats
+            .tx_source_turbine
+            .fetch_add(assembled.transactions.len() as u64, Ordering::Relaxed);
 
         // Pure arb evaluation is handled in handle_shredstream_entry() via
         // evaluate_pure_arb_for_pools() which scans for price discrepancies
@@ -1443,7 +1526,7 @@ async fn run_shredstream_loop(
         // Handle entries - this adds pending swaps to pool state and
         // triggers pure arb evaluation (correct for post-execution detection)
         let _all_swaps = pipeline.handle_shredstream_entry(slot, entries).await;
-        
+
         // Pure arb evaluation is handled in handle_shredstream_entry() via
         // evaluate_pure_arb_for_pools() which scans for price discrepancies.
     }
@@ -1494,14 +1577,22 @@ async fn run_geyser_loop(
 
     // Subscribe to vault accounts (for reserve updates) using PSM's vault_index
     let vault_addresses: Vec<Pubkey> = pipeline.pool_state.all_vaults();
-    
+
     // Debug: Check if target pool vaults are in subscription
     let target_vault_a = "DQyrAcCrDXQ7NeoqGgDCZwBvWDcYmFCjSb9JtteuvPpz";
     let target_vault_b = "HLmqeL62xR1QoZ1HKKbXRrdN1p3phKpxRMb2VVopvBBz";
-    let has_target_a = vault_addresses.iter().any(|v| v.to_string() == target_vault_a);
-    let has_target_b = vault_addresses.iter().any(|v| v.to_string() == target_vault_b);
+    let has_target_a = vault_addresses
+        .iter()
+        .any(|v| v.to_string() == target_vault_a);
+    let has_target_b = vault_addresses
+        .iter()
+        .any(|v| v.to_string() == target_vault_b);
     if has_target_a || has_target_b {
-        tracing::info!("TARGET POOL 58oQChx4 vaults in subscription: vault_a={}, vault_b={}", has_target_a, has_target_b);
+        tracing::info!(
+            "TARGET POOL 58oQChx4 vaults in subscription: vault_a={}, vault_b={}",
+            has_target_a,
+            has_target_b
+        );
     } else {
         tracing::warn!("TARGET POOL 58oQChx4 vaults NOT in subscription list!");
     }
@@ -1511,7 +1602,11 @@ async fn run_geyser_loop(
         tracing::info!(
             "Subscribing to {} vault accounts for real-time reserve updates (first 3: {:?})",
             vault_addresses.len(),
-            vault_addresses.iter().take(3).map(|v| v.to_string()).collect::<Vec<_>>()
+            vault_addresses
+                .iter()
+                .take(3)
+                .map(|v| v.to_string())
+                .collect::<Vec<_>>()
         );
         let stream = client.subscribe_accounts(vault_addresses).await?;
         tracing::info!("Account subscription stream created successfully");
@@ -1562,7 +1657,7 @@ async fn run_geyser_loop(
 
                                 // Track stats (no longer tracking pending swaps)
                                 pipeline.handle_geyser_transaction(tx_update.slot, success);
-                                
+
                                 // Also extract vault balance updates from transaction metadata
                                 // This supplements the account subscription which may miss some updates
                                 if success {
@@ -1742,7 +1837,7 @@ fn extract_vault_balances_from_tx(
     vault_index: &std::collections::HashMap<Pubkey, (Pubkey, bool)>,
 ) -> Vec<(Pubkey, u64)> {
     let mut updates = Vec::new();
-    
+
     let Some(confirmed_tx) = tx else {
         return updates;
     };
@@ -1755,7 +1850,7 @@ fn extract_vault_balances_from_tx(
     let Some(message) = &transaction.message else {
         return updates;
     };
-    
+
     // Build account keys list (includes loaded addresses)
     let mut account_keys: Vec<Pubkey> = message
         .account_keys
@@ -1770,7 +1865,7 @@ fn extract_vault_balances_from_tx(
             }
         })
         .collect();
-    
+
     // Add loaded writable addresses
     for addr_bytes in &meta.loaded_writable_addresses {
         if addr_bytes.len() == 32 {
@@ -1779,8 +1874,8 @@ fn extract_vault_balances_from_tx(
             account_keys.push(Pubkey::new_from_array(arr));
         }
     }
-    
-    // Add loaded readonly addresses  
+
+    // Add loaded readonly addresses
     for addr_bytes in &meta.loaded_readonly_addresses {
         if addr_bytes.len() == 32 {
             let mut arr = [0u8; 32];
@@ -1788,16 +1883,16 @@ fn extract_vault_balances_from_tx(
             account_keys.push(Pubkey::new_from_array(arr));
         }
     }
-    
+
     // Check each post_token_balance entry
     for token_balance in &meta.post_token_balances {
         let account_idx = token_balance.account_index as usize;
         if account_idx >= account_keys.len() {
             continue;
         }
-        
+
         let account_pubkey = account_keys[account_idx];
-        
+
         // Check if this is a vault we're tracking
         if vault_index.contains_key(&account_pubkey) {
             // Parse the balance from the amount string
@@ -1808,7 +1903,7 @@ fn extract_vault_balances_from_tx(
             }
         }
     }
-    
+
     updates
 }
 

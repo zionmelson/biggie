@@ -2,8 +2,8 @@
 
 ## Overview
 
-This bot executes arbitrage on Solana using **cross-pool arbitrage** with ultra-low-latency 
-state tracking via Turbine UDP and Geyser.
+This bot executes arbitrage on Solana using **cross-pool arbitrage** with
+**Geyser-first architecture** for reliable state tracking.
 
 ### Critical Understanding: What Our Data Sources Provide
 
@@ -11,28 +11,43 @@ state tracking via Turbine UDP and Geyser.
 that transaction has **already been executed and included in a block** by the leader. You cannot
 "follow" it in the same block - you can only respond in subsequent blocks.
 
-| Data Source | Timing | What It Contains | Arb Use |
-|-------------|--------|------------------|---------|
-| Turbine UDP | ~0.5-2ms after block produced | Executed transactions | **Fast state updates** |
-| ShredStream | ~5-10ms after block produced | Executed transactions | State updates (fallback) |
-| Geyser | ~5-15ms after execution | Confirmed account state | **Ground truth + arb trigger** |
+| Data Source | Timing                  | What It Contains        | Role in Bot                                  |
+| ----------- | ----------------------- | ----------------------- | -------------------------------------------- |
+| Turbine UDP | ~0.5-2ms after block    | Executed transactions   | **Activity signals only** (no state updates) |
+| ShredStream | ~5-10ms after block     | Executed transactions   | Fallback activity signals                    |
+| Geyser      | ~5-15ms after execution | Confirmed account state | **Sole source of truth + arb trigger**       |
+
+### Geyser-First Architecture
+
+**All pool state comes from Geyser.** Shreds are NOT used for state simulation because:
+
+- Parsing swap instructions is complex and varies by DEX
+- Simulating reserve changes must match on-chain math exactly
+- Edge cases (partial fills, Token-2022 fees, CLMM tick crossings) are error-prone
+- Every DEX upgrade would require parser updates
+
+Instead, shreds provide **early activity signals**:
+
+- Know ~5-10ms before Geyser that a pool had activity
+- Pre-warm tick/bin array caches
+- Track shred→Geyser latency for health monitoring
 
 ### Viable Strategies
 
-| Strategy | Requires | This Bot |
-|----------|----------|----------|
-| **Cross-Pool Arbitrage** | Price divergence between pools | ✅ Primary |
-| **Post-Swap Price Capture** | See swap → arb resulting divergence | ✅ Supported |
-| **Same-Block Following** | Mempool access / Jito pending TX stream | ❌ Not available |
-| **Sandwiching** | Mempool access | ❌ Not available |
+| Strategy                    | Requires                                | This Bot         |
+| --------------------------- | --------------------------------------- | ---------------- |
+| **Cross-Pool Arbitrage**    | Price divergence between pools          | ✅ Primary       |
+| **Post-Swap Price Capture** | See swap → arb resulting divergence     | ✅ Supported     |
+| **Same-Block Following**    | Mempool access / Jito pending TX stream | ❌ Not available |
+| **Sandwiching**             | Mempool access                          | ❌ Not available |
 
 ---
 
-## Architecture
+## Architecture (Geyser-First)
 
 ```
 ┌─────────────────────────────────────────────────────────────────────────────┐
-│                         CROSS-POOL ARBITRAGE BOT                            │
+│                   CROSS-POOL ARBITRAGE BOT (Geyser-First)                   │
 ├─────────────────────────────────────────────────────────────────────────────┤
 │                                                                             │
 │                        ┌─────────────────────┐                              │
@@ -44,25 +59,26 @@ that transaction has **already been executed and included in a block** by the le
 │                        │  Pool C: reserves   │                              │
 │                        │  ...                │                              │
 │                        │                     │                              │
-│                        │  + Price Index      │                              │
-│                        │  (pair → pools)     │                              │
+│                        │  + Pair Index       │                              │
+│                        │  + Vault Index      │                              │
 │                        └─────────────────────┘                              │
-│                           ▲             ▲                                   │
-│                           │             │                                   │
-│              ┌────────────┴──┐       ┌──┴────────────┐                      │
-│              │  FAST PATH    │       │  RELIABLE     │                      │
-│              │  (Turbine)    │       │  PATH         │                      │
-│              │  ~0.5-2ms     │       │  (Geyser)     │                      │
-│              │               │       │  ~5-15ms      │                      │
-│              │  Parse swaps  │       │  Vault        │                      │
-│              │  from shreds  │       │  balances     │                      │
-│              │  → simulate   │       │  → direct     │                      │
-│              │  new reserves │       │  state        │                      │
-│              └───────────────┘       └───────────────┘                      │
-│                     │                       │                               │
-│                     └───────┬───────────────┘                               │
-│                             │                                               │
-│                             ▼ ON ANY STATE CHANGE                           │
+│                                 ▲                                           │
+│                                 │ ONLY STATE SOURCE                         │
+│                                 │                                           │
+│  ┌──────────────────┐    ┌──────┴───────────┐                               │
+│  │  SHREDS          │    │  GEYSER          │                               │
+│  │  (signals only)  │    │  (state source)  │                               │
+│  │  ~0.5-2ms        │    │  ~5-15ms         │                               │
+│  │                  │    │                  │                               │
+│  │  • Activity hint │    │  • Vault balance │                               │
+│  │  • Latency track │    │  • CLMM state    │                               │
+│  │  • Pre-warm cache│    │  • Blockhash     │                               │
+│  │                  │    │                  │                               │
+│  │  ✗ NO state      │    │  ✓ Update state  │                               │
+│  │  ✗ NO arb eval   │    │  ✓ TRIGGER arb   │                               │
+│  └──────────────────┘    └──────────────────┘                               │
+│                                 │                                           │
+│                                 ▼ ON VAULT UPDATE                           │
 │              ┌─────────────────────────────────────┐                        │
 │              │      ARBITRAGE EVALUATOR            │                        │
 │              │                                     │                        │
@@ -103,9 +119,42 @@ that transaction has **already been executed and included in a block** by the le
 
 ## How Each Component Works
 
-### Turbine UDP: Fast State Updates
+### Geyser: Single Source of Truth (Geyser-First Architecture)
 
-Turbine provides the **fastest** way to learn about state changes:
+Geyser provides **authoritative** state updates and is the **only** source of pool state:
+
+```
+┌─────────────────────────────────────────────┐
+│              GEYSER CLIENT                  │
+│                                             │
+│  VAULT SUBSCRIPTIONS:                       │
+│  • Subscribe to token vault accounts        │
+│  • Receive balance updates directly         │
+│  • Update Pool State authoritatively        │
+│  • TRIGGER arb evaluation ← ONLY HERE       │
+│                                             │
+│  SLOT/BLOCKHASH:                            │
+│  • Track current slot for freshness         │
+│  • Get blockhash for TX building            │
+│                                             │
+│  PROGRAM SUBSCRIPTIONS:                     │
+│  • Monitor pool accounts for CLMM state     │
+│  • Track tick/bin changes                   │
+└─────────────────────────────────────────────┘
+```
+
+**Why Geyser-First?**
+
+| Concern     | Shred Simulation                                  | Geyser                   |
+| ----------- | ------------------------------------------------- | ------------------------ |
+| Accuracy    | ⚠️ Must match on-chain math exactly               | ✅ Actual vault balances |
+| Edge cases  | ⚠️ Partial fills, Token-2022 fees, tick crossings | ✅ Handled correctly     |
+| Maintenance | ⚠️ Every DEX upgrade requires parser updates      | ✅ Just account data     |
+| Complexity  | ⚠️ Parse instructions, simulate math              | ✅ Read balance directly |
+
+### Turbine/Shreds: Activity Signals Only
+
+Shreds are **not** used for state updates. They provide early signals:
 
 ```
 Block N produced by leader
@@ -118,85 +167,56 @@ Block N produced by leader
 │  2. FEC decode → assemble entries           │
 │  3. Parse transactions for DEX swaps        │
 │  4. For each swap found:                    │
-│     a. Identify pool + direction + amount   │
-│     b. Simulate impact on reserves          │
-│     c. Update Pool State immediately        │
-│     d. TRIGGER arb evaluation               │
+│     a. Emit PoolActivitySignal              │
+│     b. Record timestamp for latency metrics │
+│     c. Pre-warm tick/bin array caches       │
+│     ✗ NO state updates                      │
+│     ✗ NO arb evaluation                     │
 └─────────────────────────────────────────────┘
 ```
 
-**Why Turbine is fast but not authoritative:**
-- We're parsing TX data and simulating the result
-- Edge cases (failed TXs, complex multi-hop) may be parsed incorrectly
-- Geyser provides the true vault balances
+**What shreds provide:**
 
-### Geyser: Ground Truth State
-
-Geyser provides **authoritative** state updates:
-
-```
-┌─────────────────────────────────────────────┐
-│              GEYSER CLIENT                  │
-│                                             │
-│  VAULT SUBSCRIPTIONS:                       │
-│  • Subscribe to token vault accounts        │
-│  • Receive balance updates directly         │
-│  • Update Pool State authoritatively        │
-│  • TRIGGER arb evaluation                   │
-│                                             │
-│  SLOT/BLOCKHASH:                            │
-│  • Track current slot for freshness         │
-│  • Get blockhash for TX building            │
-│                                             │
-│  PROGRAM SUBSCRIPTIONS:                     │
-│  • Monitor pool accounts for CLMM state     │
-│  • Track tick/bin changes                   │
-└─────────────────────────────────────────────┘
-```
-
-**Why we need both Turbine AND Geyser:**
-
-| Turbine | Geyser |
-|---------|--------|
-| ⚡ Faster (~0.5-2ms) | ✅ Authoritative (direct state) |
-| ⚠️ Simulated from TX data | ✅ Actual vault balances |
-| ⚠️ Can miss edge cases | ✅ Never misses state changes |
-| 🎯 First-mover advantage | 🎯 Catches what Turbine missed |
+- **Early signal**: Know ~5-10ms before Geyser that a pool had activity
+- **Latency metrics**: Measure shred→Geyser delay for health monitoring
+- **Pre-warming**: Load tick/bin arrays before they're needed
 
 ---
 
 ## The Arbitrage Flow
 
-### Timeline: What Actually Happens
+### Timeline: What Actually Happens (Geyser-First)
 
 ```
-TIME    BLOCK   EVENT                           
+TIME    BLOCK   EVENT
 ─────────────────────────────────────────────────────────────────
-t=0     N       Large swap executes on Pool A   
+t=0     N       Large swap executes on Pool A
                 (Leader produces block - we have no visibility yet)
 
-t=1ms   N       Turbine: Shreds arrive          
-                → Parse swap: "User sold 1000 SOL on Pool A"
-                → Simulate: Pool A reserves changed
-                → Update Pool A state
-                
-t=2ms   N       Arb evaluation triggered:
+t=1ms   N       Shreds: Activity signal
+                → "Pool A had swap activity"
+                → Record timestamp for latency tracking
+                → Pre-warm tick arrays (optional)
+                → ✗ NO state update, NO arb eval
+
+t=10ms  N       Geyser: Vault balance update arrives
+                → Update Pool A reserves (authoritative)
+                → TRIGGER arb evaluation
+
+t=11ms  N       Arb evaluation:
                 "Pool A SOL cheaper than Pool B!"
                 → Calculate optimal size
                 → Profit > costs? YES
-                
-t=3ms   N       Build arb TX:
+
+t=12ms  N       Build arb TX:
                 → Flash loan USDC
                 → Buy SOL on Pool A (cheap)
-                → Sell SOL on Pool B (expensive)  
+                → Sell SOL on Pool B (expensive)
                 → Repay flash loan
                 → Keep profit
-                
-t=4ms   N       Submit to Jito (single-TX bundle with tip)
-                
-t=10ms  N       Geyser: Confirms Pool A state
-                → Verify our state was correct
-                → (If different, would trigger new eval)
+
+t=13ms  N       Submit to Jito (single-TX bundle with tip)
+                → Log shred→Geyser latency: 9ms
 
 t=400ms N+1     Our arb TX included in next block
                 (if we won the Jito auction)
@@ -209,7 +229,7 @@ t=401ms N+1     Profit realized 🎯
 Even though we can't frontrun/follow within the same block:
 
 1. **First to see price divergence** → Submit arb TX before competitors
-2. **More accurate state** → Better sizing, fewer reverts  
+2. **More accurate state** → Better sizing, fewer reverts
 3. **React to large swaps** → Capture price impact before others
 
 The 5-8ms advantage of Turbine over ShredStream can mean winning vs losing the Jito auction.
@@ -236,6 +256,7 @@ Arb TX (atomic, single transaction):
 ```
 
 **When opportunities arise:**
+
 - Large swap moves one pool's price
 - New liquidity added to a pool
 - Market volatility creates temporary divergence
@@ -253,7 +274,7 @@ Pool C: SOL/USDC
 Arb route:
   1. Flash loan SOL
   2. SOL → BONK on Pool A
-  3. BONK → USDC on Pool B  
+  3. BONK → USDC on Pool B
   4. USDC → SOL on Pool C
   5. Repay flash loan, keep profit
 ```
@@ -261,11 +282,13 @@ Arb route:
 ### What We DON'T Do
 
 **Same-Block Following** ❌
+
 - Would require seeing trigger TX in mempool before execution
 - We only see TXs after they're in a block
 - Jito's pending TX stream could enable this (future enhancement)
 
 **Sandwiching** ❌
+
 - Requires frontrunning (mempool access)
 - Not possible with our infrastructure
 
@@ -273,13 +296,13 @@ Arb route:
 
 ## Supported DEXes
 
-| DEX              | Program ID                                     | Pool Type |
-| ---------------- | ---------------------------------------------- | --------- |
-| Raydium AMM      | `675kPX9MHTjS2zt1qfr1NYHuzeLXfQM9H24wFSUt1Mp8` | Constant Product |
+| DEX              | Program ID                                     | Pool Type              |
+| ---------------- | ---------------------------------------------- | ---------------------- |
+| Raydium AMM      | `675kPX9MHTjS2zt1qfr1NYHuzeLXfQM9H24wFSUt1Mp8` | Constant Product       |
 | Raydium CLMM     | `CAMMCzo5YL8w4VFF8KVHrK22GGUsp5VTaW7grrKgrWqK` | Concentrated Liquidity |
 | Orca Whirlpool   | `whirLbMiicVdio4qvUfM5KAg6Ct8VwpYzGff3uctyCc`  | Concentrated Liquidity |
-| Meteora DLMM     | `LBUZKhRxPF3XUpBCjp4YzTKgLccjZhTSDM9YuVaPwxo`  | Dynamic Liquidity |
-| Meteora DAMM v2  | `cpamdpZCGKUy5JxQXB4dcpGPiikHawvSWAd6mEn1sGG`  | Constant Product |
+| Meteora DLMM     | `LBUZKhRxPF3XUpBCjp4YzTKgLccjZhTSDM9YuVaPwxo`  | Dynamic Liquidity      |
+| Meteora DAMM v2  | `cpamdpZCGKUy5JxQXB4dcpGPiikHawvSWAd6mEn1sGG`  | Constant Product       |
 | PancakeSwap CLMM | `HpNfyc2Saw7RKkQd8nEL4khUcuPhQ7WwY1B2qjx8jxFq` | Concentrated Liquidity |
 
 ---
@@ -288,14 +311,14 @@ Arb route:
 
 We use Solend flash loans for capital-free arbitrage:
 
-| Component     | Value                                          |
-| ------------- | ---------------------------------------------- |
-| Program ID    | `So1endDq2YkqhipRh3WViPa8hdiSpxWy6z3Z6tMCpAo`  |
-| Borrow IX     | `FlashBorrowReserveLiquidity` (instruction 19) |
-| Repay IX      | `FlashRepayReserveLiquidity` (instruction 20)  |
-| Fee           | 0.3% (30 basis points)                         |
+| Component  | Value                                          |
+| ---------- | ---------------------------------------------- |
+| Program ID | `So1endDq2YkqhipRh3WViPa8hdiSpxWy6z3Z6tMCpAo`  |
+| Borrow IX  | `FlashBorrowReserveLiquidity` (instruction 19) |
+| Repay IX   | `FlashRepayReserveLiquidity` (instruction 20)  |
+| Fee        | 0.3% (30 basis points)                         |
 
-**Atomic execution:** Borrow and repay happen in the same TX. If the arb fails 
+**Atomic execution:** Borrow and repay happen in the same TX. If the arb fails
 to generate enough to repay, the entire TX reverts - no capital at risk.
 
 ---
@@ -409,29 +432,29 @@ The `PoolStateManager` is the single source of truth for all pool reserves:
 TURBINE[pkts=X shreds=X entries=X swaps=X] GEYSER[vaults=X slots=X] ARB[scans=X opps=X submitted=X won=X] profit=X.XX SOL
 ```
 
-| Stat | Description |
-|------|-------------|
-| `turbine_pkts` | UDP packets received |
-| `turbine_swaps` | Swaps parsed from shreds |
-| `geyser_vaults` | Vault balance updates |
-| `arb_scans` | Arb evaluations triggered |
-| `arb_opps` | Profitable opportunities found |
-| `submitted` | Bundles submitted to Jito |
-| `won` | Bundles successfully landed |
-| `profit` | Total profit in SOL |
+| Stat            | Description                    |
+| --------------- | ------------------------------ |
+| `turbine_pkts`  | UDP packets received           |
+| `turbine_swaps` | Swaps parsed from shreds       |
+| `geyser_vaults` | Vault balance updates          |
+| `arb_scans`     | Arb evaluations triggered      |
+| `arb_opps`      | Profitable opportunities found |
+| `submitted`     | Bundles submitted to Jito      |
+| `won`           | Bundles successfully landed    |
+| `profit`        | Total profit in SOL            |
 
 ---
 
 ## Risks & Mitigations
 
-| Risk | Mitigation |
-|------|------------|
-| Stale state (arb gone) | Submit fast, Jito simulation catches reverts |
-| Competing searchers | Faster state updates (Turbine), competitive tips |
-| Flash loan unavailable | Skip opportunity, try different anchor |
-| TX simulation fails | Jito rejects upfront, no wasted gas |
-| Network latency | Local validator, multi-region submission |
-| Pool math errors | Conservative sizing, CLMM tick simulation |
+| Risk                   | Mitigation                                       |
+| ---------------------- | ------------------------------------------------ |
+| Stale state (arb gone) | Submit fast, Jito simulation catches reverts     |
+| Competing searchers    | Faster state updates (Turbine), competitive tips |
+| Flash loan unavailable | Skip opportunity, try different anchor           |
+| TX simulation fails    | Jito rejects upfront, no wasted gas              |
+| Network latency        | Local validator, multi-region submission         |
+| Pool math errors       | Conservative sizing, CLMM tick simulation        |
 
 ---
 
@@ -466,18 +489,22 @@ cargo build --release
 ## Future Enhancements
 
 ### Same-Block Following (Requires Jito Searcher Access)
+
 If we integrate with Jito's pending transaction stream:
+
 1. Subscribe to `SubscribePendingTransactions`
 2. See trigger TXs before they're included
 3. Bundle `[trigger_tx, arb_tx]` for same-block execution
 4. True followning becomes possible
 
 ### Liquidation Arbitrage
+
 Monitor lending protocols for underwater positions:
+
 1. Subscribe to lending protocol accounts via Geyser
 2. Calculate health factors in real-time
 3. Submit liquidation TX when position becomes unhealthy
 
 ---
 
-*Last Updated: December 27, 2025*
+_Last Updated: December 27, 2025_
