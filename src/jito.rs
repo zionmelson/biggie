@@ -16,6 +16,10 @@ use tonic::transport::{Channel, ClientTlsConfig, Endpoint};
 use tonic::Request;
 use rustls::RootCertStore;
 
+use crate::constants::{
+    JITO_TOKEN_REFRESH_BUFFER_SECS, JITO_GRPC_TIMEOUT_SECS, JITO_CONNECT_TIMEOUT_SECS,
+};
+
 /// Extracts the instruction index from a simulation failure message.
 /// Format: "Error processing Instruction N: ..."
 fn extract_instruction_index(msg: &str) -> Option<usize> {
@@ -121,16 +125,16 @@ struct AuthToken {
 
 impl AuthToken {
     fn is_access_expired(&self) -> bool {
-        // Refresh 30 seconds before actual expiry
+        // Refresh before actual expiry using configured buffer
         self.access_expires
             .saturating_duration_since(Instant::now())
-            < Duration::from_secs(30)
+            < Duration::from_secs(JITO_TOKEN_REFRESH_BUFFER_SECS)
     }
 
     fn is_refresh_expired(&self) -> bool {
         self.refresh_expires
             .saturating_duration_since(Instant::now())
-            < Duration::from_secs(30)
+            < Duration::from_secs(JITO_TOKEN_REFRESH_BUFFER_SECS)
     }
 }
 
@@ -170,8 +174,8 @@ impl JitoClient {
     /// Creates a gRPC channel with TLS configuration.
     async fn create_channel(config: &JitoConfig) -> Result<Channel> {
         let mut endpoint = Endpoint::from_shared(config.endpoint.clone())?
-            .timeout(Duration::from_secs(30))
-            .connect_timeout(Duration::from_secs(10));
+            .timeout(Duration::from_secs(JITO_GRPC_TIMEOUT_SECS))
+            .connect_timeout(Duration::from_secs(JITO_CONNECT_TIMEOUT_SECS));
 
         // Configure TLS with proper root certificates
         let tls_config = if let Some(ca_path) = &config.ca_pem {

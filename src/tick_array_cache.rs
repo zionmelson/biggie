@@ -10,7 +10,8 @@
 //! - DynamicTickArray: New variable-size format with bitmap and borsh-encoded ticks
 
 use solana_sdk::pubkey::Pubkey;
-use std::collections::HashMap;
+// Use FxHashMap for faster lookups in hot paths
+use rustc_hash::FxHashMap as HashMap;
 use std::sync::atomic::{AtomicU64, Ordering};
 use std::sync::RwLock;
 
@@ -340,9 +341,9 @@ pub struct TickArrayCache {
 impl TickArrayCache {
     pub fn new() -> Self {
         Self {
-            arrays: RwLock::new(HashMap::new()),
-            pool_arrays: RwLock::new(HashMap::new()),
-            registrations: RwLock::new(HashMap::new()),
+            arrays: RwLock::new(HashMap::default()),
+            pool_arrays: RwLock::new(HashMap::default()),
+            registrations: RwLock::new(HashMap::default()),
             arrays_cached: AtomicU64::new(0),
             updates_received: AtomicU64::new(0),
             ticks_cached: AtomicU64::new(0),

@@ -18,22 +18,24 @@
 
 use super::programs::DexType;
 use crate::amm_math::{find_optimal_pure_arb_unified_with_fees, PoolSimulator};
-use crate::constants::{MIN_PROFIT_LAMPORTS};
+use crate::constants::{MIN_PROFIT_LAMPORTS, MIN_TRADE_LAMPORTS, DEFAULT_SLIPPAGE_BPS};
 use crate::pool_state::PoolStateManager;
 use solana_sdk::pubkey::Pubkey;
 use std::sync::Arc;
 use std::time::Instant;
 
-/// Minimum trade size in lamports to consider for arb
+// Re-export from constants for backward compatibility and documentation
 /// Minimum trade size in base units (lamports for SOL-based arbs)
 /// Note: All amounts in this module are in "base units" - the smallest denomination
 /// of each token (e.g., lamports for SOL with 9 decimals, micro-units for USDC with 6 decimals).
 /// The simulation handles decimals implicitly through reserve ratios.
-const MIN_TRADE_LAMPORTS: u64 = 1_000_000; // 0.001 SOL
+#[allow(dead_code)]
+const MIN_TRADE: u64 = MIN_TRADE_LAMPORTS;
 
 /// Default slippage tolerance in basis points for swap simulation
 /// This is the ONLY slippage buffer applied - no additional multipliers.
-const DEFAULT_SLIPPAGE_BPS: u16 = 100; // 1%
+/// Cast to u16 for compatibility with simulation functions.
+const SLIPPAGE_BPS: u16 = DEFAULT_SLIPPAGE_BPS as u16;
 
 /// A pure arbitrage opportunity detected from price divergence between pools
 #[derive(Debug, Clone)]
@@ -424,7 +426,7 @@ impl ArbEvaluator {
                     max_trade,
                     30,  // flash_fee_bps: 0.3%
                     borrow_is_base,
-                    DEFAULT_SLIPPAGE_BPS,
+                    SLIPPAGE_BPS,
                     transfer_fee_base_bps,
                     transfer_fee_quote_bps,
                 )

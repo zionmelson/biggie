@@ -23,5 +23,14 @@ echo "=== Starting bot pinned to CPUs 4-11 ==="
 
 cd /home/ubuntu/biggie
 
+# Build with native CPU optimizations if not already built
+if [ ! -f "./target/release/tre-arb-bot" ] || [ "$1" == "--build" ]; then
+    echo "Building with native CPU optimizations..."
+    RUSTFLAGS="-C target-cpu=native" cargo build --release
+fi
+
+# Enable jemalloc transparent huge pages for better memory performance
+export MALLOC_CONF="thp:always,metadata_thp:always"
+
 # Run with CPU pinning and real-time priority (if available)
 exec taskset -c 4-11 nice -n -20 ./target/release/tre-arb-bot --config ./config.json "$@"

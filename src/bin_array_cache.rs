@@ -6,7 +6,8 @@
 //! With 1.5TB RAM available, we can cache bin arrays for all active pools.
 
 use solana_sdk::pubkey::Pubkey;
-use std::collections::HashMap;
+// Use FxHashMap for faster lookups in hot paths
+use rustc_hash::FxHashMap as HashMap;
 use std::sync::atomic::{AtomicU64, Ordering};
 use std::sync::RwLock;
 
@@ -147,9 +148,9 @@ pub struct BinArrayCache {
 impl BinArrayCache {
     pub fn new() -> Self {
         Self {
-            arrays: RwLock::new(HashMap::new()),
-            pool_arrays: RwLock::new(HashMap::new()),
-            registrations: RwLock::new(HashMap::new()),
+            arrays: RwLock::new(HashMap::default()),
+            pool_arrays: RwLock::new(HashMap::default()),
+            registrations: RwLock::new(HashMap::default()),
             arrays_cached: AtomicU64::new(0),
             updates_received: AtomicU64::new(0),
             bins_cached: AtomicU64::new(0),

@@ -8,7 +8,8 @@
 //!
 //! IMPORTANT: Solana entries are serialized with `wincode`, not `bincode`!
 
-use std::collections::HashMap;
+// Use FxHashMap for faster lookups in hot paths
+use rustc_hash::FxHashMap as HashMap;
 use std::time::{Duration, Instant};
 use tokio::sync::mpsc;
 use tracing::{debug, warn, trace, error, info};
@@ -75,7 +76,7 @@ impl SlotBuffer {
     fn new(slot: u64) -> Self {
         Self {
             slot,
-            fec_sets: HashMap::new(),
+            fec_sets: HashMap::default(),
             parse_cursor: 0,
             accumulated_data: Vec::with_capacity(512 * 1024), // 512KB typical slot
             last_update: Instant::now(),
@@ -256,7 +257,7 @@ impl EntryAssembler {
     pub fn new(output_tx: mpsc::Sender<AssembledEntries>) -> Self {
         Self {
             output_tx,
-            slot_buffers: HashMap::new(),
+            slot_buffers: HashMap::default(),
             stats: EntryAssemblerStats::default(),
             max_slot_age: Duration::from_secs(5),
         }

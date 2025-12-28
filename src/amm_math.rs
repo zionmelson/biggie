@@ -90,6 +90,7 @@ impl SpotPrice {
 
 /// Constant product AMM: x * y = k
 /// Returns (output_amount, price_impact_bps)
+#[inline]
 fn calculate_constant_product(
     input_amount: u64,
     input_reserve: u64,

@@ -182,41 +182,90 @@ pub struct ArbConfig {
     /// Minimum expected profit in lamports to submit a bundle
     #[serde(default = "default_min_profit")]
     pub min_profit_lamports: u64,
+    /// Minimum trade size in lamports (0.001 SOL default)
+    #[serde(default = "default_min_trade")]
+    pub min_trade_lamports: u64,
     /// Compute units to request per transaction
     #[serde(default = "default_compute_units")]
     pub compute_units: u32,
     /// Compute unit price in micro-lamports
     #[serde(default = "default_compute_price")]
     pub compute_unit_price: u64,
+    /// Base tip in lamports (minimum tip regardless of profit)
+    #[serde(default = "default_base_tip")]
+    pub base_tip_lamports: u64,
     /// Tip as percentage of profit (in bps, e.g., 5000 = 50%)
     #[serde(default = "default_tip_share")]
     pub tip_profit_share_bps: u64,
+    /// Maximum tip as percentage of profit (in bps, e.g., 8000 = 80%)
+    #[serde(default = "default_max_tip_share")]
+    pub max_tip_profit_bps: u64,
+    /// Slippage tolerance in basis points (e.g., 100 = 1%)
+    #[serde(default = "default_slippage_bps")]
+    pub slippage_bps: u64,
+    /// Multiplier over tip floor for competitive bidding (e.g., 2.0 = 2x floor)
+    #[serde(default = "default_tip_floor_multiplier")]
+    pub tip_floor_multiplier: f64,
+    /// Bundle submission timeout in seconds
+    #[serde(default = "default_submission_timeout_secs")]
+    pub submission_timeout_secs: u64,
+    /// Minimum interval between bundle submissions in milliseconds
+    #[serde(default = "default_min_submission_interval_ms")]
+    pub min_submission_interval_ms: u64,
 }
 
 fn default_true() -> bool {
     true
 }
 fn default_min_profit() -> u64 {
-    50_000
-} // 0.00005 SOL
+    50_000 // 0.00005 SOL
+}
+fn default_min_trade() -> u64 {
+    1_000_000 // 0.001 SOL (1M lamports)
+}
 fn default_compute_units() -> u32 {
     400_000
 }
 fn default_compute_price() -> u64 {
-    1000
+    1_000 // micro-lamports
+}
+fn default_base_tip() -> u64 {
+    10_000 // 0.00001 SOL
 }
 fn default_tip_share() -> u64 {
-    5000
-} // 50%
+    5_000 // 50%
+}
+fn default_max_tip_share() -> u64 {
+    8_000 // 80% max
+}
+fn default_slippage_bps() -> u64 {
+    100 // 1%
+}
+fn default_tip_floor_multiplier() -> f64 {
+    2.0 // 2x the tip floor
+}
+fn default_submission_timeout_secs() -> u64 {
+    5
+}
+fn default_min_submission_interval_ms() -> u64 {
+    200
+}
 
 impl Default for ArbConfig {
     fn default() -> Self {
         Self {
             arb_enabled: true,
             min_profit_lamports: default_min_profit(),
+            min_trade_lamports: default_min_trade(),
             compute_units: default_compute_units(),
             compute_unit_price: default_compute_price(),
+            base_tip_lamports: default_base_tip(),
             tip_profit_share_bps: default_tip_share(),
+            max_tip_profit_bps: default_max_tip_share(),
+            slippage_bps: default_slippage_bps(),
+            tip_floor_multiplier: default_tip_floor_multiplier(),
+            submission_timeout_secs: default_submission_timeout_secs(),
+            min_submission_interval_ms: default_min_submission_interval_ms(),
         }
     }
 }

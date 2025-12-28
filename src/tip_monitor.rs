@@ -11,6 +11,11 @@ use std::sync::Arc;
 use std::time::{Duration, Instant};
 use tokio::sync::RwLock;
 
+use crate::constants::{
+    DEFAULT_TIP_P50_LAMPORTS, DEFAULT_TIP_P75_LAMPORTS, DEFAULT_TIP_P95_LAMPORTS,
+    DEFAULT_TIP_P99_LAMPORTS, TIP_FLOOR_STALE_SECS, TIP_FLOOR_POLL_SECS,
+};
+
 /// Default tip floor endpoint
 pub const DEFAULT_TIP_FLOOR_URL: &str = "https://bundles.jito.wtf/api/v1/bundles/tip_floor";
 
@@ -88,13 +93,13 @@ impl Default for TipFloorCache {
 
 impl TipFloorCache {
     pub fn new() -> Self {
-        // Initialize with sensible defaults (1000 lamports minimum)
+        // Initialize with sensible defaults from constants
         Self {
-            p50_lamports: AtomicU64::new(1_000),
-            p75_lamports: AtomicU64::new(2_500),
-            p95_lamports: AtomicU64::new(5_000),
-            p99_lamports: AtomicU64::new(150_000),
-            ema_lamports: AtomicU64::new(2_500),
+            p50_lamports: AtomicU64::new(DEFAULT_TIP_P50_LAMPORTS),
+            p75_lamports: AtomicU64::new(DEFAULT_TIP_P75_LAMPORTS),
+            p95_lamports: AtomicU64::new(DEFAULT_TIP_P95_LAMPORTS),
+            p99_lamports: AtomicU64::new(DEFAULT_TIP_P99_LAMPORTS),
+            ema_lamports: AtomicU64::new(DEFAULT_TIP_P75_LAMPORTS), // Use P75 as EMA default
             last_update: RwLock::new(Instant::now()),
             update_count: AtomicU64::new(0),
         }
@@ -136,9 +141,9 @@ impl TipFloorCache {
         self.ema_lamports.load(Ordering::Relaxed)
     }
     
-    /// Check if cache data is stale (older than 30 seconds)
+    /// Check if cache data is stale (older than configured threshold)
     pub async fn is_stale(&self) -> bool {
-        self.last_update.read().await.elapsed() > Duration::from_secs(30)
+        self.last_update.read().await.elapsed() > Duration::from_secs(TIP_FLOOR_STALE_SECS)
     }
     
     /// Get update count for monitoring
@@ -159,7 +164,7 @@ impl TipFloorMonitor {
         Self {
             cache: Arc::new(TipFloorCache::new()),
             endpoint: endpoint.unwrap_or_else(|| DEFAULT_TIP_FLOOR_URL.to_string()),
-            poll_interval: Duration::from_secs(5),
+            poll_interval: Duration::from_secs(TIP_FLOOR_POLL_SECS),
         }
     }
     

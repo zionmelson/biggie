@@ -8,6 +8,8 @@ license = "Apache-2.0"
 repository = "https://github.com/ye/tre"
 
 [dependencies]
+# Use jemalloc for better allocation performance
+tikv-jemallocator = "0.6"
 anyhow = "1"
 bytes = "1"
 futures = "0.3"
@@ -64,6 +66,8 @@ regex = "1.12.2"
 libc = "0.2.178"
 socket2 = "0.5"
 reed-solomon-erasure = { version = "6.0", features = ["simd-accel"] }
+# Fast hasher for internal HashMaps (not exposed to untrusted input)
+rustc-hash = "2.0"
 
 [build-dependencies]
 prost-build = "0.13"

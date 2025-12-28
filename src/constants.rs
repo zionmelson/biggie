@@ -108,6 +108,61 @@ pub const PANCAKE_CLMM_MAX_SQRT_PRICE: u128 = 79226673515401279992447579055;
 /// Set higher to avoid wasting bundles on unprofitable opportunities
 pub const MIN_PROFIT_LAMPORTS: u64 = 25_000; // 0.000025 SOL - covers P75 tip + keeper
 
+/// Minimum trade size in lamports (0.001 SOL)
+/// Trades smaller than this are not worth the compute/tip overhead
+pub const MIN_TRADE_LAMPORTS: u64 = 1_000_000;
+
+// =============================================================================
+// BUNDLE BUILDER DEFAULTS
+// =============================================================================
+
+/// Default compute units to request per arb transaction
+pub const DEFAULT_COMPUTE_UNITS: u32 = 400_000;
+/// Default compute unit price in micro-lamports
+pub const DEFAULT_COMPUTE_UNIT_PRICE: u64 = 1_000;
+/// Default base tip in lamports (minimum tip regardless of profit)
+pub const DEFAULT_BASE_TIP_LAMPORTS: u64 = 10_000;
+/// Default tip as percentage of profit (50% = 5000 bps)
+pub const DEFAULT_TIP_PROFIT_SHARE_BPS: u64 = 5_000;
+/// Default max tip as percentage of profit (80% = 8000 bps)
+pub const DEFAULT_MAX_TIP_PROFIT_BPS: u64 = 8_000;
+/// Default slippage tolerance (1% = 100 bps)
+pub const DEFAULT_SLIPPAGE_BPS: u64 = 100;
+/// Default multiplier over tip floor for competitive bidding
+pub const DEFAULT_TIP_FLOOR_MULTIPLIER: f64 = 2.0;
+/// Default bundle submission timeout in seconds
+pub const DEFAULT_SUBMISSION_TIMEOUT_SECS: u64 = 5;
+/// Default minimum interval between submissions in milliseconds
+pub const DEFAULT_MIN_SUBMISSION_INTERVAL_MS: u64 = 200;
+
+// =============================================================================
+// TIP FLOOR MONITOR DEFAULTS
+// =============================================================================
+
+/// Default P50 tip floor in lamports (fallback before first API fetch)
+pub const DEFAULT_TIP_P50_LAMPORTS: u64 = 1_000;
+/// Default P75 tip floor in lamports
+pub const DEFAULT_TIP_P75_LAMPORTS: u64 = 2_500;
+/// Default P95 tip floor in lamports
+pub const DEFAULT_TIP_P95_LAMPORTS: u64 = 5_000;
+/// Default P99 tip floor in lamports
+pub const DEFAULT_TIP_P99_LAMPORTS: u64 = 150_000;
+/// Tip floor cache staleness threshold in seconds
+pub const TIP_FLOOR_STALE_SECS: u64 = 30;
+/// Tip floor polling interval in seconds
+pub const TIP_FLOOR_POLL_SECS: u64 = 5;
+
+// =============================================================================
+// JITO CLIENT TIMEOUTS
+// =============================================================================
+
+/// Token refresh buffer - refresh tokens this many seconds before expiry
+pub const JITO_TOKEN_REFRESH_BUFFER_SECS: u64 = 30;
+/// gRPC request timeout in seconds
+pub const JITO_GRPC_TIMEOUT_SECS: u64 = 30;
+/// gRPC connection timeout in seconds
+pub const JITO_CONNECT_TIMEOUT_SECS: u64 = 10;
+
 // =============================================================================
 // FEE CALCULATION HELPERS
 // =============================================================================

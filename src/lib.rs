@@ -34,3 +34,14 @@ pub mod multi_region;
 // Receives shreds directly from validator's TVU broadcast (~0.5-2ms latency)
 // Note: Shreds are POST-EXECUTION data, not pending transactions
 pub mod turbine;
+
+// =============================================================================
+// FAST HASH MAP RE-EXPORTS
+// =============================================================================
+// Use FxHashMap/FxHashSet for internal data structures where DoS resistance
+// is not needed. ~2-6x faster than std HashMap for integer keys (like Pubkey).
+
+/// Fast HashMap using FxHash - use for internal data structures
+pub use rustc_hash::FxHashMap;
+/// Fast HashSet using FxHash - use for internal data structures
+pub use rustc_hash::FxHashSet;

@@ -13,9 +13,16 @@
     "arb": {
       "arb_enabled": true,
       "min_profit_lamports": 50000,
+      "min_trade_lamports": 1000000,
       "compute_units": 400000,
       "compute_unit_price": 1000,
-      "tip_profit_share_bps": 5000
+      "base_tip_lamports": 10000,
+      "tip_profit_share_bps": 5000,
+      "max_tip_profit_bps": 8000,
+      "slippage_bps": 100,
+      "tip_floor_multiplier": 2.0,
+      "submission_timeout_secs": 5,
+      "min_submission_interval_ms": 200
     }
   },
   "geyser": {

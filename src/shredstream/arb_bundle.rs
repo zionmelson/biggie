@@ -21,6 +21,10 @@ use crate::constants::{
     ORCA_MIN_SQRT_PRICE, ORCA_MAX_SQRT_PRICE,
     RAYDIUM_CLMM_MIN_SQRT_PRICE, RAYDIUM_CLMM_MAX_SQRT_PRICE,
     PANCAKE_CLMM_MIN_SQRT_PRICE, PANCAKE_CLMM_MAX_SQRT_PRICE,
+    // Bundle builder defaults
+    DEFAULT_COMPUTE_UNITS, DEFAULT_COMPUTE_UNIT_PRICE, DEFAULT_BASE_TIP_LAMPORTS,
+    DEFAULT_TIP_PROFIT_SHARE_BPS, DEFAULT_MAX_TIP_PROFIT_BPS, DEFAULT_SLIPPAGE_BPS,
+    DEFAULT_TIP_FLOOR_MULTIPLIER,
 };
 use crate::executor::FlashLoanReserve;
 use crate::jito::random_tip_account;
@@ -38,7 +42,8 @@ use solana_sdk::pubkey::Pubkey;
 use solana_sdk::signature::{Keypair, Signer};
 use solana_sdk::transaction::VersionedTransaction;
 use solana_system_interface::instruction as system_instruction;
-use std::collections::HashMap;
+// Use FxHashMap for faster lookups
+use rustc_hash::FxHashMap as HashMap;
 use std::sync::Arc;
 
 /// An arbitrage bundle ready for Jito submission (single TX)
@@ -85,13 +90,13 @@ pub struct BundleBuilderConfig {
 impl Default for BundleBuilderConfig {
     fn default() -> Self {
         Self {
-            compute_units: 400_000,
-            compute_unit_price: 1000,
-            base_tip_lamports: 1_000,
-            tip_profit_share_bps: 5000,
-            max_tip_profit_bps: 5000,
-            slippage_bps: 50,
-            tip_floor_multiplier: 1.3,
+            compute_units: DEFAULT_COMPUTE_UNITS,
+            compute_unit_price: DEFAULT_COMPUTE_UNIT_PRICE,
+            base_tip_lamports: DEFAULT_BASE_TIP_LAMPORTS,
+            tip_profit_share_bps: DEFAULT_TIP_PROFIT_SHARE_BPS,
+            max_tip_profit_bps: DEFAULT_MAX_TIP_PROFIT_BPS,
+            slippage_bps: DEFAULT_SLIPPAGE_BPS,
+            tip_floor_multiplier: DEFAULT_TIP_FLOOR_MULTIPLIER,
         }
     }
 }

@@ -59,6 +59,7 @@ pub const FEE_RATE_DENOMINATOR: u32 = 1_000_000;
 /// Uses integer-only binary exponentiation with precomputed magic constants.
 /// Each magic factor is `2^64 / (1.0001^(2^(i-1)))` for i in [0, 18).
 /// This matches the official Raydium implementation exactly.
+#[inline]
 pub fn get_sqrt_price_at_tick(tick: i32) -> Option<u128> {
     if tick < MIN_TICK || tick > MAX_TICK {
         return None;
@@ -161,6 +162,7 @@ pub fn get_sqrt_price_at_tick(tick: i32) -> Option<u128> {
 ///
 /// Uses iterative log2 approximation matching the official implementation.
 /// This is O(1) compared to O(log n) binary search.
+#[inline]
 pub fn get_tick_at_sqrt_price(sqrt_price_x64: u128) -> Option<i32> {
     if sqrt_price_x64 < MIN_SQRT_PRICE_X64 || sqrt_price_x64 >= MAX_SQRT_PRICE_X64 {
         return None;

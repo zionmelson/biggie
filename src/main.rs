@@ -3,11 +3,16 @@
 //! Uses Turbine UDP for fast shred reception and Geyser for authoritative state.
 //! Both sources work together via PoolStateManager for cross-pool arbitrage.
 
+// Use jemalloc for better allocation performance in latency-sensitive code
+#[global_allocator]
+static GLOBAL: tikv_jemallocator::Jemalloc = tikv_jemallocator::Jemalloc;
+
 use clap::Parser;
 use solana_client::nonblocking::rpc_client::RpcClient;
 use solana_sdk::pubkey::Pubkey;
 use solana_sdk::signature::Signer;
-use std::collections::HashMap;
+// Use FxHashMap for faster lookups
+use rustc_hash::FxHashMap as HashMap;
 use std::path::PathBuf;
 use std::str::FromStr;
 use std::sync::Arc;
@@ -130,14 +135,14 @@ async fn run_arb_pipeline(config: Config) -> Result<(), Box<dyn std::error::Erro
         bundle_config: BundleBuilderConfig {
             compute_units: arb_config.compute_units,
             compute_unit_price: arb_config.compute_unit_price,
-            base_tip_lamports: 10_000,
+            base_tip_lamports: arb_config.base_tip_lamports,
             tip_profit_share_bps: arb_config.tip_profit_share_bps,
-            max_tip_profit_bps: 8000,
-            slippage_bps: 100,
-            tip_floor_multiplier: 2.0,
+            max_tip_profit_bps: arb_config.max_tip_profit_bps,
+            slippage_bps: arb_config.slippage_bps,
+            tip_floor_multiplier: arb_config.tip_floor_multiplier,
         },
-        submission_timeout: Duration::from_secs(5),
-        min_submission_interval: Duration::from_millis(200),
+        submission_timeout: Duration::from_secs(arb_config.submission_timeout_secs),
+        min_submission_interval: Duration::from_millis(arb_config.min_submission_interval_ms),
     };
 
     // Load static pools file if configured (enables zero-RPC runtime)
@@ -211,7 +216,7 @@ async fn run_arb_pipeline(config: Config) -> Result<(), Box<dyn std::error::Erro
 fn build_flash_loan_reserves(
     config: &Config,
 ) -> Result<HashMap<Pubkey, FlashLoanReserve>, Box<dyn std::error::Error>> {
-    let mut reserves = HashMap::new();
+    let mut reserves = HashMap::default();
     for loan in config.solend_flash_loans.values() {
         let mint = Pubkey::from_str(&loan.reserve_liquidity_mint)?;
         reserves.insert(

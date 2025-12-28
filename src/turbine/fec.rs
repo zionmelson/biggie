@@ -3,7 +3,8 @@
 //! Collects shreds belonging to the same FEC set and reconstructs missing
 //! data shreds using erasure coding when enough shreds are available.
 
-use std::collections::{HashMap, HashSet};
+// Use FxHashMap/FxHashSet for faster lookups in hot paths
+use rustc_hash::{FxHashMap as HashMap, FxHashSet as HashSet};
 use std::time::{Duration, Instant};
 use tokio::sync::mpsc;
 use tracing::{debug, warn, trace};
@@ -69,8 +70,9 @@ impl FecSet {
     pub fn new(id: ErasureSetId) -> Self {
         Self {
             id,
-            data_shreds: HashMap::with_capacity(DATA_SHREDS_PER_FEC_BLOCK),
-            coding_shreds: HashMap::with_capacity(CODING_SHREDS_PER_FEC_BLOCK),
+            // FxHashMap will grow as needed - initial capacity not critical for small sets
+            data_shreds: HashMap::default(),
+            coding_shreds: HashMap::default(),
             num_data_shreds: None,
             num_coding_shreds: None,
             is_last_in_slot: false,
@@ -449,8 +451,9 @@ pub struct FecAssemblerStats {
 impl FecSetAssembler {
     pub fn new(completed_tx: mpsc::Sender<CompleteFecSet>, config: FecAssemblerConfig) -> Self {
         Self {
-            fec_sets: HashMap::with_capacity(config.max_slots * config.max_fec_sets_per_slot),
-            completed_ids: HashSet::with_capacity(config.max_slots * config.max_fec_sets_per_slot),
+            // FxHashMap will grow efficiently - preallocating not critical
+            fec_sets: HashMap::default(),
+            completed_ids: HashSet::default(),
             completed_min_slot: 0,
             completed_tx,
             config,

@@ -65,7 +65,8 @@ use crate::shredstream::programs::DexType;
 use crate::tick_array_cache::{ClmmPoolType, TickArrayCache};
 use parking_lot::RwLock;
 use solana_sdk::pubkey::Pubkey;
-use std::collections::HashMap;
+// Use FxHashMap for faster lookups - Pubkey hashing is a hot path
+use rustc_hash::FxHashMap as HashMap;
 use std::sync::Arc;
 use std::time::{Duration, Instant};
 
@@ -390,9 +391,9 @@ pub struct PoolStateStats {
 impl PoolStateManager {
     pub fn new() -> Self {
         Self {
-            pools: RwLock::new(HashMap::new()),
-            pair_index: RwLock::new(HashMap::new()),
-            vault_index: RwLock::new(HashMap::new()),
+            pools: RwLock::new(HashMap::default()),
+            pair_index: RwLock::new(HashMap::default()),
+            vault_index: RwLock::new(HashMap::default()),
             stats: RwLock::new(PoolStateStats::default()),
             tick_cache: Arc::new(TickArrayCache::new()),
             bin_cache: Arc::new(BinArrayCache::new()),
