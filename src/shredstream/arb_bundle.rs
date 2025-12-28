@@ -695,19 +695,22 @@ impl ArbBundleBuilder {
             .pool_authority
             .ok_or_else(|| anyhow!("Meteora DAMM requires pool_authority"))?;
 
+        // Determine swap direction: A->B or B->A
+        // Official SwapCtx expects: token_a_vault, token_b_vault, token_a_mint, token_b_mint
+        // in that fixed order (NOT based on direction), but token programs must match
         let accounts = vec![
-            AccountMeta::new_readonly(pool_authority, false),
-            AccountMeta::new(leg.pool, false),
-            AccountMeta::new(input_ata, false),
-            AccountMeta::new(output_ata, false),
-            AccountMeta::new(state.token_vault_a, false),
-            AccountMeta::new(state.token_vault_b, false),
-            AccountMeta::new_readonly(state.token_mint_a, false),
-            AccountMeta::new_readonly(state.token_mint_b, false),
-            AccountMeta::new(self.payer.pubkey(), true),
-            AccountMeta::new_readonly(TOKEN_PROGRAM, false),
-            AccountMeta::new_readonly(TOKEN_PROGRAM, false),
-            AccountMeta::new_readonly(leg.pool, false),
+            AccountMeta::new_readonly(pool_authority, false),  // 0: pool_authority (global PDA)
+            AccountMeta::new(leg.pool, false),                 // 1: pool
+            AccountMeta::new(input_ata, false),                // 2: input_token_account
+            AccountMeta::new(output_ata, false),               // 3: output_token_account
+            AccountMeta::new(state.token_vault_a, false),      // 4: token_a_vault
+            AccountMeta::new(state.token_vault_b, false),      // 5: token_b_vault
+            AccountMeta::new_readonly(state.token_mint_a, false),  // 6: token_a_mint
+            AccountMeta::new_readonly(state.token_mint_b, false),  // 7: token_b_mint
+            AccountMeta::new(self.payer.pubkey(), true),       // 8: payer (signer)
+            AccountMeta::new_readonly(state.token_program_a, false),  // 9: token_a_program
+            AccountMeta::new_readonly(state.token_program_b, false),  // 10: token_b_program
+            // Note: referral_token_account (optional) is omitted - not using referrals
         ];
 
         let mut data = Vec::with_capacity(24);

@@ -297,12 +297,15 @@ pub fn derive_whirlpool_oracle(whirlpool: &Pubkey) -> Pubkey {
 }
 
 /// Derive Orca Whirlpool tick array PDA
+/// Note: Orca uses the string representation of the tick index, not le_bytes
+/// See: https://github.com/orca-so/whirlpools/blob/main/legacy-sdk/whirlpool/src/utils/public/pda-utils.ts
 pub fn derive_whirlpool_tick_array(whirlpool: &Pubkey, start_tick_index: i32) -> Pubkey {
+    let tick_str = start_tick_index.to_string();
     Pubkey::find_program_address(
         &[
             b"tick_array",
             whirlpool.as_ref(),
-            &start_tick_index.to_le_bytes(),
+            tick_str.as_bytes(),
         ],
         &ORCA_WHIRLPOOL,
     )
@@ -393,8 +396,12 @@ pub fn derive_dlmm_bin_arrays(lb_pair: &Pubkey, active_bin: i32) -> Vec<Pubkey> 
 }
 
 /// Derive Meteora DAMM pool authority PDA
-pub fn derive_damm_pool_authority(pool: &Pubkey) -> Pubkey {
-    Pubkey::find_program_address(&[b"pool_authority", pool.as_ref()], &METEORA_DAMM).0
+/// NOTE: DAMM v2 uses a GLOBAL pool authority (unlike DLMM which is per-pool)
+/// The seed is just "pool_authority" with NO pool address suffix
+/// See: https://github.com/MeteoraAg/damm-v2/blob/main/programs/cp-amm/src/const_pda.rs
+pub fn derive_damm_pool_authority(_pool: &Pubkey) -> Pubkey {
+    // Global pool authority: HLnpSz9h2S4hiLQ43rnSD9XkcUThA7B8hQMKmDaiTLcC
+    Pubkey::find_program_address(&[b"pool_authority"], &METEORA_DAMM).0
 }
 
 /// Derive Raydium AMM authority PDA
@@ -728,8 +735,11 @@ pub fn parse_meteora_damm(address: Pubkey, data: &[u8]) -> Option<DiscoveredPool
     };
 
     // Derive pool authority PDA
+    // NOTE: DAMM v2 uses a GLOBAL pool authority (unlike DLMM which is per-pool)
+    // The seed is just "pool_authority" with NO pool address suffix
+    // See: https://github.com/MeteoraAg/damm-v2/blob/main/programs/cp-amm/src/const_pda.rs
     let pool_authority =
-        Pubkey::find_program_address(&[b"pool_authority", address.as_ref()], &METEORA_DAMM).0;
+        Pubkey::find_program_address(&[b"pool_authority"], &METEORA_DAMM).0;
 
     Some(DiscoveredPool {
         address,

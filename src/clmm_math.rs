@@ -18,6 +18,13 @@
 //! - For token A input: `√P' = √P * L / (L + Δa * √P)`
 //! - For token B input: `√P' = √P + Δb / L`
 
+use uint::construct_uint;
+
+// Define U256 for high-precision intermediate calculations
+construct_uint! {
+    pub struct U256(4);
+}
+
 // =============================================================================
 // CONSTANTS (from Raydium CLMM)
 // =============================================================================
@@ -44,30 +51,99 @@ pub const FEE_RATE_DENOMINATOR: u32 = 1_000_000;
 // TICK MATH (from raydium-clmm/programs/amm/src/libraries/tick_math.rs)
 // =============================================================================
 
-/// Get sqrt price at a given tick.
+/// Get sqrt price at a given tick using binary exponentiation.
 /// Formula: sqrt_price = 1.0001^(tick/2) in Q64.64
 ///
 /// Reference: raydium-io/raydium-clmm tick_math::get_sqrt_price_at_tick
 ///
-/// NOTE: The original implementation uses Q128.128 intermediate arithmetic.
-/// We use a simplified approach with 128-bit multiplication and proper handling.
+/// Uses integer-only binary exponentiation with precomputed magic constants.
+/// Each magic factor is `2^64 / (1.0001^(2^(i-1)))` for i in [0, 18).
+/// This matches the official Raydium implementation exactly.
 pub fn get_sqrt_price_at_tick(tick: i32) -> Option<u128> {
     if tick < MIN_TICK || tick > MAX_TICK {
         return None;
     }
 
-    // Use floating-point for intermediate calculation, then convert to Q64.64
-    // sqrt_price = 1.0001^(tick/2) = sqrt(1.0001^tick)
-    // In Q64.64: result = sqrt(1.0001^tick) * 2^64
-    let base: f64 = 1.0001_f64;
-    let exponent = tick as f64 / 2.0;
-    let sqrt_price = base.powf(exponent);
+    let abs_tick = tick.unsigned_abs();
 
-    // Convert to Q64.64 fixed point
-    let q64 = (1u128 << 64) as f64;
-    let result = (sqrt_price * q64) as u128;
+    // Start with either the first magic constant or 2^64 depending on bit 0
+    let mut ratio: U256 = if abs_tick & 0x1 != 0 {
+        U256::from(0xfffcb933bd6fb800u64)
+    } else {
+        U256::from(1u128) << 64 // 2^64
+    };
 
-    // Clamp to valid range
+    // Binary exponentiation with precomputed magic constants
+    // Each constant is 2^64 / (1.0001^(2^(i-1)))
+    if abs_tick & 0x2 != 0 {
+        ratio = (ratio * U256::from(0xfff97272373d4000u64)) >> 64;
+    }
+    if abs_tick & 0x4 != 0 {
+        ratio = (ratio * U256::from(0xfff2e50f5f657000u64)) >> 64;
+    }
+    if abs_tick & 0x8 != 0 {
+        ratio = (ratio * U256::from(0xffe5caca7e10f000u64)) >> 64;
+    }
+    if abs_tick & 0x10 != 0 {
+        ratio = (ratio * U256::from(0xffcb9843d60f7000u64)) >> 64;
+    }
+    if abs_tick & 0x20 != 0 {
+        ratio = (ratio * U256::from(0xff973b41fa98e800u64)) >> 64;
+    }
+    if abs_tick & 0x40 != 0 {
+        ratio = (ratio * U256::from(0xff2ea16466c9b000u64)) >> 64;
+    }
+    if abs_tick & 0x80 != 0 {
+        ratio = (ratio * U256::from(0xfe5dee046a9a3800u64)) >> 64;
+    }
+    if abs_tick & 0x100 != 0 {
+        ratio = (ratio * U256::from(0xfcbe86c7900bb000u64)) >> 64;
+    }
+    if abs_tick & 0x200 != 0 {
+        ratio = (ratio * U256::from(0xf987a7253ac65800u64)) >> 64;
+    }
+    if abs_tick & 0x400 != 0 {
+        ratio = (ratio * U256::from(0xf3392b0822bb6000u64)) >> 64;
+    }
+    if abs_tick & 0x800 != 0 {
+        ratio = (ratio * U256::from(0xe7159475a2caf000u64)) >> 64;
+    }
+    if abs_tick & 0x1000 != 0 {
+        ratio = (ratio * U256::from(0xd097f3bdfd2f2000u64)) >> 64;
+    }
+    if abs_tick & 0x2000 != 0 {
+        ratio = (ratio * U256::from(0xa9f746462d9f8000u64)) >> 64;
+    }
+    if abs_tick & 0x4000 != 0 {
+        ratio = (ratio * U256::from(0x70d869a156f31c00u64)) >> 64;
+    }
+    if abs_tick & 0x8000 != 0 {
+        ratio = (ratio * U256::from(0x31be135f97ed3200u64)) >> 64;
+    }
+    if abs_tick & 0x10000 != 0 {
+        ratio = (ratio * U256::from(0x9aa508b5b85a500u64)) >> 64;
+    }
+    if abs_tick & 0x20000 != 0 {
+        ratio = (ratio * U256::from(0x5d6af8dedc582cu64)) >> 64;
+    }
+    if abs_tick & 0x40000 != 0 {
+        ratio = (ratio * U256::from(0x2216e584f5fau64)) >> 64;
+    }
+
+    // If tick is positive, we need the reciprocal: 1.0001^(tick/2) instead of 1.0001^(-tick/2)
+    // For negative ticks, ratio represents 2^64 / 1.0001^(|tick|/2)
+    // For positive ticks, we want 1.0001^(tick/2) * 2^64, so we compute 2^128 / ratio
+    // This gives us the correct Q64.64 representation
+    if tick > 0 {
+        // Use (2^128 - 1) / ratio to get the reciprocal scaled to Q64.64
+        // The result fits in u128 because ratio >= 2^64 for valid positive ticks
+        let max_u128 = U256::from(u128::MAX);
+        ratio = max_u128 / ratio;
+    }
+
+    let result = ratio.low_u128();
+
+    // Clamp to valid range (should not be needed with correct implementation, but safety first)
     if result < MIN_SQRT_PRICE_X64 {
         return Some(MIN_SQRT_PRICE_X64);
     }
@@ -78,31 +154,70 @@ pub fn get_sqrt_price_at_tick(tick: i32) -> Option<u128> {
     Some(result)
 }
 
-/// Get tick at a given sqrt price.
+/// Get tick at a given sqrt price using log2 approximation.
 /// Formula: tick = log_{1.0001}(price) = 2 * log_{1.0001}(sqrt_price)
 ///
 /// Reference: raydium-io/raydium-clmm tick_math::get_tick_at_sqrt_price
+///
+/// Uses iterative log2 approximation matching the official implementation.
+/// This is O(1) compared to O(log n) binary search.
 pub fn get_tick_at_sqrt_price(sqrt_price_x64: u128) -> Option<i32> {
-    if sqrt_price_x64 < MIN_SQRT_PRICE_X64 || sqrt_price_x64 > MAX_SQRT_PRICE_X64 {
+    if sqrt_price_x64 < MIN_SQRT_PRICE_X64 || sqrt_price_x64 >= MAX_SQRT_PRICE_X64 {
         return None;
     }
 
-    // Binary search for the tick
-    let mut low = MIN_TICK;
-    let mut high = MAX_TICK;
+    // Determine log_2(sqrt_ratio). First by calculating integer portion (msb)
+    let msb: u32 = 128 - sqrt_price_x64.leading_zeros() - 1;
+    let log2p_integer_x32: i128 = ((msb as i128) - 64) << 32;
 
-    while low < high {
-        let mid = low + (high - low) / 2;
-        let price_at_mid = get_sqrt_price_at_tick(mid)?;
+    // Get fractional value (r/2^msb), msb always > 128
+    // We begin the iteration from bit 63 (0.5 in Q64.64)
+    let r: u128 = if msb >= 64 {
+        sqrt_price_x64 >> (msb - 63)
+    } else {
+        sqrt_price_x64 << (63 - msb)
+    };
 
-        if price_at_mid <= sqrt_price_x64 {
-            low = mid + 1;
-        } else {
-            high = mid;
-        }
+    // Log2 iterative approximation for the fractional part
+    // Go through each 2^(j) bit where j < 64 in a Q64.64 number
+    // Append current bit value to fraction result if r^2 Q2.126 is more than 2
+    const BIT_PRECISION: u32 = 16;
+    let mut bit: i128 = 0x8000_0000_0000_0000i128;
+    let mut precision: u32 = 0;
+    let mut log2p_fraction_x64: i128 = 0;
+    let mut r = r;
+
+    while bit > 0 && precision < BIT_PRECISION {
+        r = r.saturating_mul(r);
+        let is_r_more_than_two = r >> 127;
+        r >>= 63 + is_r_more_than_two;
+        log2p_fraction_x64 += bit * (is_r_more_than_two as i128);
+        bit >>= 1;
+        precision += 1;
     }
 
-    Some(low - 1)
+    let log2p_fraction_x32 = log2p_fraction_x64 >> 32;
+    let log2p_x32 = log2p_integer_x32 + log2p_fraction_x32;
+
+    // 14 bit refinement gives an error margin of 2^-14 / log2 (√1.0001) = 0.8461 < 1
+    // Since tick is a decimal, an error under 1 is acceptable
+
+    // Change of base rule: multiply with 2^32 / log2 (√1.0001)
+    let log_sqrt_10001_x64: i128 = log2p_x32 * 59543866431248i128;
+
+    // tick - 0.01
+    let tick_low = ((log_sqrt_10001_x64 - 184467440737095516i128) >> 64) as i32;
+
+    // tick + (2^-14 / log2(√1.0001)) + 0.01
+    let tick_high = ((log_sqrt_10001_x64 + 15793534762490258745i128) >> 64) as i32;
+
+    if tick_low == tick_high {
+        Some(tick_low)
+    } else if get_sqrt_price_at_tick(tick_high)? <= sqrt_price_x64 {
+        Some(tick_high)
+    } else {
+        Some(tick_low)
+    }
 }
 
 // =============================================================================
@@ -112,6 +227,11 @@ pub fn get_tick_at_sqrt_price(sqrt_price_x64: u128) -> Option<i32> {
 /// Get delta amount_a for given liquidity and price range.
 /// Formula: Δa = L * (1/√P_lower - 1/√P_upper)
 ///        = L * (√P_upper - √P_lower) / (√P_upper * √P_lower)
+///
+/// In Q64.64 fixed-point:
+///   numerator = L * (sqrt_price_upper - sqrt_price_lower) * Q64
+///   denominator = sqrt_price_upper * sqrt_price_lower
+///   result = numerator / denominator
 ///
 /// Reference: raydium-io/raydium-clmm liquidity_math::get_delta_amount_0_unsigned
 pub fn get_delta_amount_a(
@@ -126,29 +246,39 @@ pub fn get_delta_amount_a(
     if liquidity == 0 {
         return Some(0);
     }
+    if sqrt_price_lower_x64 == 0 {
+        return None;
+    }
 
-    let numerator =
-        (liquidity as u128).checked_mul(sqrt_price_upper_x64.checked_sub(sqrt_price_lower_x64)?)?;
+    // Use U256 to avoid overflow in intermediate calculations
+    // Formula: Δa = L * (√P_upper - √P_lower) * Q64 / (√P_upper * √P_lower)
+    let q64_256 = U256::from(Q64);
+    let liquidity_256 = U256::from(liquidity);
+    let sqrt_lower_256 = U256::from(sqrt_price_lower_x64);
+    let sqrt_upper_256 = U256::from(sqrt_price_upper_x64);
 
-    let denominator = (sqrt_price_lower_x64 >> 32).checked_mul(sqrt_price_upper_x64 >> 32)?;
+    // numerator = L * (sqrt_upper - sqrt_lower) * Q64
+    let delta_sqrt = sqrt_upper_256 - sqrt_lower_256;
+    let numerator = liquidity_256 * delta_sqrt * q64_256;
 
-    if denominator == 0 {
+    // denominator = sqrt_lower * sqrt_upper
+    let denominator = sqrt_lower_256 * sqrt_upper_256;
+
+    if denominator.is_zero() {
         return None;
     }
 
     let result = if round_up {
-        numerator.checked_add(denominator.checked_sub(1)?)? / denominator
+        (numerator + denominator - U256::from(1u64)) / denominator
     } else {
         numerator / denominator
     };
 
-    // Adjust for the shift we did
-    let result = result >> 64;
-
-    if result > u64::MAX as u128 {
+    // Check for overflow and convert to u64
+    if result > U256::from(u64::MAX) {
         Some(u64::MAX)
     } else {
-        Some(result as u64)
+        Some(result.as_u64())
     }
 }
 
@@ -192,31 +322,53 @@ pub fn get_delta_amount_b(
 /// Get next sqrt price from token A input.
 /// Formula: √P' = √P * L / (L + Δa * √P)
 ///
+/// In Q64.64 fixed-point, with sqrt_price and result both in Q64.64:
+///   numerator = sqrt_price * L * Q64
+///   denominator = L * Q64 + amount * sqrt_price
+///   result = numerator / denominator
+///
 /// Reference: raydium-io/raydium-clmm sqrt_price_math::get_next_sqrt_price_from_input (zero_for_one=true)
 pub fn get_next_sqrt_price_a_up(
     sqrt_price_x64: u128,
     liquidity: u128,
     amount: u64,
-    _round_up: bool,
+    round_up: bool,
 ) -> Option<u128> {
     if amount == 0 || liquidity == 0 {
         return Some(sqrt_price_x64);
     }
 
-    // product = amount * sqrt_price
-    let product = (amount as u128).checked_mul(sqrt_price_x64)?;
+    // Use U256 to avoid overflow
+    let q64_256 = U256::from(Q64);
+    let sqrt_price_256 = U256::from(sqrt_price_x64);
+    let liquidity_256 = U256::from(liquidity);
+    let amount_256 = U256::from(amount);
 
-    // denominator = L + product
-    let liquidity_shifted = liquidity.checked_mul(Q64)?;
-    let denominator = liquidity_shifted.checked_add(product)?;
+    // numerator = sqrt_price * L * Q64
+    // This ensures the result stays in Q64.64 format
+    let numerator = sqrt_price_256 * liquidity_256 * q64_256;
 
-    // numerator = L * sqrt_price
-    let numerator = liquidity_shifted.checked_mul(sqrt_price_x64)?;
+    // denominator = L * Q64 + amount * sqrt_price
+    // L * Q64 is to match the scale of amount * sqrt_price (both become Q64.64 * tokens)
+    let denominator = liquidity_256 * q64_256 + amount_256 * sqrt_price_256;
 
-    // result = numerator / denominator (with rounding up)
-    let result = numerator.checked_add(denominator.checked_sub(1)?)? / denominator;
+    if denominator.is_zero() {
+        return None;
+    }
 
-    Some(result)
+    // result = numerator / denominator (with optional rounding up)
+    let result = if round_up {
+        (numerator + denominator - U256::from(1u64)) / denominator
+    } else {
+        numerator / denominator
+    };
+
+    // Check for overflow and convert to u128
+    if result > U256::from(u128::MAX) {
+        return None;
+    }
+
+    Some(result.as_u128())
 }
 
 /// Get next sqrt price from token B input.

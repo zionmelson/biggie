@@ -54,12 +54,6 @@ pub struct StaticPool {
     /// Current tick/bin (optional, will be updated via Geyser)
     #[serde(default)]
     pub current_tick_or_bin: i32,
-    /// Initial base reserve (optional, will be updated via Geyser)
-    #[serde(default)]
-    pub base_reserve: u64,
-    /// Initial quote reserve (optional, will be updated via Geyser)
-    #[serde(default)]
-    pub quote_reserve: u64,
 
     // === CLMM-specific fields (Meteora DAMM v2, Raydium CLMM, etc.) ===
     /// sqrt_price in Q64.64 format (stored as string to preserve u128 precision)
@@ -320,9 +314,12 @@ impl StaticPool {
                 Ok((None, None, vec![], bin_arrays, None))
             }
             DexType::MeteoraDamm => {
-                // DAMM pool authority is derived
+                // DAMM v2 uses a GLOBAL pool authority (unlike DLMM which is per-pool)
+                // The seed is just "pool_authority" with NO pool address suffix
+                // See: https://github.com/MeteoraAg/damm-v2/blob/main/programs/cp-amm/src/const_pda.rs
+                // Global pool authority: HLnpSz9h2S4hiLQ43rnSD9XkcUThA7B8hQMKmDaiTLcC
                 let pool_authority = Pubkey::find_program_address(
-                    &[b"pool_authority", pool.as_ref()],
+                    &[b"pool_authority"],
                     &crate::shredstream::programs::METEORA_DAMM,
                 )
                 .0;
@@ -350,8 +347,6 @@ mod tests {
             fee_bps: 25,
             spacing: 0,
             current_tick_or_bin: 0,
-            base_reserve: 0,
-            quote_reserve: 0,
             sqrt_price: None,
             liquidity: None,
             amm_config: None,

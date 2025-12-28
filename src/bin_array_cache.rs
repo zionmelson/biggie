@@ -25,16 +25,16 @@ use crate::dlmm_math::Bin;
 /// - _padding: [u8; 7] (7 bytes)
 /// - lb_pair: Pubkey (32 bytes)
 /// - bins: [Bin; 70] where Bin is:
-///   - amount_x: u64 (8 bytes)
-///   - amount_y: u64 (8 bytes)
-///   - price: u128 (16 bytes) - can be 0 if not set
-///   - distribution_x: u64 (8 bytes)
-///   - distribution_y: u64 (8 bytes)
-///   - fee_amount_x_per_token_stored: u128 (16 bytes)
-///   - fee_amount_y_per_token_stored: u128 (16 bytes)
-///   - reward_per_token_stored: [u128; 2] (32 bytes)
-///   Total bin size: 8 + 8 + 16 + 8 + 8 + 16 + 16 + 32 = 112 bytes
+///   - amount_x: u64 (8 bytes)              offset 0
+///   - amount_y: u64 (8 bytes)              offset 8
+///   - price: u128 (16 bytes)               offset 16 (can be 0 if not set)
+///   - liquidity_supply: u128 (16 bytes)    offset 32 (LP mint supply for this bin)
+///   - function_bytes: [u128; 2] (32 bytes) offset 48 (reward_per_token_stored)
+///   - fee_amount_x_per_token_stored: u128 (16 bytes) offset 80
+///   - fee_amount_y_per_token_stored: u128 (16 bytes) offset 96
+///   Total bin size: 8 + 8 + 16 + 16 + 32 + 16 + 16 = 112 bytes
 /// Header: 8 (discriminator) + 8 (index) + 1 (version) + 7 (padding) + 32 (lb_pair) = 56 bytes
+/// Note: For swap simulation, only amount_x and amount_y are needed.
 const DLMM_BIN_ARRAY_HEADER: usize = 8 + 8 + 1 + 7 + 32;
 const DLMM_BIN_SIZE: usize = 112;
 const DLMM_BINS_PER_ARRAY: usize = 70;

@@ -4,6 +4,10 @@
 //! CLMM swap simulation. Supports both Orca Whirlpool and Raydium CLMM layouts.
 //!
 //! With 1.5TB RAM available, we can cache tick arrays for all active pools.
+//!
+//! Orca supports two tick array formats:
+//! - FixedTickArray: Original fixed-size format with 88 fixed ticks (113 bytes each)
+//! - DynamicTickArray: New variable-size format with bitmap and borsh-encoded ticks
 
 use solana_sdk::pubkey::Pubkey;
 use std::collections::HashMap;
@@ -16,10 +20,18 @@ use crate::clmm_math::TickInfo;
 // TICK ARRAY LAYOUTS
 // =============================================================================
 
-/// Orca Whirlpool tick array layout
-/// Source: https://github.com/orca-so/whirlpools/blob/main/programs/whirlpool/src/state/tick.rs
+/// Orca FixedTickArray (original format) discriminator
+/// Source: echo -n account:TickArray | sha256sum | cut -c 1-16
+const ORCA_FIXED_TICK_ARRAY_DISCRIMINATOR: [u8; 8] = [0x45, 0x61, 0xbd, 0xbe, 0x6e, 0x07, 0x42, 0xbb];
+
+/// Orca DynamicTickArray (new format) discriminator  
+/// Source: echo -n account:DynamicTickArray | sha256sum | cut -c 1-16
+const ORCA_DYNAMIC_TICK_ARRAY_DISCRIMINATOR: [u8; 8] = [0x11, 0xd8, 0xf6, 0x8e, 0xe1, 0xc7, 0xda, 0x38];
+
+/// Orca Whirlpool FixedTickArray layout (original format)
+/// Source: https://github.com/orca-so/whirlpools/blob/main/programs/whirlpool/src/state/fixed_tick_array.rs
 ///
-/// TickArray account layout:
+/// FixedTickArray account layout (after 8-byte discriminator):
 /// - start_tick_index: i32 (4 bytes)
 /// - ticks: [Tick; 88] where Tick is:
 ///   - initialized: bool (1 byte)
@@ -28,30 +40,56 @@ use crate::clmm_math::TickInfo;
 ///   - fee_growth_outside_a: u128 (16 bytes)
 ///   - fee_growth_outside_b: u128 (16 bytes)
 ///   - reward_growths_outside: [u128; 3] (48 bytes)
+/// - whirlpool: Pubkey (32 bytes) -- NOTE: comes AFTER ticks!
 /// Total tick size: 1 + 16 + 16 + 16 + 16 + 48 = 113 bytes
-/// Array header: 8 bytes (discriminator) + 4 bytes (start_tick_index) + 32 bytes (whirlpool pubkey)
-const ORCA_TICK_ARRAY_HEADER: usize = 8 + 4 + 32; // discriminator + start_tick_index + whirlpool
+const ORCA_FIXED_TICK_ARRAY_HEADER: usize = 8 + 4; // discriminator + start_tick_index (whirlpool is at end)
 const ORCA_TICK_SIZE: usize = 113;
 const ORCA_TICKS_PER_ARRAY: usize = 88;
+
+/// Orca Whirlpool DynamicTickArray layout (new variable-size format)
+/// Source: https://github.com/orca-so/whirlpools/blob/main/programs/whirlpool/src/state/dynamic_tick_array.rs
+///
+/// DynamicTickArray account layout (after 8-byte discriminator):
+/// - start_tick_index: i32 (4 bytes)
+/// - whirlpool: Pubkey (32 bytes)
+/// - tick_bitmap: u128 (16 bytes) - bitmap where bit N = 1 means tick N is initialized
+/// - ticks: borsh-encoded DynamicTick array (variable length)
+///
+/// DynamicTick is an enum:
+/// - Uninitialized: 1 byte (0x00)
+/// - Initialized(DynamicTickData): 1 byte (0x01) + 112 bytes of tick data
+///   - liquidity_net: i128 (16 bytes)
+///   - liquidity_gross: u128 (16 bytes)
+///   - fee_growth_outside_a: u128 (16 bytes)
+///   - fee_growth_outside_b: u128 (16 bytes)
+///   - reward_growths_outside: [u128; 3] (48 bytes)
+const ORCA_DYNAMIC_TICK_ARRAY_HEADER: usize = 8 + 4 + 32 + 16; // discriminator + start_tick_index + whirlpool + tick_bitmap
+const ORCA_DYNAMIC_TICK_DATA_SIZE: usize = 112; // DynamicTickData size (without enum discriminator)
 
 /// Raydium CLMM tick array layout
 /// Source: https://github.com/raydium-io/raydium-clmm/blob/master/programs/amm/src/states/tick_array.rs
 ///
-/// TickArrayState layout:
+/// TickArrayState layout (in order):
+/// - discriminator: 8 bytes
 /// - pool_id: Pubkey (32 bytes)
 /// - start_tick_index: i32 (4 bytes)
-/// - ticks: [TickState; 60] where TickState is:
-///   - tick: i32 (4 bytes) - implicit from position
-///   - liquidity_gross: u128 (16 bytes)
+/// - ticks: [TickState; 60] (60 * 168 = 10080 bytes)
+/// - initialized_tick_count: u8 (1 byte) -- NOTE: comes AFTER ticks!
+/// - recent_epoch: u64 (8 bytes)
+/// - padding: [u8; 107] (107 bytes)
+///
+/// TickState layout (168 bytes):
+///   - tick: i32 (4 bytes)
 ///   - liquidity_net: i128 (16 bytes)
+///   - liquidity_gross: u128 (16 bytes)
 ///   - fee_growth_outside_0_x64: u128 (16 bytes)
 ///   - fee_growth_outside_1_x64: u128 (16 bytes)
 ///   - reward_growths_outside_x64: [u128; 3] (48 bytes)
 ///   - padding: [u32; 13] (52 bytes)
-/// Total tick size: 16 + 16 + 16 + 16 + 48 + 52 = 164 bytes
-/// Header: 8 (discriminator) + 32 (pool_id) + 4 (start_tick_index) + 4 (initialized_tick_count) = 48 bytes
-const RAYDIUM_TICK_ARRAY_HEADER: usize = 8 + 32 + 4 + 4;
-const RAYDIUM_TICK_SIZE: usize = 164;
+/// Total tick size: 4 + 16 + 16 + 16 + 16 + 48 + 52 = 168 bytes
+/// Header to ticks: 8 (discriminator) + 32 (pool_id) + 4 (start_tick_index) = 44 bytes
+const RAYDIUM_TICK_ARRAY_HEADER: usize = 8 + 32 + 4;
+const RAYDIUM_TICK_SIZE: usize = 168;
 const RAYDIUM_TICKS_PER_ARRAY: usize = 60;
 
 // =============================================================================
@@ -85,12 +123,37 @@ pub enum ClmmPoolType {
 // =============================================================================
 
 /// Parse Orca Whirlpool tick array account data
+/// Supports both FixedTickArray (original) and DynamicTickArray (new) formats
 pub fn parse_orca_tick_array(
     data: &[u8],
     pool: Pubkey,
     tick_spacing: u16,
 ) -> Option<CachedTickArray> {
-    if data.len() < ORCA_TICK_ARRAY_HEADER + ORCA_TICK_SIZE * ORCA_TICKS_PER_ARRAY {
+    if data.len() < 8 {
+        return None;
+    }
+
+    // Check discriminator to determine format
+    let discriminator: [u8; 8] = data[0..8].try_into().ok()?;
+    
+    if discriminator == ORCA_FIXED_TICK_ARRAY_DISCRIMINATOR {
+        parse_orca_fixed_tick_array(data, pool, tick_spacing)
+    } else if discriminator == ORCA_DYNAMIC_TICK_ARRAY_DISCRIMINATOR {
+        parse_orca_dynamic_tick_array(data, pool, tick_spacing)
+    } else {
+        None
+    }
+}
+
+/// Parse Orca FixedTickArray (original format)
+/// Layout after discriminator: start_tick_index(4) + ticks(88*113) + whirlpool(32)
+fn parse_orca_fixed_tick_array(
+    data: &[u8],
+    pool: Pubkey,
+    tick_spacing: u16,
+) -> Option<CachedTickArray> {
+    let min_size = ORCA_FIXED_TICK_ARRAY_HEADER + ORCA_TICK_SIZE * ORCA_TICKS_PER_ARRAY + 32;
+    if data.len() < min_size {
         return None;
     }
 
@@ -100,7 +163,7 @@ pub fn parse_orca_tick_array(
     let mut ticks = Vec::new();
 
     for i in 0..ORCA_TICKS_PER_ARRAY {
-        let offset = ORCA_TICK_ARRAY_HEADER + i * ORCA_TICK_SIZE;
+        let offset = ORCA_FIXED_TICK_ARRAY_HEADER + i * ORCA_TICK_SIZE;
 
         // initialized: bool at offset 0
         let initialized = data[offset] != 0;
@@ -118,6 +181,77 @@ pub fn parse_orca_tick_array(
                     liquidity_net,
                     initialized: true,
                 });
+            }
+        }
+    }
+
+    Some(CachedTickArray {
+        pool,
+        start_tick_index,
+        tick_spacing,
+        ticks,
+        last_update_slot: 0,
+    })
+}
+
+/// Parse Orca DynamicTickArray (new variable-size format)
+/// Layout after discriminator: start_tick_index(4) + whirlpool(32) + tick_bitmap(16) + ticks(variable)
+fn parse_orca_dynamic_tick_array(
+    data: &[u8],
+    pool: Pubkey,
+    tick_spacing: u16,
+) -> Option<CachedTickArray> {
+    if data.len() < ORCA_DYNAMIC_TICK_ARRAY_HEADER {
+        return None;
+    }
+
+    // Parse start_tick_index (offset 8, after discriminator)
+    let start_tick_index = i32::from_le_bytes(data[8..12].try_into().ok()?);
+
+    // Parse tick_bitmap (offset 8 + 4 + 32 = 44)
+    let tick_bitmap = u128::from_le_bytes(data[44..60].try_into().ok()?);
+
+    let mut ticks = Vec::new();
+    let tick_data = &data[ORCA_DYNAMIC_TICK_ARRAY_HEADER..];
+    let mut offset = 0;
+
+    for i in 0..ORCA_TICKS_PER_ARRAY {
+        // Check if this tick is initialized via bitmap
+        let is_initialized = (tick_bitmap & (1u128 << i)) != 0;
+
+        if is_initialized {
+            // DynamicTick::Initialized = 0x01 + 112 bytes of tick data
+            if offset + 1 + ORCA_DYNAMIC_TICK_DATA_SIZE > tick_data.len() {
+                break;
+            }
+            
+            // Skip enum discriminator byte (should be 0x01 for Initialized)
+            if tick_data[offset] != 0x01 {
+                // Unexpected: bitmap says initialized but data says otherwise
+                offset += 1;
+                continue;
+            }
+            offset += 1;
+
+            // liquidity_net: i128 at offset 0 of DynamicTickData
+            let liquidity_net =
+                i128::from_le_bytes(tick_data[offset..offset + 16].try_into().ok()?);
+
+            // Only include ticks with non-zero liquidity_net (they affect swaps)
+            if liquidity_net != 0 {
+                let tick = start_tick_index + (i as i32) * (tick_spacing as i32);
+                ticks.push(TickInfo {
+                    tick,
+                    liquidity_net,
+                    initialized: true,
+                });
+            }
+
+            offset += ORCA_DYNAMIC_TICK_DATA_SIZE;
+        } else {
+            // DynamicTick::Uninitialized = 0x00 (1 byte)
+            if offset < tick_data.len() {
+                offset += 1;
             }
         }
     }
