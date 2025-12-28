@@ -128,6 +128,7 @@ async fn run_arb_pipeline(config: Config) -> Result<(), Box<dyn std::error::Erro
         use_turbine_udp: turbine_config.enabled,
         turbine_config: turbine_config.clone(),
         shredstream_endpoint: config.shredstream.endpoint.clone(),
+        rpc_url: config.primary_rpc_url(),
         geyser_endpoint: config.geyser.endpoint.clone(),
         connect_timeout: Duration::from_millis(config.geyser.connect_timeout_ms),
         request_timeout: Duration::from_millis(config.geyser.request_timeout_ms),
@@ -188,11 +189,23 @@ async fn run_arb_pipeline(config: Config) -> Result<(), Box<dyn std::error::Erro
     // Wait for shutdown signal
     tokio::signal::ctrl_c().await?;
 
-    // Log final stats
+    // Log final stats - show Turbine stats when using Turbine mode
     let s = stats.as_ref();
+    let turbine_pkts = s.turbine_packets_received.load(std::sync::atomic::Ordering::Relaxed);
+    let turbine_entries = s.turbine_entries_assembled.load(std::sync::atomic::Ordering::Relaxed);
+    let shred_entries = s.shredstream_entries_received.load(std::sync::atomic::Ordering::Relaxed);
+    
+    // Show whichever source is active
+    let (source_name, entries_count) = if turbine_pkts > 0 || turbine_entries > 0 {
+        ("turbine", turbine_entries)
+    } else {
+        ("shredstream", shred_entries)
+    };
+    
     tracing::info!(
-        "FINAL STATS: shred_entries={} shred_swaps={} geyser_txs={} opps={} sent={} accepted={} profit={:.6} SOL",
-        s.shredstream_entries_received.load(std::sync::atomic::Ordering::Relaxed),
+        "FINAL STATS: source={} entries={} swaps={} geyser_txs={} opps={} sent={} accepted={} profit={:.6} SOL",
+        source_name,
+        entries_count,
         s.shredstream_swaps_detected.load(std::sync::atomic::Ordering::Relaxed),
         s.geyser_txs_received.load(std::sync::atomic::Ordering::Relaxed),
         s.opportunities_found.load(std::sync::atomic::Ordering::Relaxed),
@@ -200,6 +213,18 @@ async fn run_arb_pipeline(config: Config) -> Result<(), Box<dyn std::error::Erro
         s.bundles_accepted.load(std::sync::atomic::Ordering::Relaxed),
         s.total_profit_lamports.load(std::sync::atomic::Ordering::Relaxed) as f64 / 1e9
     );
+    
+    // Show detailed Turbine stats if active
+    if turbine_pkts > 0 {
+        tracing::info!(
+            "TURBINE: pkts={} data_shreds={} coding_shreds={} fec_complete={} entries={}",
+            turbine_pkts,
+            s.turbine_data_shreds.load(std::sync::atomic::Ordering::Relaxed),
+            s.turbine_coding_shreds.load(std::sync::atomic::Ordering::Relaxed),
+            s.turbine_fec_completed.load(std::sync::atomic::Ordering::Relaxed),
+            turbine_entries,
+        );
+    }
 
     // Log pool state stats
     tracing::info!("POOL STATE: {}", pipeline.pool_state_stats());

@@ -96,6 +96,8 @@ pub struct PoolState {
     pub address: Pubkey,
     /// DEX type
     pub dex: DexType,
+    /// Whether pool has been bootstrapped (CLMM/DLMM need initial state)
+    pub bootstrapped: bool,
 
     // === CONFIRMED STATE (from Geyser) ===
     /// Base token mint
@@ -188,6 +190,7 @@ impl PoolState {
             curve,
             last_confirmed_slot: slot,
             last_confirmed_at: now,
+            bootstrapped: !matches!(curve, CurveType::ConcentratedLiquidity | CurveType::Dlmm),
             confirmed_sqrt_price: None,
             confirmed_tick_or_bin: None,
             spacing: None,
@@ -269,9 +272,14 @@ impl PoolState {
     // =========================================================================
 
     /// Update confirmed state from Geyser AccountUpdate
-    /// This is the AUTHORITATIVE state update
+    /// This is the AUTHORITATIVE state update - Geyser data takes precedence over RPC bootstrap
     pub fn update_confirmed_reserves(&mut self, base_reserve: u64, quote_reserve: u64, slot: u64) {
-        // Only update if this is newer than what we have
+        // Reject slot 0 (genesis/restart edge case that could poison state)
+        if slot == 0 {
+            return;
+        }
+        
+        // Only update if this is newer OR SAME slot
         if slot < self.last_confirmed_slot {
             return;
         }
@@ -280,6 +288,7 @@ impl PoolState {
         self.confirmed_quote_reserve = quote_reserve;
         self.last_confirmed_slot = slot;
         self.last_confirmed_at = Instant::now();
+        self.bootstrapped = true;
     }
 
     /// Update CLMM state from Geyser AccountUpdate
@@ -291,7 +300,7 @@ impl PoolState {
         liquidity: Option<u128>,
         slot: u64,
     ) {
-        if slot < self.last_confirmed_slot {
+        if slot == 0 || slot < self.last_confirmed_slot {
             return;
         }
 
@@ -301,6 +310,30 @@ impl PoolState {
         self.active_liquidity = liquidity;
         self.last_confirmed_slot = slot;
         self.last_confirmed_at = Instant::now();
+        self.bootstrapped = true;
+    }
+
+    /// Set CLMM state from bootstrap (no slot comparison - runs before Geyser)
+    pub fn set_clmm_state(
+        &mut self,
+        sqrt_price: Option<u128>,
+        tick_or_bin: i32,
+        spacing: u16,
+        liquidity: Option<u128>,
+        slot: u64,
+    ) {
+        self.confirmed_sqrt_price = sqrt_price;
+        self.confirmed_tick_or_bin = Some(tick_or_bin);
+        self.spacing = Some(spacing);
+        self.active_liquidity = liquidity;
+        self.last_confirmed_slot = slot;
+        self.last_confirmed_at = Instant::now();
+        self.bootstrapped = true;
+    }
+
+    /// Check if pool is ready for arb evaluation
+    pub fn is_ready_for_arb(&self) -> bool {
+        self.bootstrapped
     }
 
     /// Get a VirtualPoolState for simulation using confirmed reserves.
@@ -386,6 +419,12 @@ pub struct PoolStateStats {
     pub vault_updates_received: u64,
     /// Vault reserves successfully updated
     pub vault_reserves_updated: u64,
+    /// Vault updates that missed the vault_index (not tracked)
+    pub vault_index_misses: u64,
+    /// Whether bootstrap has completed
+    pub bootstrap_completed: bool,
+    /// Number of pools successfully bootstrapped
+    pub pools_bootstrapped: u64,
 }
 
 impl PoolStateManager {
@@ -589,6 +628,38 @@ impl PoolStateManager {
         self.vault_index.read().clone()
     }
 
+    /// Get all CLMM/DLMM pool addresses that need direct account subscription
+    /// These pools require sqrt_price/liquidity/tick data from account updates
+    pub fn all_clmm_pool_addresses(&self) -> Vec<Pubkey> {
+        let pools = self.pools.read();
+        pools
+            .values()
+            .filter(|p| matches!(p.curve, CurveType::ConcentratedLiquidity | CurveType::Dlmm))
+            .map(|p| p.address)
+            .collect()
+    }
+
+    /// Get all CLMM/DLMM pools with their DEX types in a single lock acquisition
+    /// Used by bootstrap to avoid race conditions between address and dex lookups
+    pub fn all_clmm_pools_with_dex(&self) -> Vec<(Pubkey, DexType)> {
+        let pools = self.pools.read();
+        pools
+            .values()
+            .filter(|p| matches!(p.curve, CurveType::ConcentratedLiquidity | CurveType::Dlmm))
+            .map(|p| (p.address, p.dex))
+            .collect()
+    }
+
+    /// Check if an address is a tracked CLMM/DLMM pool
+    pub fn is_clmm_pool(&self, address: &Pubkey) -> bool {
+        let pools = self.pools.read();
+        if let Some(pool) = pools.get(address) {
+            matches!(pool.curve, CurveType::ConcentratedLiquidity | CurveType::Dlmm)
+        } else {
+            false
+        }
+    }
+
     // =========================================================================
     // GEYSER INTEGRATION
     // =========================================================================
@@ -602,6 +673,15 @@ impl PoolStateManager {
         balance: u64,
         slot: u64,
     ) -> bool {
+        // Validate slot to prevent edge cases
+        if slot == 0 {
+            tracing::warn!(
+                vault = %vault_address,
+                "Rejecting vault update with slot 0 (genesis/restart edge case)"
+            );
+            return false;
+        }
+
         let updates_rx = {
             let mut stats = self.stats.write();
             stats.vault_updates_received += 1;
@@ -615,13 +695,26 @@ impl PoolStateManager {
         drop(vault_idx);
         
         let Some((pool, is_base)) = pool_info else {
-            // Log first few misses to diagnose
-            if updates_rx <= 5 {
+            // Track misses in stats for monitoring
+            let miss_count = {
+                let mut stats = self.stats.write();
+                stats.vault_index_misses += 1;
+                stats.vault_index_misses
+            };
+            
+            // Log first few misses, then periodic summary
+            if miss_count <= 5 {
                 tracing::warn!(
-                    "Vault {} not in vault_index (size={}). First {} updates all missed!",
-                    vault_address,
-                    vault_idx_size,
-                    updates_rx
+                    vault = %vault_address,
+                    vault_idx_size = vault_idx_size,
+                    miss_count = miss_count,
+                    "Vault not in vault_index - check pool registration"
+                );
+            } else if miss_count % 1000 == 0 {
+                tracing::warn!(
+                    "vault_index miss summary: {} total misses (idx_size={})",
+                    miss_count,
+                    vault_idx_size
                 );
             }
             return false;
@@ -973,6 +1066,63 @@ impl PoolStateManager {
         }
     }
 
+    /// Get the last confirmed slot for a pool
+    pub fn get_pool_last_slot(&self, pool: &Pubkey) -> Option<u64> {
+        let pools = self.pools.read();
+        pools.get(pool).map(|s| s.last_confirmed_slot)
+    }
+
+    /// Check if a pool was successfully bootstrapped
+    pub fn is_pool_bootstrapped(&self, pool: &Pubkey) -> bool {
+        let pools = self.pools.read();
+        pools.get(pool)
+            .map(|s| s.bootstrapped)
+            .unwrap_or(false)
+    }
+
+    /// Set CLMM state from bootstrap (no slot comparison - runs before Geyser)
+    pub fn set_clmm_state(
+        &self,
+        pool: &Pubkey,
+        sqrt_price: Option<u128>,
+        tick_or_bin: i32,
+        spacing: u16,
+        liquidity: Option<u128>,
+        slot: u64,
+    ) {
+        let mut pools = self.pools.write();
+        if let Some(state) = pools.get_mut(pool) {
+            state.set_clmm_state(sqrt_price, tick_or_bin, spacing, liquidity, slot);
+        }
+    }
+
+    /// Check if a pool is ready for arb evaluation
+    pub fn is_pool_ready_for_arb(&self, pool: &Pubkey) -> bool {
+        let pools = self.pools.read();
+        pools.get(pool)
+            .map(|s| s.is_ready_for_arb())
+            .unwrap_or(false)
+    }
+
+    /// Mark bootstrap as complete and update stats
+    pub fn mark_bootstrap_complete(&self) {
+        let pools = self.pools.read();
+        let bootstrapped_count = pools.values().filter(|s| s.bootstrapped).count() as u64;
+        drop(pools); // Release read lock before taking write lock
+        
+        let mut stats = self.stats.write();
+        stats.bootstrap_completed = true;
+        stats.pools_bootstrapped = bootstrapped_count;
+    }
+
+    /// Get bootstrap summary for logging
+    pub fn bootstrap_summary(&self) -> String {
+        let pools = self.pools.read();
+        let total = pools.len();
+        let bootstrapped = pools.values().filter(|s| s.bootstrapped).count();
+        format!("bootstrapped={}/{}", bootstrapped, total)
+    }
+
     /// Get statistics
     pub fn stats(&self) -> PoolStateStats {
         self.stats.read().clone()
@@ -982,10 +1132,13 @@ impl PoolStateManager {
     pub fn stats_summary(&self) -> String {
         let s = self.stats.read();
         format!(
-            "pools={} vault_rx={} vault_updated={} geyser_updates={}",
+            "pools={} bootstrapped={}/{} vault_rx={} vault_updated={} vault_miss={} geyser={}",
             s.pools_tracked,
+            s.pools_bootstrapped,
+            if s.bootstrap_completed { "done" } else { "pending" },
             s.vault_updates_received,
             s.vault_reserves_updated,
+            s.vault_index_misses,
             s.geyser_updates_received
         )
     }

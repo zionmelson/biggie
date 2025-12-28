@@ -1,4 +1,5 @@
 pub mod amm_math;
+pub mod bootstrap;
 pub mod clmm_math;
 pub mod config;
 pub mod constants;

@@ -89,7 +89,8 @@ use solana_sdk::hash::Hash;
 use solana_sdk::pubkey::Pubkey;
 use solana_sdk::signature::{Keypair, Signature};
 use solana_sdk::transaction::VersionedTransaction;
-use std::collections::HashMap;
+// Use FxHashMap for consistency with pool_state and arb_bundle modules
+use rustc_hash::FxHashMap as HashMap;
 use std::net::SocketAddr;
 use std::sync::atomic::{AtomicU64, Ordering};
 use std::sync::Arc;
@@ -120,6 +121,10 @@ pub struct UnifiedPipelineConfig {
     /// ShredStream proxy gRPC endpoint (only used if use_turbine_udp = false)
     pub shredstream_endpoint: String,
 
+    // === RPC settings (for bootstrap) ===
+    /// RPC URL for initial CLMM state bootstrap
+    pub rpc_url: String,
+
     // === Geyser settings ===
     /// Geyser gRPC endpoint
     pub geyser_endpoint: String,
@@ -144,6 +149,7 @@ impl Default for UnifiedPipelineConfig {
             use_turbine_udp: true, // Default to Turbine UDP for lowest latency
             turbine_config: TurbineUdpConfig::default(),
             shredstream_endpoint: "http://127.0.0.1:10000".to_string(),
+            rpc_url: "http://localhost:8899".to_string(),
             geyser_endpoint: "http://localhost:10000".to_string(),
             connect_timeout: Duration::from_secs(10),
             request_timeout: Duration::from_secs(30),
@@ -405,7 +411,7 @@ impl UnifiedArbPipeline {
             blockhash: Arc::new(RwLock::new((Hash::default(), 0))),
             opportunity_tx,
             leader_cache: RwLock::new(LeaderScheduleCache::default()),
-            pool_activity: RwLock::new(HashMap::new()),
+            pool_activity: RwLock::new(HashMap::default()),
             last_submission_ns: AtomicU64::new(0),
             submissions_this_second: AtomicU64::new(0),
             stats: Arc::new(UnifiedPipelineStats::default()),
@@ -497,7 +503,7 @@ impl UnifiedArbPipeline {
         use crate::shredstream::PoolActivitySignal;
 
         let received_at = Instant::now();
-        let mut activity_signals: HashMap<Pubkey, PoolActivitySignal> = HashMap::new();
+        let mut activity_signals: HashMap<Pubkey, PoolActivitySignal> = HashMap::default();
         let mut total_txs = 0u64;
         let mut swap_count = 0u64;
 
@@ -739,6 +745,15 @@ impl UnifiedArbPipeline {
             tracing::trace!(vault = %vault_address, "Vault not in vault_index, skipping arb eval");
             return;
         };
+
+        // Check if pool is ready for arb (has been bootstrapped or Geyser-confirmed)
+        if !self.pool_state.is_pool_ready_for_arb(&pool) {
+            tracing::trace!(
+                pool = %pool,
+                "Pool not ready for arb (pending bootstrap or failed), skipping"
+            );
+            return;
+        }
 
         // Sample logging to track arb scanning
         static SCAN_COUNTER: std::sync::atomic::AtomicU64 = std::sync::atomic::AtomicU64::new(0);
@@ -1536,8 +1551,11 @@ async fn run_shredstream_loop(
 
 /// Geyser tasks - provides ground truth for state confirmation
 async fn run_geyser_tasks(pipeline: Arc<UnifiedArbPipeline>, config: UnifiedPipelineConfig) {
+    // Bootstrap runs once at startup, synchronously before Geyser processing
+    let mut bootstrap_done = false;
+    
     loop {
-        match run_geyser_loop(&pipeline, &config).await {
+        match run_geyser_loop(&pipeline, &config, &mut bootstrap_done).await {
             Ok(()) => {
                 tracing::info!("Geyser tasks ended normally");
                 break;
@@ -1557,6 +1575,7 @@ async fn run_geyser_tasks(pipeline: Arc<UnifiedArbPipeline>, config: UnifiedPipe
 async fn run_geyser_loop(
     pipeline: &Arc<UnifiedArbPipeline>,
     config: &UnifiedPipelineConfig,
+    bootstrap_done: &mut bool,
 ) -> Result<()> {
     let geyser_config = GeyserConfig {
         endpoint: config.geyser_endpoint.clone(),
@@ -1578,6 +1597,10 @@ async fn run_geyser_loop(
     // Subscribe to vault accounts (for reserve updates) using PSM's vault_index
     let vault_addresses: Vec<Pubkey> = pipeline.pool_state.all_vaults();
 
+    // Get CLMM/DLMM pool addresses that need direct subscription for sqrt_price/liquidity updates
+    let clmm_pool_addresses: Vec<Pubkey> = pipeline.pool_state.all_clmm_pool_addresses();
+    let clmm_pool_set: std::collections::HashSet<Pubkey> = clmm_pool_addresses.iter().cloned().collect();
+
     // Debug: Check if target pool vaults are in subscription
     let target_vault_a = "DQyrAcCrDXQ7NeoqGgDCZwBvWDcYmFCjSb9JtteuvPpz";
     let target_vault_b = "HLmqeL62xR1QoZ1HKKbXRrdN1p3phKpxRMb2VVopvBBz";
@@ -1597,26 +1620,30 @@ async fn run_geyser_loop(
         tracing::warn!("TARGET POOL 58oQChx4 vaults NOT in subscription list!");
     }
 
-    let has_vault_subscription = !vault_addresses.is_empty();
-    let mut account_stream = if has_vault_subscription {
+    // Combine vault and CLMM pool addresses for single subscription
+    let mut all_account_addresses: Vec<Pubkey> = vault_addresses;
+    all_account_addresses.extend(clmm_pool_addresses.iter().cloned());
+
+    let has_account_subscription = !all_account_addresses.is_empty();
+    let num_vaults = all_account_addresses.len() - clmm_pool_addresses.len();
+    let num_clmm_pools = clmm_pool_addresses.len();
+
+    let mut account_stream = if has_account_subscription {
         tracing::info!(
-            "Subscribing to {} vault accounts for real-time reserve updates (first 3: {:?})",
-            vault_addresses.len(),
-            vault_addresses
-                .iter()
-                .take(3)
-                .map(|v| v.to_string())
-                .collect::<Vec<_>>()
+            "Subscribing to {} accounts ({} vaults + {} CLMM/DLMM pools) for real-time updates",
+            all_account_addresses.len(),
+            num_vaults,
+            num_clmm_pools
         );
-        let stream = client.subscribe_accounts(vault_addresses).await?;
-        tracing::info!("Account subscription stream created successfully");
+        let stream = client.subscribe_accounts(all_account_addresses).await?;
+        tracing::info!("Account subscription stream created successfully (vaults + CLMM pools)");
         Some(stream)
     } else {
         None
     };
 
-    // Subscribe to DEX program accounts (for pool state/CLMM tick updates)
-    // This replaces the separate spawn_pool_state_updater function
+    // NOTE: Program subscription is not reliable on all Geyser implementations
+    // We now subscribe to CLMM pool accounts directly above
     let dex_programs = vec![
         *ORCA_WHIRLPOOL,
         *RAYDIUM_CLMM,
@@ -1628,9 +1655,40 @@ async fn run_geyser_loop(
     let mut program_stream = client.subscribe_programs(dex_programs).await?;
 
     tracing::info!(
-        "Geyser subscriptions established (vaults={}, dex_programs=6)",
-        has_vault_subscription
+        "Geyser subscriptions established (vaults={}, clmm_pools={}, dex_programs=6)",
+        num_vaults,
+        num_clmm_pools
     );
+
+    // Bootstrap CLMM pool state via RPC BEFORE processing Geyser updates
+    // This is synchronous - Geyser processing starts after bootstrap completes
+    if !*bootstrap_done {
+        use crate::bootstrap::bootstrap_clmm_pools;
+        use solana_client::nonblocking::rpc_client::RpcClient;
+        
+        tracing::info!("Running CLMM bootstrap before Geyser processing...");
+        let rpc_client = RpcClient::new(config.rpc_url.clone());
+        
+        match tokio::time::timeout(
+            std::time::Duration::from_secs(30),
+            bootstrap_clmm_pools(&rpc_client, &pipeline.pool_state)
+        ).await {
+            Ok(Ok(stats)) => {
+                tracing::info!("Bootstrap complete: {}", stats.summary());
+                // Update stats for logging
+                pipeline.pool_state.mark_bootstrap_complete();
+            }
+            Ok(Err(e)) => {
+                tracing::error!("Bootstrap failed: {} - continuing with Geyser only", e);
+            }
+            Err(_) => {
+                tracing::error!("Bootstrap timed out after 30s - continuing with Geyser only");
+            }
+        }
+        
+        *bootstrap_done = true;
+        tracing::info!("Bootstrap state: {}", pipeline.pool_state.bootstrap_summary());
+    }
 
     // Process all streams concurrently
     loop {
@@ -1726,45 +1784,79 @@ async fn run_geyser_loop(
                     Ok(Some(update)) => {
                         tracing::trace!("Received account update from Geyser");
                         if let Some(account_update) = update.account_update {
-                            // Parse vault address
+                            // Parse account address
                             if account_update.pubkey.len() == 32 {
                                 let mut arr = [0u8; 32];
                                 arr.copy_from_slice(&account_update.pubkey);
-                                let vault_address = Pubkey::new_from_array(arr);
-                                tracing::debug!(
-                                    vault = %vault_address,
-                                    data_len = account_update.data.len(),
-                                    slot = account_update.slot,
-                                    "Account update received"
-                                );
+                                let account_address = Pubkey::new_from_array(arr);
 
-                                // Parse token account balance (SPL token accounts have balance at offset 64)
-                                // Account data format: [mint(32), owner(32), amount(8), ...]
-                                if account_update.data.len() >= 72 {
-                                    let balance = u64::from_le_bytes(
-                                        account_update.data[64..72].try_into().unwrap_or_default()
-                                    );
-                                    tracing::debug!(
-                                        vault = %vault_address,
-                                        balance = balance,
-                                        "Parsed vault balance, triggering arb evaluation"
-                                    );
-                                    // Spawn async task to handle vault update AND trigger arb evaluation
-                                    let pipeline_clone = Arc::clone(&pipeline);
-                                    let slot = account_update.slot;
-                                    tokio::spawn(async move {
-                                        pipeline_clone.handle_geyser_vault_update_with_arb(
-                                            &vault_address,
-                                            balance,
-                                            slot,
-                                        ).await;
-                                    });
+                                // Check if this is a CLMM pool account or a vault account
+                                if clmm_pool_set.contains(&account_address) {
+                                    // This is a CLMM pool account - parse pool state
+                                    if let Some(dex) = pipeline.pool_state.get_pool_dex(&account_address) {
+                                        // Get the program ID for this DEX type
+                                        let program_id = match dex {
+                                            DexType::OrcaWhirlpool => *ORCA_WHIRLPOOL,
+                                            DexType::RaydiumClmm => *RAYDIUM_CLMM,
+                                            DexType::MeteoraDlmm => *METEORA_DLMM,
+                                            DexType::MeteoraDamm => *METEORA_DAMM,
+                                            DexType::PancakeSwapClmm => *PANCAKESWAP_CLMM,
+                                            _ => *RAYDIUM_AMM,
+                                        };
+                                        
+                                        tracing::debug!(
+                                            pool = %account_address,
+                                            dex = ?dex,
+                                            data_len = account_update.data.len(),
+                                            slot = account_update.slot,
+                                            "CLMM pool account update received"
+                                        );
+                                        
+                                        // Handle as pool update
+                                        pipeline.handle_geyser_pool_update(
+                                            account_address,
+                                            &program_id,
+                                            &account_update.data,
+                                            account_update.slot,
+                                        );
+                                    }
                                 } else {
-                                    tracing::warn!(
-                                        vault = %vault_address,
+                                    // This is a vault (token account) - parse balance
+                                    tracing::debug!(
+                                        vault = %account_address,
                                         data_len = account_update.data.len(),
-                                        "Account data too short for token account"
+                                        slot = account_update.slot,
+                                        "Vault account update received"
                                     );
+
+                                    // Parse token account balance (SPL token accounts have balance at offset 64)
+                                    // Account data format: [mint(32), owner(32), amount(8), ...]
+                                    if account_update.data.len() >= 72 {
+                                        let balance = u64::from_le_bytes(
+                                            account_update.data[64..72].try_into().unwrap_or_default()
+                                        );
+                                        tracing::debug!(
+                                            vault = %account_address,
+                                            balance = balance,
+                                            "Parsed vault balance, triggering arb evaluation"
+                                        );
+                                        // Spawn async task to handle vault update AND trigger arb evaluation
+                                        let pipeline_clone = Arc::clone(&pipeline);
+                                        let slot = account_update.slot;
+                                        tokio::spawn(async move {
+                                            pipeline_clone.handle_geyser_vault_update_with_arb(
+                                                &account_address,
+                                                balance,
+                                                slot,
+                                            ).await;
+                                        });
+                                    } else {
+                                        tracing::warn!(
+                                            vault = %account_address,
+                                            data_len = account_update.data.len(),
+                                            "Account data too short for token account"
+                                        );
+                                    }
                                 }
                             } else {
                                 tracing::warn!("Account update pubkey wrong length: {}", account_update.pubkey.len());
@@ -1774,12 +1866,14 @@ async fn run_geyser_loop(
                         }
                     }
                     Ok(None) => {
-                        tracing::error!("Account stream ended unexpectedly - this is a critical issue!");
-                        account_stream = None;
+                        // Account stream ended - reconnect and Geyser will provide fresh state
+                        tracing::error!("Account stream ended unexpectedly - reconnecting");
+                        return Err(anyhow::anyhow!("Account stream ended - reconnecting"));
                     }
                     Err(e) => {
-                        tracing::error!("Account stream error: {} - this is a critical issue!", e);
-                        account_stream = None;
+                        // Account stream error - reconnect and Geyser will provide fresh state
+                        tracing::error!("Account stream error: {} - reconnecting", e);
+                        return Err(anyhow::anyhow!("Account stream error: {} - reconnecting", e));
                     }
                 }
             }
@@ -1834,7 +1928,7 @@ async fn run_geyser_loop(
 /// Returns Vec<(vault_pubkey, balance)> for vaults we're tracking.
 fn extract_vault_balances_from_tx(
     tx: &Option<crate::geyser::proto::storage::confirmed_block::ConfirmedTransaction>,
-    vault_index: &std::collections::HashMap<Pubkey, (Pubkey, bool)>,
+    vault_index: &HashMap<Pubkey, (Pubkey, bool)>,
 ) -> Vec<(Pubkey, u64)> {
     let mut updates = Vec::new();
 
