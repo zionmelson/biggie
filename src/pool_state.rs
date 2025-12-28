@@ -49,55 +49,15 @@
 use crate::amm_math::{CurveType, PoolSimulator, VirtualPoolState};
 use crate::bin_array_cache::BinArrayCache;
 use crate::clmm_math::ClmmPoolState;
+use crate::constants::{TOKEN_PROGRAM, TOKEN_2022_PROGRAM};
 use crate::dlmm_math::DlmmPoolState;
-use crate::shredstream::parser::{ParsedSwap, SwapDirection};
 use crate::shredstream::programs::DexType;
 use crate::tick_array_cache::{ClmmPoolType, TickArrayCache};
+use parking_lot::RwLock;
 use solana_sdk::pubkey::Pubkey;
-use solana_sdk::signature::Signature;
-use std::collections::{HashMap, VecDeque};
-use std::sync::{Arc, RwLock};
+use std::collections::HashMap;
+use std::sync::Arc;
 use std::time::{Duration, Instant};
-
-// =============================================================================
-// CONFIGURATION
-// =============================================================================
-
-/// Maximum age of a pending swap before it's considered expired
-const PENDING_SWAP_TTL: Duration = Duration::from_secs(5);
-
-/// Maximum number of pending swaps per pool (prevents memory bloat)
-const MAX_PENDING_SWAPS_PER_POOL: usize = 50;
-
-/// How often to run expiry cleanup
-const CLEANUP_INTERVAL: Duration = Duration::from_secs(1);
-
-// =============================================================================
-// PENDING SWAP TRACKING
-// =============================================================================
-
-/// A swap detected via ShredStream but not yet confirmed by Geyser
-#[derive(Clone, Debug)]
-pub struct PendingSwap {
-    /// Transaction signature (for matching with Geyser confirmation)
-    pub signature: Signature,
-    /// Slot where the swap was detected
-    pub slot: u64,
-    /// Pool address
-    pub pool: Pubkey,
-    /// DEX type (for simulation math)
-    pub dex: DexType,
-    /// Input amount
-    pub amount_in: u64,
-    /// Direction: true = base→quote, false = quote→base
-    pub base_to_quote: bool,
-    /// When we detected this swap (for TTL)
-    pub detected_at: Instant,
-    /// Simulated output (cached)
-    pub simulated_output: Option<u64>,
-    /// Status
-    pub status: PendingSwapStatus,
-}
 
 /// Route information for 3-hop arbitrage through an anchor mint
 #[derive(Clone, Debug)]
@@ -112,18 +72,6 @@ pub struct ThreeHopRoute {
     pub leg1_base_to_quote: bool,
     /// Swap direction for leg 3 (token_b → anchor)
     pub leg3_base_to_quote: bool,
-}
-
-#[derive(Clone, Copy, Debug, PartialEq, Eq)]
-pub enum PendingSwapStatus {
-    /// Detected via ShredStream, awaiting Geyser confirmation
-    Pending,
-    /// Confirmed by Geyser TransactionUpdate
-    Confirmed,
-    /// Expired (exceeded TTL without confirmation)
-    Expired,
-    /// Failed (Geyser reported transaction failure)
-    Failed,
 }
 
 // =============================================================================
@@ -188,28 +136,20 @@ pub struct PoolState {
     pub bin_arrays: Vec<Pubkey>,
     /// Pool authority PDA (DAMM)
     pub pool_authority: Option<Pubkey>,
-
-    // === PENDING SWAPS (from ShredStream) ===
-    /// Queue of pending swaps, ordered by detection time
-    pending_swaps: VecDeque<PendingSwap>,
-
-    // === PREDICTED STATE (computed) ===
-    /// Predicted base reserves after applying pending swaps
-    pub predicted_base_reserve: u64,
-    /// Predicted quote reserves after applying pending swaps
-    pub predicted_quote_reserve: u64,
-    /// Predicted sqrt_price (for CLMM, approximated)
-    pub predicted_sqrt_price: Option<u128>,
-    /// Predicted tick/bin (for CLMM, approximated)
-    pub predicted_tick_or_bin: Option<i32>,
-    /// When prediction was last recalculated
-    pub prediction_computed_at: Instant,
-    /// Number of pending swaps included in prediction
-    pub pending_swap_count: usize,
+    
+    // === TOKEN PROGRAM TRACKING (for Token-2022 support) ===
+    /// Token program for token A (SPL Token or Token-2022)
+    pub token_program_a: Pubkey,
+    /// Token program for token B (SPL Token or Token-2022)
+    pub token_program_b: Pubkey,
+    /// Transfer fee in bps for token A (Token-2022 only, 0 for regular SPL)
+    pub transfer_fee_bps_a: u16,
+    /// Transfer fee in bps for token B (Token-2022 only, 0 for regular SPL)  
+    pub transfer_fee_bps_b: u16,
 }
 
 impl PoolState {
-    /// Create a new pool state (initially confirmed = predicted)
+    /// Create a new pool state
     pub fn new(
         address: Pubkey,
         dex: DexType,
@@ -240,7 +180,6 @@ impl PoolState {
             confirmed_sqrt_price: None,
             confirmed_tick_or_bin: None,
             spacing: None,
-            // Initialize metadata with defaults (will be set via set_metadata)
             token_vault_a: Pubkey::default(),
             token_vault_b: Pubkey::default(),
             amm_authority: None,
@@ -251,13 +190,11 @@ impl PoolState {
             bin_arrays: Vec::new(),
             pool_authority: None,
             active_liquidity: None,
-            pending_swaps: VecDeque::new(),
-            predicted_base_reserve: base_reserve,
-            predicted_quote_reserve: quote_reserve,
-            predicted_sqrt_price: None,
-            predicted_tick_or_bin: None,
-            prediction_computed_at: now,
-            pending_swap_count: 0,
+            // Default to SPL Token program - will be updated via set_token_programs()
+            token_program_a: TOKEN_PROGRAM,
+            token_program_b: TOKEN_PROGRAM,
+            transfer_fee_bps_a: 0,
+            transfer_fee_bps_b: 0,
         }
     }
 
@@ -290,6 +227,32 @@ impl PoolState {
         self.token_vault_a != Pubkey::default() && self.token_vault_b != Pubkey::default()
     }
 
+    /// Set token program info for Token-2022 support
+    pub fn set_token_programs(
+        &mut self,
+        token_program_a: Pubkey,
+        token_program_b: Pubkey,
+        transfer_fee_bps_a: u16,
+        transfer_fee_bps_b: u16,
+    ) {
+        self.token_program_a = token_program_a;
+        self.token_program_b = token_program_b;
+        self.transfer_fee_bps_a = transfer_fee_bps_a;
+        self.transfer_fee_bps_b = transfer_fee_bps_b;
+    }
+
+    /// Check if either token uses Token-2022
+    pub fn uses_token_2022(&self) -> bool {
+        self.token_program_a == TOKEN_2022_PROGRAM || self.token_program_b == TOKEN_2022_PROGRAM
+    }
+
+    /// Get total transfer fees for a round-trip (buy + sell) in bps
+    pub fn total_transfer_fee_bps(&self) -> u16 {
+        // For arb: we transfer in token A, swap, transfer in token B, swap back
+        // Each token may charge transfer fee on each transfer
+        self.transfer_fee_bps_a.saturating_add(self.transfer_fee_bps_b)
+    }
+
     // =========================================================================
     // GEYSER UPDATES (Ground Truth)
     // =========================================================================
@@ -306,9 +269,6 @@ impl PoolState {
         self.confirmed_quote_reserve = quote_reserve;
         self.last_confirmed_slot = slot;
         self.last_confirmed_at = Instant::now();
-
-        // Recalculate prediction
-        self.recalculate_prediction();
     }
 
     /// Update CLMM state from Geyser AccountUpdate
@@ -330,223 +290,13 @@ impl PoolState {
         self.active_liquidity = liquidity;
         self.last_confirmed_slot = slot;
         self.last_confirmed_at = Instant::now();
-
-        self.recalculate_prediction();
     }
 
-    /// Mark a pending swap as confirmed (Geyser saw it execute)
-    pub fn confirm_pending_swap(&mut self, signature: &Signature) {
-        if let Some(swap) = self
-            .pending_swaps
-            .iter_mut()
-            .find(|s| s.signature == *signature)
-        {
-            swap.status = PendingSwapStatus::Confirmed;
-        }
-        // Remove confirmed swaps and recalculate
-        self.pending_swaps
-            .retain(|s| s.status == PendingSwapStatus::Pending);
-        self.recalculate_prediction();
-    }
-
-    /// Mark a pending swap as failed (Geyser saw it fail)
-    pub fn fail_pending_swap(&mut self, signature: &Signature) {
-        self.pending_swaps.retain(|s| s.signature != *signature);
-        self.recalculate_prediction();
-    }
-
-    // =========================================================================
-    // SHREDSTREAM UPDATES (Early Detection)
-    // =========================================================================
-
-    /// Add a pending swap detected via ShredStream
-    /// Returns true if the swap was added (not a duplicate)
-    pub fn add_pending_swap(&mut self, swap: PendingSwap) -> bool {
-        // Check for duplicate
-        if self
-            .pending_swaps
-            .iter()
-            .any(|s| s.signature == swap.signature)
-        {
-            return false;
-        }
-
-        // Enforce max pending swaps
-        while self.pending_swaps.len() >= MAX_PENDING_SWAPS_PER_POOL {
-            self.pending_swaps.pop_front();
-        }
-
-        self.pending_swaps.push_back(swap);
-        self.recalculate_prediction();
-        true
-    }
-
-    /// Expire old pending swaps
-    pub fn expire_old_swaps(&mut self) -> usize {
-        let now = Instant::now();
-        let before = self.pending_swaps.len();
-
-        self.pending_swaps.retain(|s| {
-            s.status == PendingSwapStatus::Pending
-                && now.duration_since(s.detected_at) < PENDING_SWAP_TTL
-        });
-
-        let expired = before - self.pending_swaps.len();
-        if expired > 0 {
-            self.recalculate_prediction();
-        }
-        expired
-    }
-
-    // =========================================================================
-    // STATE PREDICTION
-    // =========================================================================
-
-    /// Recalculate predicted state by simulating all pending swaps on confirmed state.
-    ///
-    /// Uses curve-specific math:
-    /// - ConstantProduct: VirtualPoolState (x * y = k)
-    /// - ConcentratedLiquidity: ClmmPoolState (tick-based, from Raydium CLMM)
-    /// - Dlmm: Uses constant product approximation (full bin simulation requires bin data)
-    fn recalculate_prediction(&mut self) {
-        // Collect pending swaps data (clone to avoid borrow issues)
-        let pending: Vec<(u64, bool)> = self
-            .pending_swaps
-            .iter()
-            .filter(|s| s.status == PendingSwapStatus::Pending)
-            .map(|s| (s.amount_in, s.base_to_quote))
-            .collect();
-
-        if pending.is_empty() {
-            // No pending swaps, predicted = confirmed
-            self.predicted_base_reserve = self.confirmed_base_reserve;
-            self.predicted_quote_reserve = self.confirmed_quote_reserve;
-            self.predicted_sqrt_price = self.confirmed_sqrt_price;
-            self.predicted_tick_or_bin = self.confirmed_tick_or_bin;
-            self.pending_swap_count = 0;
-            self.prediction_computed_at = Instant::now();
-            return;
-        }
-
-        match self.curve {
-            CurveType::ConstantProduct | CurveType::Dlmm => {
-                // DLMM uses constant product approximation for pending swap prediction
-                // Full bin-based simulation requires cached bin data
-                self.recalculate_constant_product(&pending);
-            }
-            CurveType::ConcentratedLiquidity => {
-                self.recalculate_clmm(&pending);
-            }
-        }
-
-        self.pending_swap_count = pending.len();
-        self.prediction_computed_at = Instant::now();
-
-        tracing::trace!(
-            pool = %self.address,
-            curve = ?self.curve,
-            pending = self.pending_swap_count,
-            confirmed = format!("({}, {})", self.confirmed_base_reserve, self.confirmed_quote_reserve),
-            predicted = format!("({}, {})", self.predicted_base_reserve, self.predicted_quote_reserve),
-            "State prediction updated"
-        );
-    }
-
-    /// Recalculate using constant product formula (x * y = k).
-    /// Reference: Raydium AMM Calculator::swap_token_amount_base_in
-    fn recalculate_constant_product(&mut self, pending: &[(u64, bool)]) {
-        let mut virtual_state = VirtualPoolState::new(
-            self.confirmed_base_reserve,
-            self.confirmed_quote_reserve,
-            self.fee_bps,
-        );
-
-        for &(amount_in, base_to_quote) in pending {
-            let (_, new_state) = virtual_state.simulate_swap(amount_in, base_to_quote);
-            virtual_state = new_state;
-        }
-
-        self.predicted_base_reserve = virtual_state.base_reserve;
-        self.predicted_quote_reserve = virtual_state.quote_reserve;
-    }
-
-    /// Recalculate using CLMM tick-based math.
-    /// Reference: raydium-io/raydium-clmm swap.rs::swap_internal
-    fn recalculate_clmm(&mut self, pending: &[(u64, bool)]) {
-        // Get CLMM parameters from confirmed state
-        let sqrt_price = match self.confirmed_sqrt_price {
-            Some(sp) => sp,
-            None => {
-                // Fallback to constant product if CLMM data unavailable
-                tracing::warn!(
-                    pool = %self.address,
-                    "CLMM pool missing sqrt_price, falling back to constant product"
-                );
-                self.recalculate_constant_product(pending);
-                return;
-            }
-        };
-
-        let tick = self.confirmed_tick_or_bin.unwrap_or(0);
-        let spacing = self.spacing.unwrap_or(1);
-        let liquidity = self.active_liquidity.unwrap_or(0);
-
-        if liquidity == 0 {
-            // No liquidity, use constant product fallback
-            tracing::warn!(
-                pool = %self.address,
-                "CLMM pool has zero liquidity, falling back to constant product"
-            );
-            self.recalculate_constant_product(pending);
-            return;
-        }
-
-        // Convert fee_bps to fee_rate in millionths (e.g., 30 bps = 3000)
-        let fee_rate = (self.fee_bps as u32) * 100;
-
-        let mut clmm_state = ClmmPoolState::new(sqrt_price, tick, spacing, liquidity, fee_rate);
-
-        // NOTE: In production, you'd populate ticks from on-chain tick array data
-        // For now, we simulate with current liquidity (single-range approximation)
-        // This is still more accurate than the old sqrt(ratio) approximation
-
-        for &(amount_in, base_to_quote) in pending {
-            // zero_for_one: selling base (token0) for quote (token1) = price decreases
-            let zero_for_one = base_to_quote;
-
-            let (_amount_in, _amount_out, new_state) = clmm_state.simulate_swap(
-                amount_in,
-                zero_for_one,
-                true, // is_base_input (exact input)
-                0,    // no price limit
-            );
-
-            if _amount_in > 0 {
-                clmm_state = new_state;
-            }
-        }
-
-        // Update predicted CLMM state
-        self.predicted_sqrt_price = Some(clmm_state.sqrt_price_x64);
-
-        // Estimate reserves from sqrt_price and liquidity using CLMM formulas:
-        // base_reserve ≈ L / sqrt(P)
-        // quote_reserve ≈ L * sqrt(P)
-        // These are approximations for the current tick range
-        let sqrt_p_float = (clmm_state.sqrt_price_x64 as f64) / ((1u128 << 64) as f64);
-        if sqrt_p_float > 0.0 && clmm_state.liquidity > 0 {
-            let l = clmm_state.liquidity as f64;
-            self.predicted_base_reserve = (l / sqrt_p_float) as u64;
-            self.predicted_quote_reserve = (l * sqrt_p_float) as u64;
-        }
-
-        // Update tick from price
-        self.predicted_tick_or_bin = Some(clmm_state.tick);
-    }
-
-    /// Get a VirtualPoolState for simulation using CONFIRMED reserves
-    /// Note: We use confirmed state directly (Geyser-authoritative) - pending swap simulation removed for simplicity
-    pub fn predicted_virtual_state(&self) -> VirtualPoolState {
+    /// Get a VirtualPoolState for simulation using confirmed reserves.
+    /// 
+    /// NOTE: For CLMM/DLMM pools, use PoolStateManager::get_simulator() instead
+    /// which populates tick/bin data from the cache.
+    pub fn virtual_state(&self) -> VirtualPoolState {
         VirtualPoolState::new(
             self.confirmed_base_reserve,
             self.confirmed_quote_reserve,
@@ -554,69 +304,8 @@ impl PoolState {
         )
     }
 
-    /// Get a PoolSimulator using CONFIRMED state with curve-specific math.
-    /// Note: We use confirmed state directly (Geyser-authoritative) - pending swap simulation removed for simplicity
-    ///
-    /// This is the preferred method for accurate simulation:
-    /// - ConstantProduct pools → VirtualPoolState
-    /// - ConcentratedLiquidity pools → ClmmPoolState  
-    /// - DLMM pools → DlmmPoolState (via DEX type detection)
-    pub fn predicted_simulator(&self) -> PoolSimulator {
-        match self.curve {
-            CurveType::ConcentratedLiquidity => {
-                // Build CLMM state from confirmed values
-                if let (Some(sqrt_price), Some(tick), Some(spacing), Some(liquidity)) = (
-                    self.confirmed_sqrt_price,
-                    self.confirmed_tick_or_bin,
-                    self.spacing,
-                    self.active_liquidity,
-                ) {
-                    let fee_rate = (self.fee_bps as u32) * 100; // bps to millionths
-                    let clmm = ClmmPoolState::new(sqrt_price, tick, spacing, liquidity, fee_rate);
-                    return PoolSimulator::Clmm(clmm);
-                }
-                // Fallback to constant product if CLMM data incomplete
-                tracing::warn!(
-                    pool = %self.address,
-                    "CLMM pool missing data, using constant product fallback"
-                );
-                PoolSimulator::ConstantProduct(self.predicted_virtual_state())
-            }
-            CurveType::Dlmm => {
-                // Build DLMM state from confirmed values
-                if let (Some(bin_id), Some(spacing)) = (
-                    self.confirmed_tick_or_bin,
-                    self.spacing,
-                ) {
-                    let fee_rate = (self.fee_bps as u32) * 100_000; // bps to millionths
-                    let dlmm = DlmmPoolState::new(spacing, bin_id, fee_rate);
-                    return PoolSimulator::Dlmm(dlmm);
-                }
-                // Fallback to constant product if DLMM data incomplete
-                tracing::warn!(
-                    pool = %self.address,
-                    "DLMM pool missing data, using constant product fallback"
-                );
-                PoolSimulator::ConstantProduct(self.predicted_virtual_state())
-            }
-            CurveType::ConstantProduct => {
-                PoolSimulator::ConstantProduct(self.predicted_virtual_state())
-            }
-        }
-    }
-
-    /// Get a VirtualPoolState for simulation using CONFIRMED reserves
-    pub fn confirmed_virtual_state(&self) -> VirtualPoolState {
-        VirtualPoolState::new(
-            self.confirmed_base_reserve,
-            self.confirmed_quote_reserve,
-            self.fee_bps,
-        )
-    }
-
-    /// Get the spot price using CONFIRMED state
-    /// Note: We use confirmed state directly (Geyser-authoritative)
-    pub fn predicted_spot_price(&self) -> Option<f64> {
+    /// Get the spot price using confirmed state
+    pub fn spot_price(&self) -> Option<f64> {
         if self.confirmed_base_reserve == 0 {
             return None;
         }
@@ -670,43 +359,22 @@ pub struct PoolStateManager {
     pair_index: RwLock<HashMap<(Pubkey, Pubkey), Vec<Pubkey>>>,
     /// Index: vault address → (pool address, is_base_vault)
     vault_index: RwLock<HashMap<Pubkey, (Pubkey, bool)>>,
-    /// Index: signature → pools affected by that pending swap
-    /// This avoids re-parsing transactions on Geyser confirmation
-    signature_to_pools: RwLock<HashMap<Signature, (Vec<Pubkey>, Instant)>>,
-    /// Last cleanup time
-    last_cleanup: RwLock<Instant>,
     /// Statistics
     pub stats: RwLock<PoolStateStats>,
     /// Tick array cache for accurate CLMM simulation
-    /// Populated via Geyser subscriptions to tick array accounts
     tick_cache: Arc<TickArrayCache>,
     /// Bin array cache for accurate DLMM simulation
-    /// Populated via Geyser subscriptions to bin array accounts
     bin_cache: Arc<BinArrayCache>,
 }
 
 #[derive(Debug, Default, Clone)]
 pub struct PoolStateStats {
     pub pools_tracked: u64,
-    pub pending_swaps_total: u64,
-    pub pending_swaps_confirmed: u64,
-    pub pending_swaps_expired: u64,
-    pub pending_swaps_failed: u64,
     pub geyser_updates_received: u64,
-    pub shredstream_swaps_received: u64,
-    pub predictions_recalculated: u64,
-    /// Signature index hits (avoided re-parsing)
-    pub signature_index_hits: u64,
-    /// Signature index misses (had to use fallback)
-    pub signature_index_misses: u64,
     /// Vault account updates received from Geyser
     pub vault_updates_received: u64,
     /// Vault reserves successfully updated
     pub vault_reserves_updated: u64,
-    /// CLMM pools that fell back to constant product (missing tick data)
-    pub clmm_fallbacks: u64,
-    /// DLMM pools that fell back to constant product (missing bin data)
-    pub dlmm_fallbacks: u64,
 }
 
 impl PoolStateManager {
@@ -715,8 +383,6 @@ impl PoolStateManager {
             pools: RwLock::new(HashMap::new()),
             pair_index: RwLock::new(HashMap::new()),
             vault_index: RwLock::new(HashMap::new()),
-            signature_to_pools: RwLock::new(HashMap::new()),
-            last_cleanup: RwLock::new(Instant::now()),
             stats: RwLock::new(PoolStateStats::default()),
             tick_cache: Arc::new(TickArrayCache::new()),
             bin_cache: Arc::new(BinArrayCache::new()),
@@ -751,19 +417,19 @@ impl PoolStateManager {
 
         // Check if this pair already has pools (for arb routing)
         let existing_pools_for_pair = {
-            let index = self.pair_index.read().unwrap();
+            let index = self.pair_index.read();
             index.get(&(base_mint, quote_mint)).map(|v| v.len()).unwrap_or(0)
         };
 
         // Add to pools map
         {
-            let mut pools = self.pools.write().unwrap();
+            let mut pools = self.pools.write();
             pools.insert(address, state);
         }
 
         // Add to pair index (both directions)
         {
-            let mut index = self.pair_index.write().unwrap();
+            let mut index = self.pair_index.write();
             index
                 .entry((base_mint, quote_mint))
                 .or_default()
@@ -776,7 +442,7 @@ impl PoolStateManager {
 
         // Add to vault index (if vaults are set)
         if vault_a != Pubkey::default() {
-            let mut vault_idx = self.vault_index.write().unwrap();
+            let mut vault_idx = self.vault_index.write();
             vault_idx.insert(vault_a, (address, true)); // is_base = true
             vault_idx.insert(vault_b, (address, false)); // is_base = false
             
@@ -810,7 +476,7 @@ impl PoolStateManager {
 
         // Update stats
         {
-            let mut stats = self.stats.write().unwrap();
+            let mut stats = self.stats.write();
             stats.pools_tracked += 1;
         }
 
@@ -852,13 +518,13 @@ impl PoolStateManager {
     ) {
         // Get pool info for cache registration
         let (dex, spacing) = {
-            let pools = self.pools.read().unwrap();
+            let pools = self.pools.read();
             pools.get(pool).map(|s| (s.dex, s.spacing.unwrap_or(64))).unwrap_or((DexType::RaydiumAmm, 64))
         };
 
         // Update pool state
         {
-            let mut pools = self.pools.write().unwrap();
+            let mut pools = self.pools.write();
             if let Some(state) = pools.get_mut(pool) {
                 state.set_metadata(
                     token_vault_a,
@@ -876,7 +542,7 @@ impl PoolStateManager {
 
         // Update vault index
         if token_vault_a != Pubkey::default() {
-            let mut vault_idx = self.vault_index.write().unwrap();
+            let mut vault_idx = self.vault_index.write();
             vault_idx.insert(token_vault_a, (*pool, true));
             vault_idx.insert(token_vault_b, (*pool, false));
         }
@@ -899,12 +565,17 @@ impl PoolStateManager {
 
     /// Get pool info for a vault address (for reserve updates from vault subscriptions)
     pub fn get_pool_for_vault(&self, vault: &Pubkey) -> Option<(Pubkey, bool)> {
-        self.vault_index.read().unwrap().get(vault).cloned()
+        self.vault_index.read().get(vault).cloned()
     }
 
     /// Get all tracked vault addresses (for Geyser subscription)
     pub fn all_vaults(&self) -> Vec<Pubkey> {
-        self.vault_index.read().unwrap().keys().cloned().collect()
+        self.vault_index.read().keys().cloned().collect()
+    }
+
+    /// Get a snapshot of the vault_index for transaction-based balance extraction
+    pub fn vault_index_snapshot(&self) -> HashMap<Pubkey, (Pubkey, bool)> {
+        self.vault_index.read().clone()
     }
 
     // =========================================================================
@@ -921,13 +592,13 @@ impl PoolStateManager {
         slot: u64,
     ) -> bool {
         let updates_rx = {
-            let mut stats = self.stats.write().unwrap();
+            let mut stats = self.stats.write();
             stats.vault_updates_received += 1;
             stats.vault_updates_received
         };
 
         // Look up which pool this vault belongs to
-        let vault_idx = self.vault_index.read().unwrap();
+        let vault_idx = self.vault_index.read();
         let pool_info = vault_idx.get(vault_address).cloned();
         let vault_idx_size = vault_idx.len();
         drop(vault_idx);
@@ -946,7 +617,7 @@ impl PoolStateManager {
         };
 
         // Get current reserves and update just one side
-        let mut pools = self.pools.write().unwrap();
+        let mut pools = self.pools.write();
         let Some(state) = pools.get_mut(&pool) else {
             return false;
         };
@@ -958,7 +629,7 @@ impl PoolStateManager {
         };
 
         state.update_confirmed_reserves(base_reserve, quote_reserve, slot);
-        self.stats.write().unwrap().vault_reserves_updated += 1;
+        self.stats.write().vault_reserves_updated += 1;
         true
     }
 
@@ -970,7 +641,7 @@ impl PoolStateManager {
         balance: u64,
         slot: u64,
     ) {
-        let mut pools = self.pools.write().unwrap();
+        let mut pools = self.pools.write();
         if let Some(state) = pools.get_mut(pool) {
             if is_base_vault {
                 state.update_confirmed_reserves(balance, state.confirmed_quote_reserve, slot);
@@ -978,7 +649,7 @@ impl PoolStateManager {
                 state.update_confirmed_reserves(state.confirmed_base_reserve, balance, slot);
             }
 
-            self.stats.write().unwrap().geyser_updates_received += 1;
+            self.stats.write().geyser_updates_received += 1;
         }
     }
 
@@ -990,167 +661,37 @@ impl PoolStateManager {
         quote_reserve: u64,
         slot: u64,
     ) {
-        let mut pools = self.pools.write().unwrap();
+        let mut pools = self.pools.write();
         if let Some(state) = pools.get_mut(pool) {
             state.update_confirmed_reserves(base_reserve, quote_reserve, slot);
-            self.stats.write().unwrap().geyser_updates_received += 1;
+            self.stats.write().geyser_updates_received += 1;
         }
-    }
-
-    /// Handle Geyser TransactionUpdate (confirms pending swap)
-    ///
-    /// If `pool` is provided, confirms for that specific pool.
-    /// If you have the signature but don't know the pool, use `confirm_by_signature` instead.
-    pub fn on_geyser_transaction_confirmed(
-        &self,
-        signature: &Signature,
-        pool: &Pubkey,
-        success: bool,
-    ) {
-        let mut pools = self.pools.write().unwrap();
-        if let Some(state) = pools.get_mut(pool) {
-            if success {
-                state.confirm_pending_swap(signature);
-                self.stats.write().unwrap().pending_swaps_confirmed += 1;
-            } else {
-                state.fail_pending_swap(signature);
-                self.stats.write().unwrap().pending_swaps_failed += 1;
-            }
-        }
-        // Clean up signature index (drop locks first)
-        drop(pools);
-        self.remove_signature_from_index(signature);
-    }
-
-    /// Confirm a transaction by signature using the index (no re-parsing needed)
-    /// Returns the pools that were confirmed, or None if signature wasn't tracked
-    pub fn confirm_by_signature(
-        &self,
-        signature: &Signature,
-        success: bool,
-    ) -> Option<Vec<Pubkey>> {
-        // Lookup pools from index
-        let pools_for_sig = self.get_pools_for_signature(signature)?;
-
-        self.stats.write().unwrap().signature_index_hits += 1;
-
-        // Confirm/fail for each pool
-        {
-            let mut pools = self.pools.write().unwrap();
-            for pool in &pools_for_sig {
-                if let Some(state) = pools.get_mut(pool) {
-                    if success {
-                        state.confirm_pending_swap(signature);
-                        self.stats.write().unwrap().pending_swaps_confirmed += 1;
-                    } else {
-                        state.fail_pending_swap(signature);
-                        self.stats.write().unwrap().pending_swaps_failed += 1;
-                    }
-                }
-            }
-        }
-
-        // Clean up signature index
-        self.remove_signature_from_index(signature);
-
-        Some(pools_for_sig)
-    }
-
-    /// Record a signature index miss (for stats tracking when fallback is used)
-    pub fn record_signature_index_miss(&self) {
-        self.stats.write().unwrap().signature_index_misses += 1;
-    }
-
-    // =========================================================================
-    // SHREDSTREAM INTEGRATION
-    // =========================================================================
-
-    /// Handle ShredStream swap detection (early TX visibility)
-    pub fn on_shredstream_swap_detected(&self, swap: &ParsedSwap, slot: u64, signature: Signature) {
-        // Determine swap direction
-        let base_to_quote = match swap.direction {
-            Some(SwapDirection::AtoB) => true,
-            Some(SwapDirection::BtoA) => false,
-            None => return, // Can't predict without direction
-        };
-
-        let amount_in = match swap.amount_in {
-            Some(amt) => amt,
-            None => return, // Can't predict without amount
-        };
-
-        let pending = PendingSwap {
-            signature,
-            slot,
-            pool: swap.pool,
-            dex: swap.dex,
-            amount_in,
-            base_to_quote,
-            detected_at: Instant::now(),
-            simulated_output: None,
-            status: PendingSwapStatus::Pending,
-        };
-
-        let mut pools = self.pools.write().unwrap();
-        if let Some(state) = pools.get_mut(&swap.pool) {
-            if state.add_pending_swap(pending) {
-                // Add to signature → pools index for fast Geyser confirmation lookup
-                {
-                    let mut sig_index = self.signature_to_pools.write().unwrap();
-                    sig_index
-                        .entry(signature)
-                        .or_insert_with(|| (Vec::new(), Instant::now()))
-                        .0
-                        .push(swap.pool);
-                }
-                self.stats.write().unwrap().shredstream_swaps_received += 1;
-                self.stats.write().unwrap().pending_swaps_total += 1;
-            }
-        }
-    }
-
-    /// Get pools affected by a pending signature (fast lookup, no re-parsing)
-    /// Returns None if the signature wasn't tracked (use fallback parsing)
-    pub fn get_pools_for_signature(&self, signature: &Signature) -> Option<Vec<Pubkey>> {
-        let sig_index = self.signature_to_pools.read().unwrap();
-        sig_index.get(signature).map(|(pools, _)| pools.clone())
-    }
-
-    /// Remove a signature from the index (called after confirmation)
-    fn remove_signature_from_index(&self, signature: &Signature) {
-        let mut sig_index = self.signature_to_pools.write().unwrap();
-        sig_index.remove(signature);
     }
 
     // =========================================================================
     // STATE ACCESS (for Arb Evaluation)
     // =========================================================================
 
-    /// Get PREDICTED state for a pool (includes pending swaps)
-    /// This is what arb evaluation should use
-    pub fn get_predicted_state(&self, pool: &Pubkey) -> Option<PoolState> {
-        self.maybe_run_cleanup();
-        let pools = self.pools.read().unwrap();
+    /// Get pool state
+    pub fn get_pool_state(&self, pool: &Pubkey) -> Option<PoolState> {
+        let pools = self.pools.read();
         pools.get(pool).cloned()
     }
 
-    /// Get PREDICTED virtual state for simulation
-    pub fn get_predicted_virtual_state(&self, pool: &Pubkey) -> Option<VirtualPoolState> {
-        self.maybe_run_cleanup();
-        let pools = self.pools.read().unwrap();
-        pools.get(pool).map(|s| s.predicted_virtual_state())
+    /// Get virtual state for simulation
+    pub fn get_virtual_state(&self, pool: &Pubkey) -> Option<VirtualPoolState> {
+        let pools = self.pools.read();
+        pools.get(pool).map(|s| s.virtual_state())
     }
 
-    /// Get simulator with curve-specific math using CONFIRMED state
-    /// Note: We use confirmed state directly (Geyser-authoritative) - pending swap simulation bypassed
+    /// Get simulator with curve-specific math
     ///
     /// This returns a PoolSimulator that uses the correct math for the pool type:
     /// - CLMM pools use tick-based simulation (with cached tick data)
     /// - DLMM pools use bin-based simulation (with cached bin data)
     /// - AMM pools use constant product
-    pub fn get_predicted_simulator(&self, pool: &Pubkey) -> Option<PoolSimulator> {
-        self.maybe_run_cleanup();
-        let pools = self.pools.read().unwrap();
+    pub fn get_simulator(&self, pool: &Pubkey) -> Option<PoolSimulator> {
+        let pools = self.pools.read();
         let state = pools.get(pool)?;
 
         // Build simulator with cached tick/bin data if available
@@ -1162,7 +703,7 @@ impl PoolStateManager {
                     state.spacing,
                     state.active_liquidity,
                 ) {
-                    let fee_rate = (state.fee_bps as u32) * 100; // bps to millionths
+                    let fee_rate = (state.fee_bps as u32) * 100;
                     let mut clmm =
                         ClmmPoolState::new(sqrt_price, tick, spacing, liquidity, fee_rate);
 
@@ -1175,23 +716,18 @@ impl PoolStateManager {
                     return Some(PoolSimulator::Clmm(clmm));
                 }
                 // Fallback to constant product if CLMM data incomplete
-                self.stats.write().unwrap().clmm_fallbacks += 1;
-                Some(PoolSimulator::ConstantProduct(state.predicted_virtual_state()))
+                Some(PoolSimulator::ConstantProduct(state.virtual_state()))
             }
             CurveType::Dlmm => {
                 if let (Some(bin_id), Some(spacing)) = (
                     state.confirmed_tick_or_bin,
                     state.spacing,
                 ) {
-                    let fee_rate = (state.fee_bps as u32) * 100_000; // bps to millionths
+                    let fee_rate = (state.fee_bps as u32) * 100_000;
                     let mut dlmm = DlmmPoolState::new(spacing, bin_id, fee_rate);
 
                     // Populate bins from cache
                     let cached_bins = self.bin_cache.get_pool_bins_for_simulation(pool, spacing);
-                    if cached_bins.is_empty() {
-                        // Track DLMM fallback when no bin data available
-                        self.stats.write().unwrap().dlmm_fallbacks += 1;
-                    }
                     for bin in cached_bins {
                         dlmm.bins.insert(bin.id, bin);
                     }
@@ -1199,24 +735,17 @@ impl PoolStateManager {
                     return Some(PoolSimulator::Dlmm(dlmm));
                 }
                 // Fallback to constant product if DLMM data incomplete
-                self.stats.write().unwrap().dlmm_fallbacks += 1;
-                Some(PoolSimulator::ConstantProduct(state.predicted_virtual_state()))
+                Some(PoolSimulator::ConstantProduct(state.virtual_state()))
             }
             CurveType::ConstantProduct => {
-                Some(PoolSimulator::ConstantProduct(state.predicted_virtual_state()))
+                Some(PoolSimulator::ConstantProduct(state.virtual_state()))
             }
         }
     }
 
-    /// Get CONFIRMED virtual state (ground truth, no pending)
-    pub fn get_confirmed_virtual_state(&self, pool: &Pubkey) -> Option<VirtualPoolState> {
-        let pools = self.pools.read().unwrap();
-        pools.get(pool).map(|s| s.confirmed_virtual_state())
-    }
-
     /// Get pools for a token pair
     pub fn get_pools_for_pair(&self, mint_a: &Pubkey, mint_b: &Pubkey) -> Vec<Pubkey> {
-        let index = self.pair_index.read().unwrap();
+        let index = self.pair_index.read();
         index.get(&(*mint_a, *mint_b)).cloned().unwrap_or_default()
     }
 
@@ -1229,7 +758,7 @@ impl PoolStateManager {
         mint_b: &Pubkey,
     ) -> Option<PoolState> {
         let pool_addresses = self.get_pools_for_pair(mint_a, mint_b);
-        let pools = self.pools.read().unwrap();
+        let pools = self.pools.read();
 
         for addr in pool_addresses {
             if addr != *source_pool {
@@ -1263,7 +792,7 @@ impl PoolStateManager {
         mint_b: &Pubkey,
     ) -> Vec<PoolState> {
         let pool_addresses = self.get_pools_for_pair(mint_a, mint_b);
-        let pools = self.pools.read().unwrap();
+        let pools = self.pools.read();
         let mut result = Vec::new();
 
         for addr in pool_addresses {
@@ -1295,8 +824,8 @@ impl PoolStateManager {
         token_b: &Pubkey,
         anchor_mints: &[Pubkey],
     ) -> Option<ThreeHopRoute> {
-        let pools = self.pools.read().unwrap();
-        let index = self.pair_index.read().unwrap();
+        let pools = self.pools.read();
+        let index = self.pair_index.read();
 
         for anchor in anchor_mints {
             // Skip if either token IS the anchor (should use 2-hop instead)
@@ -1349,55 +878,47 @@ impl PoolStateManager {
         None
     }
 
-    /// Get predicted spot price for a pool
-    pub fn get_predicted_spot_price(&self, pool: &Pubkey) -> Option<f64> {
-        self.maybe_run_cleanup();
-        let pools = self.pools.read().unwrap();
-        pools.get(pool).and_then(|s| s.predicted_spot_price())
-    }
-
-    /// Get pending swap count for a pool
-    pub fn pending_swap_count(&self, pool: &Pubkey) -> usize {
-        let pools = self.pools.read().unwrap();
-        pools.get(pool).map(|s| s.pending_swap_count).unwrap_or(0)
+    /// Get spot price for a pool
+    pub fn get_spot_price(&self, pool: &Pubkey) -> Option<f64> {
+        let pools = self.pools.read();
+        pools.get(pool).and_then(|s| s.spot_price())
     }
 
     /// Check if a pool is registered
     pub fn has_pool(&self, pool: &Pubkey) -> bool {
-        let pools = self.pools.read().unwrap();
+        let pools = self.pools.read();
         pools.contains_key(pool)
     }
 
     /// Get pool mints (base_mint, quote_mint)
     pub fn get_pool_mints(&self, pool: &Pubkey) -> Option<(Pubkey, Pubkey)> {
-        let pools = self.pools.read().unwrap();
+        let pools = self.pools.read();
         pools.get(pool).map(|s| (s.base_mint, s.quote_mint))
     }
 
-    /// Get pool reserves (predicted_base, predicted_quote)
+    /// Get pool reserves (confirmed_base, confirmed_quote)
     pub fn get_pool_reserves(&self, pool: &Pubkey) -> Option<(u64, u64)> {
-        self.maybe_run_cleanup();
-        let pools = self.pools.read().unwrap();
+        let pools = self.pools.read();
         pools
             .get(pool)
-            .map(|s| (s.predicted_base_reserve, s.predicted_quote_reserve))
+            .map(|s| (s.confirmed_base_reserve, s.confirmed_quote_reserve))
     }
 
     /// Get pool fee in basis points
     pub fn get_pool_fee_bps(&self, pool: &Pubkey) -> Option<u16> {
-        let pools = self.pools.read().unwrap();
+        let pools = self.pools.read();
         pools.get(pool).map(|s| s.fee_bps)
     }
 
     /// Get pool DEX type
     pub fn get_pool_dex(&self, pool: &Pubkey) -> Option<DexType> {
-        let pools = self.pools.read().unwrap();
+        let pools = self.pools.read();
         pools.get(pool).map(|s| s.dex)
     }
 
     /// Get number of pools tracked
     pub fn pool_count(&self) -> usize {
-        let pools = self.pools.read().unwrap();
+        let pools = self.pools.read();
         pools.len()
     }
 
@@ -1411,92 +932,33 @@ impl PoolStateManager {
         liquidity: Option<u128>,
         slot: u64,
     ) {
-        let mut pools = self.pools.write().unwrap();
+        let mut pools = self.pools.write();
         if let Some(state) = pools.get_mut(pool) {
             state.update_confirmed_clmm(sqrt_price, tick_or_bin, spacing, liquidity, slot);
         }
     }
 
-    // =========================================================================
-    // MAINTENANCE
-    // =========================================================================
-
-    /// Run cleanup if enough time has passed
-    fn maybe_run_cleanup(&self) {
-        let should_run = {
-            let last = self.last_cleanup.read().unwrap();
-            last.elapsed() > CLEANUP_INTERVAL
-        };
-
-        if should_run {
-            self.run_cleanup();
-        }
-    }
-
-    /// Expire old pending swaps and clean up
-    fn run_cleanup(&self) {
-        let mut total_expired = 0;
-        {
-            let mut pools = self.pools.write().unwrap();
-            for state in pools.values_mut() {
-                total_expired += state.expire_old_swaps();
-            }
-        }
-
-        // Also clean up stale signature index entries
-        let mut sig_expired = 0;
-        {
-            let mut sig_index = self.signature_to_pools.write().unwrap();
-            let now = Instant::now();
-            sig_index.retain(|_, (_, created_at)| {
-                let keep = now.duration_since(*created_at) < PENDING_SWAP_TTL;
-                if !keep {
-                    sig_expired += 1;
-                }
-                keep
-            });
-        }
-
-        if total_expired > 0 || sig_expired > 0 {
-            self.stats.write().unwrap().pending_swaps_expired += total_expired as u64;
-            tracing::debug!(
-                "Expired {} stale pending swaps, {} signature index entries",
-                total_expired,
-                sig_expired
-            );
-        }
-
-        *self.last_cleanup.write().unwrap() = Instant::now();
-    }
-
     /// Get statistics
     pub fn stats(&self) -> PoolStateStats {
-        self.stats.read().unwrap().clone()
+        self.stats.read().clone()
     }
 
     /// Get statistics as a formatted summary string
     pub fn stats_summary(&self) -> String {
-        let s = self.stats.read().unwrap();
+        let s = self.stats.read();
         format!(
-            "pools={} pending={} confirmed={} expired={} failed={} vault_rx={} vault_updated={} shred_swaps={} recalcs={} sig_hits={} sig_misses={}",
+            "pools={} vault_rx={} vault_updated={} geyser_updates={}",
             s.pools_tracked,
-            s.pending_swaps_total,
-            s.pending_swaps_confirmed,
-            s.pending_swaps_expired,
-            s.pending_swaps_failed,
             s.vault_updates_received,
             s.vault_reserves_updated,
-            s.shredstream_swaps_received,
-            s.predictions_recalculated,
-            s.signature_index_hits,
-            s.signature_index_misses
+            s.geyser_updates_received
         )
     }
 
     /// Get pair index statistics - critical for cross-pool arb routing
     /// Shows how many token pairs have multiple pools available
     pub fn pair_index_stats(&self) -> String {
-        let index = self.pair_index.read().unwrap();
+        let index = self.pair_index.read();
         let total_pairs = index.len();
         let multi_pool_pairs = index.values().filter(|pools| pools.len() > 1).count();
         let max_pools_for_pair = index.values().map(|p| p.len()).max().unwrap_or(0);
@@ -1518,7 +980,7 @@ impl PoolStateManager {
     /// Get all token pairs that have multiple pools (for pure arb scanning)
     /// Returns: Vec<(base_mint, quote_mint, pool_addresses)>
     pub fn get_multi_pool_pairs(&self) -> Vec<(Pubkey, Pubkey, Vec<Pubkey>)> {
-        let index = self.pair_index.read().unwrap();
+        let index = self.pair_index.read();
         let mut result = Vec::new();
         let mut seen = std::collections::HashSet::new();
 
@@ -1539,98 +1001,12 @@ impl PoolStateManager {
 
         result
     }
-
-    /// Get the current size of the signature index
-    pub fn signature_index_size(&self) -> usize {
-        self.signature_to_pools.read().unwrap().len()
-    }
-
-    /// Get total pending swaps across all pools
-    pub fn total_pending_swaps(&self) -> usize {
-        let pools = self.pools.read().unwrap();
-        pools.values().map(|s| s.pending_swap_count).sum()
-    }
 }
 
 impl Default for PoolStateManager {
     fn default() -> Self {
         Self::new()
     }
-}
-
-// =============================================================================
-// HELPER: SIMULATE ARB WITH POOL STATE
-// =============================================================================
-
-/// Simulate a cross-pool arbitrage using current pool state
-///
-/// This uses the current pool state for accurate profit calculation.
-///
-/// # Flow
-/// 1. Get current state for both pools
-/// 2. Simulate triggering swap on pool X (from current state)
-/// 3. Simulate our arb legs on current states
-/// 4. Calculate profit
-pub fn simulate_arb_with_state(
-    manager: &PoolStateManager,
-    trigger_pool: &Pubkey,
-    alternate_pool: &Pubkey,
-    trigger_amount: u64,
-    trigger_base_to_quote: bool,
-    borrow_amount: u64,
-    borrow_is_base: bool,
-    flash_fee_bps: u16,
-) -> Option<ArbSimulationResult> {
-    // Get current states
-    let pool_x = manager.get_predicted_virtual_state(trigger_pool)?;
-    let pool_y = manager.get_predicted_virtual_state(alternate_pool)?;
-
-    // Now simulate: trigger swap on pool_x, then our arb
-    // 1. Trigger's swap on pool X (current state)
-    let (_, pool_x_after_trigger) = pool_x.simulate_swap(trigger_amount, trigger_base_to_quote);
-
-    // 2. Our leg 1: Swap on Pool Y (borrow_token → intermediate)
-    let leg1_base_to_quote = borrow_is_base;
-    let (leg1_output, _) = pool_y.simulate_swap(borrow_amount, leg1_base_to_quote);
-    if leg1_output == 0 {
-        return None;
-    }
-
-    // 3. Our leg 2: Swap on Pool X post-trigger (intermediate → borrow)
-    let leg2_base_to_quote = !borrow_is_base;
-    let (leg2_output, _) = pool_x_after_trigger.simulate_swap(leg1_output, leg2_base_to_quote);
-    if leg2_output == 0 {
-        return None;
-    }
-
-    // 4. Calculate profit
-    let flash_fee = (borrow_amount as u128 * flash_fee_bps as u128 / 10_000) as u64;
-    let repay_amount = borrow_amount.saturating_add(flash_fee);
-    let profit = leg2_output.saturating_sub(repay_amount);
-
-    Some(ArbSimulationResult {
-        profit,
-        borrow_amount,
-        leg1_output,
-        leg2_output,
-        flash_loan_fee: flash_fee,
-        pending_swaps_in_trigger_pool: manager.pending_swap_count(trigger_pool),
-        pending_swaps_in_alternate_pool: manager.pending_swap_count(alternate_pool),
-    })
-}
-
-/// Result of simulating an arbitrage
-#[derive(Clone, Debug)]
-pub struct ArbSimulationResult {
-    pub profit: u64,
-    pub borrow_amount: u64,
-    pub leg1_output: u64,
-    pub leg2_output: u64,
-    pub flash_loan_fee: u64,
-    /// How many pending swaps were factored into trigger pool
-    pub pending_swaps_in_trigger_pool: usize,
-    /// How many pending swaps were factored into alternate pool
-    pub pending_swaps_in_alternate_pool: usize,
 }
 
 // =============================================================================
@@ -1658,97 +1034,59 @@ mod tests {
     }
 
     #[test]
-    fn test_pending_swap_affects_prediction() {
+    fn test_reserve_update() {
         let pool_addr = Pubkey::new_unique();
         let mut pool = make_test_pool(pool_addr, 1_000_000_000, 1_000_000);
 
-        // Initial state: confirmed = predicted
-        assert_eq!(pool.confirmed_base_reserve, pool.predicted_base_reserve);
+        assert_eq!(pool.confirmed_base_reserve, 1_000_000_000);
+        assert_eq!(pool.confirmed_quote_reserve, 1_000_000);
 
-        // Add a pending swap
-        let pending = PendingSwap {
-            signature: Signature::new_unique(),
-            slot: 101,
-            pool: pool_addr,
-            dex: DexType::RaydiumAmm,
-            amount_in: 100_000_000, // 0.1 SOL
-            base_to_quote: true,
-            detected_at: Instant::now(),
-            simulated_output: None,
-            status: PendingSwapStatus::Pending,
-        };
-
-        pool.add_pending_swap(pending);
-
-        // Now predicted should differ from confirmed
-        assert!(pool.predicted_base_reserve > pool.confirmed_base_reserve);
-        assert!(pool.predicted_quote_reserve < pool.confirmed_quote_reserve);
-        assert_eq!(pool.pending_swap_count, 1);
-    }
-
-    #[test]
-    fn test_geyser_confirmation_removes_pending() {
-        let pool_addr = Pubkey::new_unique();
-        let mut pool = make_test_pool(pool_addr, 1_000_000_000, 1_000_000);
-
-        let sig = Signature::new_unique();
-        let pending = PendingSwap {
-            signature: sig,
-            slot: 101,
-            pool: pool_addr,
-            dex: DexType::RaydiumAmm,
-            amount_in: 100_000_000,
-            base_to_quote: true,
-            detected_at: Instant::now(),
-            simulated_output: None,
-            status: PendingSwapStatus::Pending,
-        };
-
-        pool.add_pending_swap(pending);
-        assert_eq!(pool.pending_swap_count, 1);
-
-        // Simulate Geyser confirmation
-        pool.confirm_pending_swap(&sig);
-        assert_eq!(pool.pending_swap_count, 0);
-
-        // Update confirmed reserves (as Geyser would)
+        // Update reserves
         pool.update_confirmed_reserves(1_100_000_000, 900_000, 102);
-
-        // Now confirmed = predicted again (no pending)
-        assert_eq!(pool.confirmed_base_reserve, pool.predicted_base_reserve);
+        assert_eq!(pool.confirmed_base_reserve, 1_100_000_000);
+        assert_eq!(pool.confirmed_quote_reserve, 900_000);
     }
 
     #[test]
-    fn test_manager_integration() {
+    fn test_manager_registration() {
         let manager = PoolStateManager::new();
 
         let pool_addr = Pubkey::new_unique();
         let pool = make_test_pool(pool_addr, 1_000_000_000, 1_000_000);
         manager.register_pool(pool);
 
-        // Get predicted state
-        let state = manager.get_predicted_state(&pool_addr).unwrap();
-        assert_eq!(state.predicted_base_reserve, 1_000_000_000);
+        // Get state
+        let state = manager.get_pool_state(&pool_addr).unwrap();
+        assert_eq!(state.confirmed_base_reserve, 1_000_000_000);
 
-        // Simulate ShredStream swap
-        let swap = ParsedSwap {
-            dex: DexType::RaydiumAmm,
-            pool: pool_addr,
-            input_mint: None,
-            output_mint: None,
-            amount_in: Some(100_000_000),
-            min_amount_out: None,
-            direction: Some(SwapDirection::AtoB),
-            user: Pubkey::new_unique(),
-            instruction_index: 0,
-            amount_specified_is_input: Some(true),
-            sqrt_price_limit: None,
-        };
+        // Get reserves
+        let (base, quote) = manager.get_pool_reserves(&pool_addr).unwrap();
+        assert_eq!(base, 1_000_000_000);
+        assert_eq!(quote, 1_000_000);
+    }
 
-        manager.on_shredstream_swap_detected(&swap, 101, Signature::new_unique());
+    #[test]
+    fn test_spot_price() {
+        let pool_addr = Pubkey::new_unique();
+        let pool = make_test_pool(pool_addr, 1_000_000_000, 1_000_000);
 
-        // Predicted state should now differ
-        let state = manager.get_predicted_state(&pool_addr).unwrap();
-        assert!(state.predicted_base_reserve > state.confirmed_base_reserve);
+        // Price = quote/base = 1_000_000 / 1_000_000_000 = 0.001
+        let price = pool.spot_price().unwrap();
+        assert!((price - 0.001).abs() < 0.0001);
+    }
+
+    #[test]
+    fn test_virtual_state_creates_simulator() {
+        let pool_addr = Pubkey::new_unique();
+        let pool = make_test_pool(pool_addr, 1_000_000_000, 1_000_000);
+
+        // Create simulator from virtual state (constant product pools)
+        let virtual_state = pool.virtual_state();
+        let simulator = PoolSimulator::ConstantProduct(virtual_state);
+        assert!(matches!(simulator, PoolSimulator::ConstantProduct(_)));
+        
+        // Verify swap simulation works
+        let (output, _) = simulator.simulate_swap(100_000, true);
+        assert!(output > 0);
     }
 }

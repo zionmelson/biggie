@@ -62,8 +62,8 @@ use crate::geyser::{GeyserClient, GeyserConfig, SlotStatus};
 use crate::jito::{BundleStatus, JitoClient};
 use crate::pool_discovery::parse_pool_account;
 use crate::pool_state::{PoolState, PoolStateManager};
-use crate::shredstream::arb_bundle::{ArbBundleBuilder, BundleBuilderConfig, PureArbBundle};
-use crate::shredstream::evaluator::{ArbEvaluator, ArbOpportunity, PureArbOpportunity};
+use crate::shredstream::arb_bundle::{ArbBundleBuilder, BundleBuilderConfig};
+use crate::shredstream::evaluator::{ArbEvaluator, ArbOpportunity};
 use crate::shredstream::parser::{parse_transaction, TransactionSwaps};
 use crate::shredstream::programs::{
     DexType, METEORA_DAMM, METEORA_DLMM, ORCA_WHIRLPOOL, PANCAKESWAP_CLMM, RAYDIUM_AMM, RAYDIUM_CLMM,
@@ -178,11 +178,6 @@ pub struct UnifiedPipelineStats {
     pub geyser_votes_skipped: AtomicU64,
     pub geyser_reconnects: AtomicU64,
 
-    // === Pool state stats ===
-    pub pending_swaps_added: AtomicU64,
-    pub pending_swaps_confirmed: AtomicU64,
-    pub pending_swaps_expired: AtomicU64,
-
     // === Arb stats ===
     pub opportunities_evaluated: AtomicU64,
     pub opportunities_found: AtomicU64,
@@ -197,7 +192,6 @@ pub struct UnifiedPipelineStats {
 
     // === General ===
     pub last_slot: AtomicU64,
-    pub current_pending_swaps: AtomicU64,
     pub tx_source_turbine: AtomicU64,
     pub tx_source_shredstream: AtomicU64,
 }
@@ -223,14 +217,10 @@ impl UnifiedPipelineStats {
         };
         
         format!(
-            "{} GEYSER[txs={} accts={}] PENDING[add={} conf={} exp={} cur={}] ARB[opps={} submitted={} accepted={}] profit={:.6} SOL",
+            "{} GEYSER[txs={} accts={}] ARB[opps={} submitted={} accepted={}] profit={:.6} SOL",
             source_str,
             self.geyser_txs_received.load(Ordering::Relaxed),
             self.geyser_account_updates.load(Ordering::Relaxed),
-            self.pending_swaps_added.load(Ordering::Relaxed),
-            self.pending_swaps_confirmed.load(Ordering::Relaxed),
-            self.pending_swaps_expired.load(Ordering::Relaxed),
-            self.current_pending_swaps.load(Ordering::Relaxed),
             self.opportunities_found.load(Ordering::Relaxed),
             self.bundles_submitted.load(Ordering::Relaxed),
             self.bundles_accepted.load(Ordering::Relaxed),
@@ -491,8 +481,6 @@ impl UnifiedArbPipeline {
 
                     // Track pools affected by these swaps for pure arb evaluation
                     for swap in &tx_swaps.swaps {
-                        self.pool_state
-                            .on_shredstream_swap_detected(swap, slot, signature);
                         if !pools_to_scan.contains(&swap.pool) {
                             pools_to_scan.push(swap.pool);
                         }
@@ -545,7 +533,7 @@ impl UnifiedArbPipeline {
         for pool in pools {
             let pure_opp = {
                 let evaluator = self.evaluator.read().await;
-                evaluator.scan_pure_arb_for_pool(pool)
+                evaluator.scan_pool(pool)
             };
             
             let Some(opportunity) = pure_opp else {
@@ -564,7 +552,7 @@ impl UnifiedArbPipeline {
             // Build and submit
             let bundle = {
                 let builder = self.bundle_builder.read().await;
-                match builder.build_pure_arb(&opportunity, current_blockhash) {
+                match builder.build(&opportunity, current_blockhash) {
                     Ok(b) => b,
                     Err(e) => {
                         tracing::debug!(error = %e, "Failed to build pure arb bundle");
@@ -627,57 +615,15 @@ impl UnifiedArbPipeline {
     // GEYSER HANDLERS (Ground Truth)
     // =========================================================================
 
-    /// Handle Geyser transaction update - confirms pending swaps
+    /// Handle Geyser transaction update - just track stats
     ///
-    /// Uses signature index for O(1) lookup when we tracked the swap via ShredStream.
-    /// Falls back to re-parsing the transaction for swaps we didn't see early.
-    ///
-    /// The `tx_data` closure is only called if we need to fall back to re-parsing.
-    pub fn handle_geyser_transaction_lazy<F>(
-        &self,
-        signature: Signature,
-        _slot: u64, // Available for future slot-based validation
-        success: bool,
-        fallback_pools_fn: F,
-    ) where
-        F: FnOnce() -> Vec<Pubkey>,
-    {
+    /// With simplified pool state, we no longer track pending swaps.
+    /// Vault balance updates (via handle_geyser_vault_update) are the primary
+    /// trigger for arb evaluation.
+    pub fn handle_geyser_transaction(&self, _slot: u64, _success: bool) {
         self.stats
             .geyser_txs_received
             .fetch_add(1, Ordering::Relaxed);
-
-        // Try fast path: use signature index (avoids re-parsing)
-        if let Some(indexed_pools) = self
-            .pool_state
-            .confirm_by_signature(&signature, success)
-        {
-            // Fast path succeeded - pools were confirmed via index
-            if success && !indexed_pools.is_empty() {
-                self.stats
-                    .pending_swaps_confirmed
-                    .fetch_add(1, Ordering::Relaxed);
-            }
-        } else {
-            // Slow path: signature wasn't in our index (we didn't see it via ShredStream)
-            // Now extract pools (lazy - only when needed)
-            let fallback_pools = fallback_pools_fn();
-            self.pool_state.record_signature_index_miss();
-            for pool in &fallback_pools {
-                self.pool_state
-                    .on_geyser_transaction_confirmed(&signature, pool, success);
-            }
-            if success && !fallback_pools.is_empty() {
-                self.stats
-                    .pending_swaps_confirmed
-                    .fetch_add(1, Ordering::Relaxed);
-            }
-        }
-
-        // Update current pending count
-        self.stats.current_pending_swaps.store(
-            self.pool_state.total_pending_swaps() as u64,
-            Ordering::Relaxed,
-        );
     }
 
     /// Handle Geyser account update - updates confirmed reserves
@@ -739,7 +685,7 @@ impl UnifiedArbPipeline {
         
         let pure_opp = {
             let evaluator = self.evaluator.read().await;
-            evaluator.scan_pure_arb_for_pool(&pool)
+            evaluator.scan_pool(&pool)
         };
         
         if scan_count % 100 == 0 {
@@ -758,8 +704,10 @@ impl UnifiedArbPipeline {
         self.stats.pure_arb_opportunities.fetch_add(1, Ordering::Relaxed);
         
         // Check if Jito leader is coming up (use cached schedule)
+        // Skip this check for local testing - always attempt submission
         let (is_jito_leader, slots_until) = self.check_jito_leader(current_slot).await;
-        if !is_jito_leader || slots_until > 10 {
+        let skip_jito_check = std::env::var("SKIP_JITO_LEADER_CHECK").is_ok();
+        if !skip_jito_check && (!is_jito_leader || slots_until > 10) {
             tracing::debug!(
                 pool = %pool,
                 slots_until = slots_until,
@@ -771,7 +719,7 @@ impl UnifiedArbPipeline {
         // Build and submit pure arb bundle
         let bundle = {
             let builder = self.bundle_builder.read().await;
-            match builder.build_pure_arb(&opportunity, current_blockhash) {
+            match builder.build(&opportunity, current_blockhash) {
                 Ok(b) => b,
                 Err(e) => {
                     tracing::debug!(error = %e, "Failed to build pure arb bundle");
@@ -786,6 +734,9 @@ impl UnifiedArbPipeline {
             tip = bundle.tip_lamports,
             buy_pool = %opportunity.buy_pool,
             sell_pool = %opportunity.sell_pool,
+            borrow_mint = %opportunity.borrow_mint,
+            base_mint = %opportunity.base_mint,
+            trade_amount = opportunity.trade_amount,
             "Submitting pure arb bundle"
         );
         
@@ -873,8 +824,9 @@ impl UnifiedArbPipeline {
         };
 
         // Determine curve type from DEX type
+        // NOTE: Meteora DAMM v2 uses CLMM math (sqrt_price/liquidity), NOT constant product!
         let curve = match pool.dex {
-            DexType::OrcaWhirlpool | DexType::RaydiumClmm | DexType::PancakeSwapClmm => {
+            DexType::OrcaWhirlpool | DexType::RaydiumClmm | DexType::PancakeSwapClmm | DexType::MeteoraDamm => {
                 CurveType::ConcentratedLiquidity
             }
             DexType::MeteoraDlmm => CurveType::Dlmm,
@@ -960,28 +912,10 @@ impl UnifiedArbPipeline {
     // ARB EVALUATION (Uses Pool State)
     // =========================================================================
 
-    /// Evaluate swaps for arbitrage opportunities using PREDICTED state
-    ///
-    /// This is the key function that benefits from state prediction.
-    /// When we detect a swap, the predicted state already includes its
-    /// impact, allowing accurate profit calculation for cross-pool arbs.
-    pub async fn evaluate_opportunities(&self, tx_swaps: &TransactionSwaps) -> Vec<ArbOpportunity> {
-        // The evaluator uses PoolStateManager for accurate results.
-        // The pool_state has pending swaps factored in.
-        // Using read lock since evaluate() now uses atomic stats
+    /// Scan a single pool for pure arbitrage opportunity
+    pub async fn scan_pool_for_arb(&self, pool: &Pubkey) -> Option<ArbOpportunity> {
         let evaluator = self.evaluator.read().await;
-
-        // Evaluate (the evaluator uses predicted state via PoolStateManager)
-        let opportunities = evaluator.evaluate(tx_swaps);
-
-        self.stats
-            .opportunities_evaluated
-            .fetch_add(tx_swaps.swaps.len() as u64, Ordering::Relaxed);
-        self.stats
-            .opportunities_found
-            .fetch_add(opportunities.len() as u64, Ordering::Relaxed);
-
-        opportunities
+        evaluator.scan_pool(pool)
     }
 
     /// Check if a Jito-connected validator is the upcoming leader
@@ -1087,11 +1021,10 @@ impl UnifiedArbPipeline {
         // Also log pool state stats
         let ps_stats = self.pool_state.stats();
         tracing::debug!(
-            "POOL STATE: pools={} pending_total={} confirmed={} expired={}",
+            "POOL STATE: pools={} geyser_updates={} vault_updates={}",
             ps_stats.pools_tracked,
-            ps_stats.pending_swaps_total,
-            ps_stats.pending_swaps_confirmed,
-            ps_stats.pending_swaps_expired
+            ps_stats.geyser_updates_received,
+            ps_stats.vault_updates_received
         );
 
         // Log pair index stats for arb route debugging
@@ -1430,11 +1363,9 @@ async fn run_turbine_loop(
         // Track source
         stats.tx_source_turbine.fetch_add(assembled.transactions.len() as u64, Ordering::Relaxed);
 
-        // NOTE: We do NOT call evaluate_opportunities() here because:
-        // 1. It creates ArbOpportunity with trigger_tx (wrong for shred detection)
-        // 2. Turbine-detected TXs are already executed - can't bundle with them
-        // 3. Pure arb is already handled in handle_shredstream_entry() via
-        //    evaluate_pure_arb_for_pools() which builds single-TX bundles
+        // Pure arb evaluation is handled in handle_shredstream_entry() via
+        // evaluate_pure_arb_for_pools() which scans for price discrepancies
+        // and builds single-TX bundles when profitable.
     }
 
     Ok(())
@@ -1513,11 +1444,8 @@ async fn run_shredstream_loop(
         // triggers pure arb evaluation (correct for post-execution detection)
         let _all_swaps = pipeline.handle_shredstream_entry(slot, entries).await;
         
-        // NOTE: We do NOT call evaluate_opportunities() here because:
-        // 1. It creates ArbOpportunity with trigger_tx (wrong for shred detection)
-        // 2. Shred-detected TXs are already executed - can't bundle with them
-        // 3. Pure arb is already handled in handle_shredstream_entry() via
-        //    evaluate_pure_arb_for_pools() which builds single-TX bundles
+        // Pure arb evaluation is handled in handle_shredstream_entry() via
+        // evaluate_pure_arb_for_pools() which scans for price discrepancies.
     }
 
     Ok(())
@@ -1566,6 +1494,17 @@ async fn run_geyser_loop(
 
     // Subscribe to vault accounts (for reserve updates) using PSM's vault_index
     let vault_addresses: Vec<Pubkey> = pipeline.pool_state.all_vaults();
+    
+    // Debug: Check if target pool vaults are in subscription
+    let target_vault_a = "DQyrAcCrDXQ7NeoqGgDCZwBvWDcYmFCjSb9JtteuvPpz";
+    let target_vault_b = "HLmqeL62xR1QoZ1HKKbXRrdN1p3phKpxRMb2VVopvBBz";
+    let has_target_a = vault_addresses.iter().any(|v| v.to_string() == target_vault_a);
+    let has_target_b = vault_addresses.iter().any(|v| v.to_string() == target_vault_b);
+    if has_target_a || has_target_b {
+        tracing::info!("TARGET POOL 58oQChx4 vaults in subscription: vault_a={}, vault_b={}", has_target_a, has_target_b);
+    } else {
+        tracing::warn!("TARGET POOL 58oQChx4 vaults NOT in subscription list!");
+    }
 
     let has_vault_subscription = !vault_addresses.is_empty();
     let mut account_stream = if has_vault_subscription {
@@ -1601,7 +1540,7 @@ async fn run_geyser_loop(
     // Process all streams concurrently
     loop {
         tokio::select! {
-            // Transaction updates - confirm pending swaps
+            // Transaction updates - confirm pending swaps AND extract vault balance updates
             tx_result = tx_stream.message() => {
                 match tx_result {
                     Ok(Some(update)) => {
@@ -1613,7 +1552,7 @@ async fn run_geyser_loop(
                             }
 
                             // Parse signature
-                            if let Ok(sig) = tx_update.signature.parse::<Signature>() {
+                            if let Ok(_sig) = tx_update.signature.parse::<Signature>() {
                                 // Determine success from meta
                                 let success = tx_update.tx
                                     .as_ref()
@@ -1621,14 +1560,26 @@ async fn run_geyser_loop(
                                     .map(|m| m.err.is_none())
                                     .unwrap_or(false);
 
-                                // Use lazy fallback - only extract pools if signature not in index
-                                let tx_for_fallback = tx_update.tx.clone();
-                                pipeline.handle_geyser_transaction_lazy(
-                                    sig,
-                                    tx_update.slot,
-                                    success,
-                                    || extract_pools_from_geyser_tx(&tx_for_fallback),
-                                );
+                                // Track stats (no longer tracking pending swaps)
+                                pipeline.handle_geyser_transaction(tx_update.slot, success);
+                                
+                                // Also extract vault balance updates from transaction metadata
+                                // This supplements the account subscription which may miss some updates
+                                if success {
+                                    let vault_index = pipeline.pool_state.vault_index_snapshot();
+                                    let vault_updates = extract_vault_balances_from_tx(&tx_update.tx, &vault_index);
+                                    for (vault_addr, balance) in vault_updates {
+                                        let pipeline_clone = Arc::clone(&pipeline);
+                                        let slot = tx_update.slot;
+                                        tokio::spawn(async move {
+                                            pipeline_clone.handle_geyser_vault_update_with_arb(
+                                                &vault_addr,
+                                                balance,
+                                                slot,
+                                            ).await;
+                                        });
+                                    }
+                                }
                             }
                         }
                     }
@@ -1784,29 +1735,29 @@ async fn run_geyser_loop(
 // 2. Turbine/ShredStream swap detection (evaluate_pure_arb_for_pools)
 // This is more efficient - we only evaluate when state actually changes.
 
-/// Extract pool addresses from a Geyser transaction by finding swap instructions.
-///
-/// Uses the centralized pool_account_index from programs.rs to determine
-/// where the pool address is located for each DEX type.
-fn extract_pools_from_geyser_tx(
+/// Extract vault balance updates from a Geyser transaction's post_token_balances.
+/// Returns Vec<(vault_pubkey, balance)> for vaults we're tracking.
+fn extract_vault_balances_from_tx(
     tx: &Option<crate::geyser::proto::storage::confirmed_block::ConfirmedTransaction>,
-) -> Vec<Pubkey> {
-    use crate::shredstream::programs::{get_dex_type, is_swap_instruction, pool_account_index};
-
-    let mut pools = Vec::new();
-
+    vault_index: &std::collections::HashMap<Pubkey, (Pubkey, bool)>,
+) -> Vec<(Pubkey, u64)> {
+    let mut updates = Vec::new();
+    
     let Some(confirmed_tx) = tx else {
-        return pools;
+        return updates;
+    };
+    let Some(meta) = &confirmed_tx.meta else {
+        return updates;
     };
     let Some(transaction) = &confirmed_tx.transaction else {
-        return pools;
+        return updates;
     };
     let Some(message) = &transaction.message else {
-        return pools;
+        return updates;
     };
-
-    // Build account keys list
-    let account_keys: Vec<Pubkey> = message
+    
+    // Build account keys list (includes loaded addresses)
+    let mut account_keys: Vec<Pubkey> = message
         .account_keys
         .iter()
         .filter_map(|key_bytes| {
@@ -1819,40 +1770,46 @@ fn extract_pools_from_geyser_tx(
             }
         })
         .collect();
-
-    // Check each instruction for swap programs
-    for ix in &message.instructions {
-        let program_idx = ix.program_id_index as usize;
-        if program_idx >= account_keys.len() {
+    
+    // Add loaded writable addresses
+    for addr_bytes in &meta.loaded_writable_addresses {
+        if addr_bytes.len() == 32 {
+            let mut arr = [0u8; 32];
+            arr.copy_from_slice(addr_bytes);
+            account_keys.push(Pubkey::new_from_array(arr));
+        }
+    }
+    
+    // Add loaded readonly addresses  
+    for addr_bytes in &meta.loaded_readonly_addresses {
+        if addr_bytes.len() == 32 {
+            let mut arr = [0u8; 32];
+            arr.copy_from_slice(addr_bytes);
+            account_keys.push(Pubkey::new_from_array(arr));
+        }
+    }
+    
+    // Check each post_token_balance entry
+    for token_balance in &meta.post_token_balances {
+        let account_idx = token_balance.account_index as usize;
+        if account_idx >= account_keys.len() {
             continue;
         }
-        let program_id = &account_keys[program_idx];
-
-        // Check if this is a swap instruction
-        if !is_swap_instruction(program_id, &ix.data) {
-            continue;
-        }
-
-        // Get DEX type and pool account index
-        let Some(dex) = get_dex_type(program_id) else {
-            continue;
-        };
-        let pool_idx = pool_account_index(dex);
-
-        // Get the instruction's account at the pool index
-        let pool = ix
-            .accounts
-            .get(pool_idx)
-            .and_then(|&idx| account_keys.get(idx as usize).copied());
-
-        if let Some(pool_addr) = pool {
-            if !pools.contains(&pool_addr) {
-                pools.push(pool_addr);
+        
+        let account_pubkey = account_keys[account_idx];
+        
+        // Check if this is a vault we're tracking
+        if vault_index.contains_key(&account_pubkey) {
+            // Parse the balance from the amount string
+            if let Some(ui_amount) = &token_balance.ui_token_amount {
+                if let Ok(balance) = ui_amount.amount.parse::<u64>() {
+                    updates.push((account_pubkey, balance));
+                }
             }
         }
     }
-
-    pools
+    
+    updates
 }
 
 #[cfg(test)]
@@ -1865,7 +1822,7 @@ mod tests {
         let summary = stats.summary();
         assert!(summary.contains("SHRED"));
         assert!(summary.contains("GEYSER"));
-        assert!(summary.contains("PENDING"));
         assert!(summary.contains("ARB"));
+        assert!(summary.contains("profit"));
     }
 }

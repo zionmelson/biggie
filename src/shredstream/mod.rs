@@ -24,10 +24,10 @@ pub use parser::{ParsedSwap, SwapDirection, TransactionSwaps};
 pub use programs::{get_dex_type, is_swap_instruction, DexType};
 
 // Arbitrage evaluation
-pub use evaluator::{ArbEvaluator, ArbOpportunity, PoolInfo};
+pub use evaluator::{ArbEvaluator, ArbOpportunity, PoolInfo, PoolSwapState};
 
 // Bundle building
-pub use arb_bundle::{TwoTxBundle, ArbBundleBuilder, BundleBuilderConfig};
+pub use arb_bundle::{ArbBundle, ArbBundleBuilder, BundleBuilderConfig};
 
 // Unified pipeline
 pub use unified_pipeline::{

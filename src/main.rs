@@ -186,12 +186,10 @@ async fn run_arb_pipeline(config: Config) -> Result<(), Box<dyn std::error::Erro
     // Log final stats
     let s = stats.as_ref();
     tracing::info!(
-        "FINAL STATS: shred_entries={} shred_swaps={} geyser_txs={} pending_added={} pending_confirmed={} opps={} sent={} accepted={} profit={:.6} SOL",
+        "FINAL STATS: shred_entries={} shred_swaps={} geyser_txs={} opps={} sent={} accepted={} profit={:.6} SOL",
         s.shredstream_entries_received.load(std::sync::atomic::Ordering::Relaxed),
         s.shredstream_swaps_detected.load(std::sync::atomic::Ordering::Relaxed),
         s.geyser_txs_received.load(std::sync::atomic::Ordering::Relaxed),
-        s.pending_swaps_added.load(std::sync::atomic::Ordering::Relaxed),
-        s.pending_swaps_confirmed.load(std::sync::atomic::Ordering::Relaxed),
         s.opportunities_found.load(std::sync::atomic::Ordering::Relaxed),
         s.bundles_submitted.load(std::sync::atomic::Ordering::Relaxed),
         s.bundles_accepted.load(std::sync::atomic::Ordering::Relaxed),

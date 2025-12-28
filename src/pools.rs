@@ -61,6 +61,15 @@ pub struct StaticPool {
     #[serde(default)]
     pub quote_reserve: u64,
 
+    // === CLMM-specific fields (Meteora DAMM v2, Raydium CLMM, etc.) ===
+    /// sqrt_price in Q64.64 format (stored as string to preserve u128 precision)
+    /// Used by Meteora DAMM v2, Raydium CLMM, Orca Whirlpool
+    #[serde(default)]
+    pub sqrt_price: Option<String>,
+    /// Active liquidity in the current tick range (stored as string for u128)
+    #[serde(default)]
+    pub liquidity: Option<String>,
+
     // === Optional swap instruction accounts (can be derived if omitted) ===
     /// AMM config account (Raydium CLMM, PancakeSwap CLMM)
     #[serde(default)]
@@ -152,8 +161,10 @@ impl StaticPool {
     /// Determine curve type from DEX type
     fn curve_type(dex: DexType) -> CurveType {
         match dex {
-            DexType::RaydiumAmm | DexType::MeteoraDamm => CurveType::ConstantProduct,
-            DexType::RaydiumClmm | DexType::OrcaWhirlpool | DexType::PancakeSwapClmm => {
+            DexType::RaydiumAmm => CurveType::ConstantProduct,
+            // Meteora DAMM v2 uses concentrated liquidity with sqrt_price/liquidity (NOT constant product!)
+            // Reference: MeteoraAg/damm-v2 curve.rs - uses √P' = √P * L / (L + Δa * √P)
+            DexType::RaydiumClmm | DexType::OrcaWhirlpool | DexType::PancakeSwapClmm | DexType::MeteoraDamm => {
                 CurveType::ConcentratedLiquidity
             }
             DexType::MeteoraDlmm => CurveType::Dlmm,
@@ -198,14 +209,15 @@ impl StaticPool {
             .transpose()
             .with_context(|| "Invalid bin_array_bitmap_extension")?;
 
-        // Create base state
+        // Create base state - reserves initialized to 0, Geyser will populate
+        // DO NOT use pools.json reserves - they are stale! Geyser is the source of truth.
         let mut state = PoolState::new(
             address,
             dex,
             token_mint_a,
             token_mint_b,
-            self.base_reserve,
-            self.quote_reserve,
+            0, // base_reserve - Geyser will update
+            0, // quote_reserve - Geyser will update
             self.decimals_a,
             self.decimals_b,
             self.fee_bps,
@@ -234,6 +246,34 @@ impl StaticPool {
         if self.spacing > 0 {
             state.spacing = Some(self.spacing);
             state.confirmed_tick_or_bin = Some(self.current_tick_or_bin);
+        }
+
+        // Parse and set CLMM sqrt_price and liquidity (critical for Meteora DAMM v2!)
+        if let Some(ref sqrt_price_str) = self.sqrt_price {
+            if let Ok(sqrt_price) = sqrt_price_str.parse::<u128>() {
+                state.confirmed_sqrt_price = Some(sqrt_price);
+            }
+        }
+        if let Some(ref liquidity_str) = self.liquidity {
+            if let Ok(liquidity) = liquidity_str.parse::<u128>() {
+                state.active_liquidity = Some(liquidity);
+            }
+        }
+
+        // For Meteora DAMM, ensure spacing is set even if 0 in config (use default of 1)
+        if dex == DexType::MeteoraDamm && state.spacing.is_none() {
+            state.spacing = Some(1);
+            // If no tick was set, derive from sqrt_price if available
+            if state.confirmed_tick_or_bin.is_none() {
+                if let Some(sqrt_price) = state.confirmed_sqrt_price {
+                    // tick = 2 * log_{1.0001}(sqrt_price / 2^64)
+                    let sqrt_price_float = (sqrt_price as f64) / ((1u128 << 64) as f64);
+                    if sqrt_price_float > 0.0 {
+                        let tick = (2.0 * sqrt_price_float.ln() / 1.0001_f64.ln()) as i32;
+                        state.confirmed_tick_or_bin = Some(tick);
+                    }
+                }
+            }
         }
 
         Ok(state)
@@ -312,6 +352,8 @@ mod tests {
             current_tick_or_bin: 0,
             base_reserve: 0,
             quote_reserve: 0,
+            sqrt_price: None,
+            liquidity: None,
             amm_config: None,
             observation_state: None,
             bin_array_bitmap_extension: None,

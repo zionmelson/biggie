@@ -13,16 +13,20 @@ pub struct Config {
     pub jito: JitoConfig,
     #[serde(default)]
     pub wallets: WalletsConfig,
+    /// Fallback RPC endpoints (only used if local_rpc.enabled = false)
     #[serde(default)]
     pub quicknode_rpcs: Vec<String>,
     #[serde(default)]
     pub lookup_tables: Vec<LookupTableConfig>,
+    /// ShredStream/Turbine configuration for early TX detection
+    /// Note: turbine.enabled controls whether to use direct UDP (fast) or ShredStream proxy (fallback)
     #[serde(default)]
     pub shredstream: ShredstreamConfig,
-    /// Geyser plugin configuration - primary data source for local validator
+    /// Geyser plugin configuration - ground truth for vault balances and pool state
+    /// Always enabled; provides authoritative state updates
     #[serde(default)]
     pub geyser: GeyserPluginConfig,
-    /// Local RPC endpoint - use this instead of quicknode when running on validator
+    /// Local RPC configuration - preferred over quicknode_rpcs when running on validator
     #[serde(default)]
     pub local_rpc: LocalRpcConfig,
 }
@@ -175,15 +179,9 @@ pub struct ArbConfig {
     /// Enable arbitrage detection and submission
     #[serde(default = "default_true")]
     pub arb_enabled: bool,
-    /// Minimum swap amount in lamports to consider as trigger
-    #[serde(default = "default_min_swap_amount")]
-    pub min_swap_amount: u64,
     /// Minimum expected profit in lamports to submit a bundle
     #[serde(default = "default_min_profit")]
     pub min_profit_lamports: u64,
-    /// Minimum trigger swap slippage in bps to consider
-    #[serde(default = "default_min_slippage")]
-    pub min_trigger_slippage_bps: u64,
     /// Compute units to request per transaction
     #[serde(default = "default_compute_units")]
     pub compute_units: u32,
@@ -198,15 +196,9 @@ pub struct ArbConfig {
 fn default_true() -> bool {
     true
 }
-fn default_min_swap_amount() -> u64 {
-    10_000_000
-} // 0.01 SOL
 fn default_min_profit() -> u64 {
     50_000
 } // 0.00005 SOL
-fn default_min_slippage() -> u64 {
-    30
-} // 0.3%
 fn default_compute_units() -> u32 {
     400_000
 }
@@ -221,9 +213,7 @@ impl Default for ArbConfig {
     fn default() -> Self {
         Self {
             arb_enabled: true,
-            min_swap_amount: default_min_swap_amount(),
             min_profit_lamports: default_min_profit(),
-            min_trigger_slippage_bps: default_min_slippage(),
             compute_units: default_compute_units(),
             compute_unit_price: default_compute_price(),
             tip_profit_share_bps: default_tip_share(),

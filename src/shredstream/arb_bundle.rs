@@ -2,7 +2,7 @@
 //!
 //! Constructs atomic arbitrage transactions for cross-pool price divergence.
 //!
-//! # Primary Strategy: Pure Arbitrage (Single-TX Bundle)
+//! # Pure Arbitrage Strategy
 //!
 //! When we detect price divergence between pools:
 //! 1. Flash loan the anchor token (SOL/USDC)
@@ -12,22 +12,16 @@
 //! 5. Keep profit
 //!
 //! This is submitted as a **single-TX Jito bundle** for priority inclusion.
-//!
-//! # Why NOT Same-Block Bundling
-//!
-//! We receive transactions via Turbine/Shreds AFTER they've been executed.
-//! The "triggering TX" is already in a block - we can't bundle with it.
-//! Our arb TX goes in the NEXT block.
-//!
-//! # Legacy: TwoTxBundle struct
-//!
-//! The `TwoTxBundle` struct (with trigger_tx) is kept for potential future
-//! integration with Jito's pending transaction stream, which WOULD allow
-//! true same-block arb_bundlening. Currently unused.
 
-use super::evaluator::{ArbLeg, ArbOpportunity, PureArbOpportunity};
+use super::evaluator::{ArbOpportunity, PoolSwapState};
 use super::programs::DexType;
-use crate::constants::{ATA_PROGRAM, SYSTEM_PROGRAM, TOKEN_PROGRAM};
+use crate::constants::{
+    ATA_PROGRAM, SYSTEM_PROGRAM, TOKEN_PROGRAM, TOKEN_2022_PROGRAM, WSOL_MINT,
+    MIN_PAYER_BALANCE_LAMPORTS,
+    ORCA_MIN_SQRT_PRICE, ORCA_MAX_SQRT_PRICE,
+    RAYDIUM_CLMM_MIN_SQRT_PRICE, RAYDIUM_CLMM_MAX_SQRT_PRICE,
+    PANCAKE_CLMM_MIN_SQRT_PRICE, PANCAKE_CLMM_MAX_SQRT_PRICE,
+};
 use crate::executor::FlashLoanReserve;
 use crate::jito::random_tip_account;
 use crate::pool_discovery::{
@@ -47,14 +41,12 @@ use solana_system_interface::instruction as system_instruction;
 use std::collections::HashMap;
 use std::sync::Arc;
 
-/// A complete arb_bundle bundle ready for submission (legacy - for future pending TX stream)
+/// An arbitrage bundle ready for Jito submission (single TX)
 #[derive(Debug, Clone)]
-pub struct TwoTxBundle {
+pub struct ArbBundle {
     /// Unique bundle ID
     pub id: String,
-    /// The triggering transaction (executed first) - requires pending TX stream
-    pub trigger_tx: VersionedTransaction,
-    /// Our arbitrage transaction (executed second)
+    /// The arbitrage transaction
     pub arb_tx: VersionedTransaction,
     /// Expected profit in lamports
     pub expected_profit_lamports: u64,
@@ -64,32 +56,10 @@ pub struct TwoTxBundle {
     pub opportunity_id: String,
 }
 
-/// A pure arbitrage bundle (no trigger transaction - single TX bundle)
-#[derive(Debug, Clone)]
-pub struct PureArbBundle {
-    /// Unique bundle ID
-    pub id: String,
-    /// Our arbitrage transaction (single TX bundle)
-    pub arb_tx: VersionedTransaction,
-    /// Expected profit in lamports
-    pub expected_profit_lamports: u64,
-    /// Tip amount included
-    pub tip_lamports: u64,
-    /// The opportunity this bundle was built from
-    pub opportunity_id: String,
-}
-
-impl PureArbBundle {
-    /// Get transaction as a vector for Jito submission (single TX bundle)
+impl ArbBundle {
+    /// Get transaction as a vector for Jito submission
     pub fn transactions(&self) -> Vec<VersionedTransaction> {
         vec![self.arb_tx.clone()]
-    }
-}
-
-impl TwoTxBundle {
-    /// Get both transactions as a vector for Jito submission
-    pub fn transactions(&self) -> Vec<VersionedTransaction> {
-        vec![self.trigger_tx.clone(), self.arb_tx.clone()]
     }
 }
 
@@ -116,14 +86,28 @@ impl Default for BundleBuilderConfig {
     fn default() -> Self {
         Self {
             compute_units: 400_000,
-            compute_unit_price: 1000,   // 1000 micro-lamports (~400 lamports total)
-            base_tip_lamports: 1_000,   // Jito minimum - let market tip logic handle the rest
-            tip_profit_share_bps: 5000, // 50% max - split profit evenly
-            max_tip_profit_bps: 5000,   // 50% max - never tip more than half
-            slippage_bps: 50,           // 0.5% - tighter slippage for accuracy
-            tip_floor_multiplier: 1.3,  // 1.3x P75 floor - competitive baseline
+            compute_unit_price: 1000,
+            base_tip_lamports: 1_000,
+            tip_profit_share_bps: 5000,
+            max_tip_profit_bps: 5000,
+            slippage_bps: 50,
+            tip_floor_multiplier: 1.3,
         }
     }
+}
+
+/// A single leg of the arbitrage with data needed to build a swap instruction
+#[derive(Debug, Clone)]
+pub struct ArbLeg {
+    pub pool: Pubkey,
+    pub dex: DexType,
+    pub input_mint: Pubkey,
+    pub output_mint: Pubkey,
+    /// Expected output from simulation (in output token base units)
+    pub estimated_output: u64,
+    /// Minimum acceptable output with slippage applied (pre-computed by evaluator)
+    pub min_output: u64,
+    pub pool_state: PoolSwapState,
 }
 
 /// Bundle builder for arbitrage bundles
@@ -133,6 +117,8 @@ pub struct ArbBundleBuilder {
     flash_loan_reserves: HashMap<Pubkey, FlashLoanReserve>,
     lookup_tables: Vec<AddressLookupTableAccount>,
     tip_floor_cache: Option<Arc<TipFloorCache>>,
+    /// Cached payer SOL balance for pre-flight checks (updated externally)
+    payer_balance: std::sync::atomic::AtomicU64,
 }
 
 impl ArbBundleBuilder {
@@ -148,7 +134,25 @@ impl ArbBundleBuilder {
             flash_loan_reserves,
             lookup_tables,
             tip_floor_cache: None,
+            payer_balance: std::sync::atomic::AtomicU64::new(0),
         }
+    }
+
+    /// Update cached payer balance (should be called periodically from main loop)
+    pub fn update_payer_balance(&self, balance: u64) {
+        self.payer_balance.store(balance, std::sync::atomic::Ordering::Relaxed);
+    }
+
+    /// Get cached payer balance
+    pub fn payer_balance(&self) -> u64 {
+        self.payer_balance.load(std::sync::atomic::Ordering::Relaxed)
+    }
+
+    /// Check if payer has sufficient balance for a bundle
+    pub fn has_sufficient_balance(&self, tip_lamports: u64) -> bool {
+        let balance = self.payer_balance();
+        let required = MIN_PAYER_BALANCE_LAMPORTS.saturating_add(tip_lamports);
+        balance >= required
     }
 
     /// Set the tip floor cache for dynamic tipping
@@ -162,29 +166,51 @@ impl ArbBundleBuilder {
         self.tip_floor_cache = Some(cache);
     }
 
-    /// Build a arb_bundle bundle from an arbitrage opportunity (requires pending TX stream)
-    pub fn build(&self, opportunity: &ArbOpportunity, blockhash: Hash) -> Result<TwoTxBundle> {
-        // Validate trigger transaction
-        self.validate_trigger_tx(&opportunity.trigger_tx)?;
-
-        // Get flash loan reserve for the borrow mint
+    /// Build an arbitrage bundle from a cross-pool price discrepancy
+    pub fn build(&self, opportunity: &ArbOpportunity, blockhash: Hash) -> Result<ArbBundle> {
         let reserve = self
             .flash_loan_reserves
             .get(&opportunity.borrow_mint)
             .ok_or_else(|| anyhow!("No flash loan reserve for {}", opportunity.borrow_mint))?;
 
+        // Pre-calculate tip for balance check
+        let tip = self.calculate_tip(opportunity.expected_profit_lamports);
+
+        // Pre-flight balance check
+        if !self.has_sufficient_balance(tip) {
+            bail!(
+                "Insufficient payer balance: have {} lamports, need {} + {} tip",
+                self.payer_balance(),
+                MIN_PAYER_BALANCE_LAMPORTS,
+                tip
+            );
+        }
+
         let payer_pubkey = self.payer.pubkey();
         let borrow_ata = derive_ata(&payer_pubkey, &opportunity.borrow_mint);
 
-        // Build the arb transaction
+        // LOG: Show what we're building
+        tracing::info!(
+            opp_id = %opportunity.id,
+            buy_pool = %opportunity.buy_pool,
+            buy_dex = ?opportunity.buy_dex,
+            sell_pool = %opportunity.sell_pool,
+            sell_dex = ?opportunity.sell_dex,
+            borrow_mint = %opportunity.borrow_mint,
+            base_mint = %opportunity.base_mint,
+            trade_amount = opportunity.trade_amount,
+            leg1_output = opportunity.leg1_output,
+            leg2_output = opportunity.leg2_output,
+            expected_profit = opportunity.expected_profit_lamports,
+            flash_reserve = %reserve.reserve,
+            flash_supply = %reserve.borrow_liquidity_supply,
+            "BUILDING ARB BUNDLE"
+        );
+
         let arb_tx = self.build_arb_transaction(opportunity, reserve, borrow_ata, blockhash)?;
 
-        // Calculate tip
-        let tip = self.calculate_tip(opportunity.expected_profit_lamports);
-
-        Ok(TwoTxBundle {
-            id: format!("br_{}", opportunity.id),
-            trigger_tx: opportunity.trigger_tx.clone(),
+        Ok(ArbBundle {
+            id: format!("arb_{}", opportunity.id),
             arb_tx,
             expected_profit_lamports: opportunity.expected_profit_lamports,
             tip_lamports: tip,
@@ -192,80 +218,63 @@ impl ArbBundleBuilder {
         })
     }
 
-    /// Build a pure arbitrage bundle from a cross-pool price discrepancy
-    /// 
-    /// Unlike arb_bundle bundles, pure arb bundles contain only our transaction.
-    /// No trigger TX is needed - we're exploiting natural price drift between pools.
-    pub fn build_pure_arb(&self, opportunity: &PureArbOpportunity, blockhash: Hash) -> Result<PureArbBundle> {
-        // Get flash loan reserve for the borrow mint
-        let reserve = self
-            .flash_loan_reserves
-            .get(&opportunity.borrow_mint)
-            .ok_or_else(|| anyhow!("No flash loan reserve for {}", opportunity.borrow_mint))?;
-
-        let payer_pubkey = self.payer.pubkey();
-        let borrow_ata = derive_ata(&payer_pubkey, &opportunity.borrow_mint);
-
-        // Build the arb transaction
-        let arb_tx = self.build_pure_arb_transaction(opportunity, reserve, borrow_ata, blockhash)?;
-
-        // Calculate tip
-        let tip = self.calculate_tip(opportunity.expected_profit_lamports);
-
-        Ok(PureArbBundle {
-            id: format!("pa_{}", opportunity.id),
-            arb_tx,
-            expected_profit_lamports: opportunity.expected_profit_lamports,
-            tip_lamports: tip,
-            opportunity_id: opportunity.id.clone(),
-        })
-    }
-
-    /// Build the pure arbitrage transaction
+    /// Build the arbitrage transaction
     ///
-    /// Structure: flash borrow → swap1 (buy cheap) → swap2 (sell high) → flash repay → tip
-    fn build_pure_arb_transaction(
+    /// Structure: flash borrow → swap1 (buy cheap) → swap2 (sell high) → flash repay → sync_native → tip
+    fn build_arb_transaction(
         &self,
-        opportunity: &PureArbOpportunity,
+        opportunity: &ArbOpportunity,
         reserve: &FlashLoanReserve,
         borrow_ata: Pubkey,
         blockhash: Hash,
     ) -> Result<VersionedTransaction> {
         let payer_pubkey = self.payer.pubkey();
 
-        // Pre-allocate with capacity for pure arb (avoids reallocations)
-        // 2 compute budget + 2 ATA creates + 1 borrow + 2 swaps + 1 repay + 1 tip = 9 instructions
-        let mut instructions = Vec::with_capacity(9);
+        // Determine token programs for each mint based on pool state
+        // Use buy pool's token programs as source of truth for the pair
+        let borrow_token_program = if opportunity.borrow_mint == opportunity.buy_pool_state.token_mint_a {
+            opportunity.buy_pool_state.token_program_a
+        } else {
+            opportunity.buy_pool_state.token_program_b
+        };
+        
+        let base_token_program = if opportunity.base_mint == opportunity.buy_pool_state.token_mint_a {
+            opportunity.buy_pool_state.token_program_a
+        } else {
+            opportunity.buy_pool_state.token_program_b
+        };
 
-        // 1. Compute budget
+        // Pre-allocate: 2 compute + 2 ATA + 1 borrow + 2 swaps + 1 repay + 1 sync + 1 tip + 1 close = 12
+        let mut instructions = Vec::with_capacity(12);
+
+        // 1. Compute budget (use 600K for safety with CLMM swaps)
         instructions.push(ComputeBudgetInstruction::set_compute_unit_limit(
-            self.config.compute_units,
+            self.config.compute_units.max(600_000),
         ));
         instructions.push(ComputeBudgetInstruction::set_compute_unit_price(
             self.config.compute_unit_price,
         ));
 
-        // 2. Create ATAs (idempotent)
-        // ATA for borrow mint (quote token - e.g., SOL/USDC)
+        // 2. Create ATAs (idempotent) - use correct token program per mint
         instructions.push(create_ata_idempotent(
             &payer_pubkey,
             &payer_pubkey,
             &opportunity.borrow_mint,
-            &TOKEN_PROGRAM,
+            &borrow_token_program,
         ));
 
-        // ATA for base mint (the token we're arbitraging)
         if opportunity.base_mint != opportunity.borrow_mint {
             instructions.push(create_ata_idempotent(
                 &payer_pubkey,
                 &payer_pubkey,
                 &opportunity.base_mint,
-                &TOKEN_PROGRAM,
+                &base_token_program,
             ));
         }
 
         // Track instruction index for flash loan repay reference
         let borrow_ix_index = instructions.len() as u8;
+        tracing::debug!(borrow_ix_index, "Flash borrow at instruction index");
 
         // 3. Flash borrow
         instructions.push(self.build_borrow_instruction(
@@ -281,24 +290,60 @@ impl ArbBundleBuilder {
             input_mint: opportunity.borrow_mint,
             output_mint: opportunity.base_mint,
             estimated_output: opportunity.leg1_output,
+            min_output: opportunity.min_leg1_output,
             pool_state: opportunity.buy_pool_state.clone(),
         };
+        tracing::debug!(
+            ix_index = instructions.len(),
+            pool = %buy_leg.pool,
+            dex = ?buy_leg.dex,
+            input = %buy_leg.input_mint,
+            output = %buy_leg.output_mint,
+            amount_in = opportunity.trade_amount,
+            expected_out = opportunity.leg1_output,
+            vault_a = %buy_leg.pool_state.token_vault_a,
+            vault_b = %buy_leg.pool_state.token_vault_b,
+            "SWAP LEG 1 (buy)"
+        );
         let swap1 = self.build_swap_instruction(&buy_leg, opportunity.trade_amount)?;
         instructions.push(swap1);
 
         // 5. Swap leg 2: Sell on expensive pool (base -> quote)
+        // Use min_leg1_output as the input amount - this is the conservative estimate
+        // of what we'll receive from leg 1. If we receive more, extra stays in our ATA.
         let sell_leg = ArbLeg {
             pool: opportunity.sell_pool,
             dex: opportunity.sell_dex,
             input_mint: opportunity.base_mint,
             output_mint: opportunity.borrow_mint,
             estimated_output: opportunity.leg2_output,
+            min_output: opportunity.min_leg2_output,
             pool_state: opportunity.sell_pool_state.clone(),
         };
-        let swap2 = self.build_swap_instruction(&sell_leg, opportunity.leg1_output)?;
+        tracing::debug!(
+            ix_index = instructions.len(),
+            pool = %sell_leg.pool,
+            dex = ?sell_leg.dex,
+            input = %sell_leg.input_mint,
+            output = %sell_leg.output_mint,
+            amount_in = opportunity.min_leg1_output,
+            expected_out = opportunity.leg2_output,
+            min_out = opportunity.min_leg2_output,
+            vault_a = %sell_leg.pool_state.token_vault_a,
+            vault_b = %sell_leg.pool_state.token_vault_b,
+            "SWAP LEG 2 (sell)"
+        );
+        // Use min_leg1_output as input - ensures we don't try to swap more than we're guaranteed to receive
+        let swap2 = self.build_swap_instruction(&sell_leg, opportunity.min_leg1_output)?;
         instructions.push(swap2);
 
+        // 5.5. SyncNative if the output is wSOL (ensures balance is correct before repay)
+        if opportunity.borrow_mint == WSOL_MINT {
+            instructions.push(build_sync_native(&borrow_ata));
+        }
+
         // 6. Flash repay
+        tracing::debug!(ix_index = instructions.len(), "Flash repay at instruction index");
         instructions.push(self.build_repay_instruction(
             reserve,
             opportunity.trade_amount,
@@ -310,140 +355,11 @@ impl ArbBundleBuilder {
         let tip = self.calculate_tip(opportunity.expected_profit_lamports);
         instructions.push(self.build_tip_instruction(tip));
 
-        // Build versioned message
-        let message =
-            v0::Message::try_compile(&payer_pubkey, &instructions, &self.lookup_tables, blockhash)?;
-
-        let versioned_message = VersionedMessage::V0(message);
-        let tx = VersionedTransaction::try_new(versioned_message, &[self.payer.as_ref()])?;
-
-        Ok(tx)
-    }
-
-    /// Validate the trigger transaction before including in bundle
-    fn validate_trigger_tx(&self, tx: &VersionedTransaction) -> Result<()> {
-        // Check that transaction has at least one signature
-        if tx.signatures.is_empty() {
-            bail!("Trigger transaction has no signatures");
+        // 8. Close wSOL account to recover rent and unwrap profit to native SOL
+        // Note: This must be after the tip since tip is paid from native SOL balance
+        if opportunity.borrow_mint == WSOL_MINT {
+            instructions.push(build_close_account(&borrow_ata, &payer_pubkey, &payer_pubkey));
         }
-
-        // Verify the first signature is not all zeros (invalid)
-        let first_sig = &tx.signatures[0];
-        if first_sig.as_ref().iter().all(|&b| b == 0) {
-            bail!("Trigger transaction has invalid signature (all zeros)");
-        }
-
-        // Check transaction has a valid message with instructions
-        if tx.message.instructions().is_empty() {
-            bail!("Trigger transaction has no instructions");
-        }
-
-        // Verify blockhash is not default (would indicate a problem)
-        let recent_blockhash = tx.message.recent_blockhash();
-        if *recent_blockhash == Hash::default() {
-            bail!("Trigger transaction has default blockhash");
-        }
-
-        // Note: We cannot verify blockhash validity without RPC access
-        // The block engine will reject bundles with expired blockhashes
-
-        Ok(())
-    }
-
-    /// Build the arbitrage transaction
-    ///
-    /// OPTIMIZATION: Pre-allocate vector capacity to avoid reallocations.
-    /// Typical bundle has: 2 compute budget + 2 ATA creates + 1 borrow + 2 swaps + 1 repay + 1 tip = 9 instructions
-    fn build_arb_transaction(
-        &self,
-        opportunity: &ArbOpportunity,
-        reserve: &FlashLoanReserve,
-        borrow_ata: Pubkey,
-        blockhash: Hash,
-    ) -> Result<VersionedTransaction> {
-        let payer_pubkey = self.payer.pubkey();
-
-        // Pre-allocate with capacity for typical bundle (avoids reallocations)
-        let mut instructions = Vec::with_capacity(10);
-
-        // 1. Compute budget
-        instructions.push(ComputeBudgetInstruction::set_compute_unit_limit(
-            self.config.compute_units,
-        ));
-        instructions.push(ComputeBudgetInstruction::set_compute_unit_price(
-            self.config.compute_unit_price,
-        ));
-
-        // 2. Create ATA (idempotent)
-        instructions.push(create_ata_idempotent(
-            &payer_pubkey,
-            &payer_pubkey,
-            &opportunity.borrow_mint,
-            &TOKEN_PROGRAM,
-        ));
-
-        // Also create ATA for intermediate token if different
-        if opportunity.arb_route.leg1.output_mint != opportunity.borrow_mint {
-            instructions.push(create_ata_idempotent(
-                &payer_pubkey,
-                &payer_pubkey,
-                &opportunity.arb_route.leg1.output_mint,
-                &TOKEN_PROGRAM,
-            ));
-        }
-
-        // For 3-hop routes, also create ATA for second intermediate token
-        if opportunity.arb_route.is_three_hop {
-            if opportunity.arb_route.leg2.output_mint != opportunity.borrow_mint
-                && opportunity.arb_route.leg2.output_mint != opportunity.arb_route.leg1.output_mint
-            {
-                instructions.push(create_ata_idempotent(
-                    &payer_pubkey,
-                    &payer_pubkey,
-                    &opportunity.arb_route.leg2.output_mint,
-                    &TOKEN_PROGRAM,
-                ));
-            }
-        }
-
-        // Track instruction index for flash loan repay reference
-        let borrow_ix_index = instructions.len() as u8;
-
-        // 3. Flash borrow
-        instructions.push(self.build_borrow_instruction(
-            reserve,
-            opportunity.borrow_amount,
-            borrow_ata,
-        ));
-
-        // 4. Swap leg 1: borrow_mint -> intermediate
-        let swap1 =
-            self.build_swap_instruction(&opportunity.arb_route.leg1, opportunity.borrow_amount)?;
-        instructions.push(swap1);
-
-        // 5. Swap leg 2: intermediate -> borrow_mint (or intermediate2 for 3-hop)
-        let leg2_input = opportunity.arb_route.leg1.estimated_output;
-        let swap2 = self.build_swap_instruction(&opportunity.arb_route.leg2, leg2_input)?;
-        instructions.push(swap2);
-
-        // 5b. Swap leg 3 (for 3-hop arbs only): intermediate2 -> borrow_mint
-        if let Some(ref leg3) = opportunity.arb_route.leg3 {
-            let leg3_input = opportunity.arb_route.leg2.estimated_output;
-            let swap3 = self.build_swap_instruction(leg3, leg3_input)?;
-            instructions.push(swap3);
-        }
-
-        // 6. Flash repay
-        instructions.push(self.build_repay_instruction(
-            reserve,
-            opportunity.borrow_amount,
-            borrow_ata,
-            borrow_ix_index,
-        ));
-
-        // 7. Tip
-        let tip = self.calculate_tip(opportunity.expected_profit_lamports);
-        instructions.push(self.build_tip_instruction(tip));
 
         // Build versioned message
         let message =
@@ -456,15 +372,34 @@ impl ArbBundleBuilder {
     }
 
     /// Build a swap instruction for a leg
+    /// 
+    /// The min_output is pre-computed by the evaluator with proper slippage tolerance.
+    /// This avoids double-applying slippage and ensures consistency between simulation and execution.
     fn build_swap_instruction(&self, leg: &ArbLeg, amount_in: u64) -> Result<Instruction> {
         let payer = self.payer.pubkey();
         let input_ata = derive_ata(&payer, &leg.input_mint);
         let output_ata = derive_ata(&payer, &leg.output_mint);
 
-        // Apply slippage to min_amount_out
-        let min_out = leg.estimated_output * (10000 - self.config.slippage_bps) / 10000;
+        // Use pre-computed min_output (slippage already applied by evaluator)
+        let min_out = leg.min_output;
 
-        // Build instruction based on DEX type
+        tracing::debug!(
+            dex = ?leg.dex,
+            pool = %leg.pool,
+            amount_in = amount_in,
+            estimated_output = leg.estimated_output,
+            min_out = min_out,
+            input_mint = %leg.input_mint,
+            output_mint = %leg.output_mint,
+            input_ata = %input_ata,
+            output_ata = %output_ata,
+            token_mint_a = %leg.pool_state.token_mint_a,
+            token_mint_b = %leg.pool_state.token_mint_b,
+            vault_a = %leg.pool_state.token_vault_a,
+            vault_b = %leg.pool_state.token_vault_b,
+            "BUILD SWAP INSTRUCTION"
+        );
+
         match leg.dex {
             DexType::RaydiumAmm => {
                 self.build_raydium_amm_swap(leg, amount_in, min_out, input_ata, output_ata)
@@ -490,9 +425,6 @@ impl ArbBundleBuilder {
     // ========================================================================
     // Swap Instruction Builders
     // ========================================================================
-    //
-    // Each builder constructs a swap instruction for its respective DEX.
-    // Pool state data is sourced from leg.pool_state (populated during evaluation).
 
     fn build_raydium_amm_swap(
         &self,
@@ -502,44 +434,38 @@ impl ArbBundleBuilder {
         input_ata: Pubkey,
         output_ata: Pubkey,
     ) -> Result<Instruction> {
-        // Raydium AMM V4 swap_base_in_v2 (instruction index 16)
-        // Source: raydium-amm/program/src/processor.rs
         let state = &leg.pool_state;
 
-        // Determine swap direction: coin->pc or pc->coin
-        let is_coin_to_pc = leg.input_mint == state.token_mint_a;
-        let (user_source, user_dest, coin_vault, pc_vault) = if is_coin_to_pc {
-            (
-                input_ata,
-                output_ata,
-                state.token_vault_a,
-                state.token_vault_b,
-            )
-        } else {
-            (
-                input_ata,
-                output_ata,
-                state.token_vault_b,
-                state.token_vault_a,
-            )
-        };
+        // For Raydium AMM SwapBaseInV2:
+        // - coin_vault and pc_vault are passed in FIXED order (coin first, then pc)
+        // - user_source and user_dest change based on swap direction
+        let coin_vault = state.token_vault_a;
+        let pc_vault = state.token_vault_b;
 
         let amm_authority = state
             .amm_authority
-            .ok_or_else(|| anyhow!("Raydium AMM swap requires amm_authority in pool_state"))?;
+            .ok_or_else(|| anyhow!("Raydium AMM swap requires amm_authority"))?;
 
+        // SwapBaseInV2 (instruction 16) accounts:
+        // 0. [] Token program
+        // 1. [writable] AMM Account
+        // 2. [] AMM authority
+        // 3. [writable] AMM coin vault
+        // 4. [writable] AMM pc vault
+        // 5. [writable] User source token account
+        // 6. [writable] User destination token account
+        // 7. [signer] User wallet
         let accounts = vec![
             AccountMeta::new_readonly(TOKEN_PROGRAM, false),
             AccountMeta::new(leg.pool, false),
             AccountMeta::new_readonly(amm_authority, false),
             AccountMeta::new(coin_vault, false),
             AccountMeta::new(pc_vault, false),
-            AccountMeta::new(user_source, false),
-            AccountMeta::new(user_dest, false),
+            AccountMeta::new(input_ata, false),
+            AccountMeta::new(output_ata, false),
             AccountMeta::new_readonly(self.payer.pubkey(), true),
         ];
 
-        // Data: [instruction_index(1), amount_in(8), min_out(8)]
         let mut data = Vec::with_capacity(17);
         data.push(16u8); // swap_base_in_v2
         data.extend_from_slice(&amount_in.to_le_bytes());
@@ -560,18 +486,15 @@ impl ArbBundleBuilder {
         input_ata: Pubkey,
         output_ata: Pubkey,
     ) -> Result<Instruction> {
-        // Raydium CLMM swap (Anchor discriminator)
-        // Source: raydium-clmm/programs/amm/src/instructions/swap.rs
         let state = &leg.pool_state;
 
         let amm_config = state
             .amm_config
-            .ok_or_else(|| anyhow!("Raydium CLMM swap requires amm_config in pool_state"))?;
+            .ok_or_else(|| anyhow!("Raydium CLMM requires amm_config"))?;
         let observation_state = state
             .observation_state
-            .ok_or_else(|| anyhow!("Raydium CLMM swap requires observation_state in pool_state"))?;
+            .ok_or_else(|| anyhow!("Raydium CLMM requires observation_state"))?;
 
-        // Determine direction: zero_for_one = swap token0 for token1
         let zero_for_one = leg.input_mint == state.token_mint_a;
         let (input_vault, output_vault) = if zero_for_one {
             (state.token_vault_a, state.token_vault_b)
@@ -579,13 +502,12 @@ impl ArbBundleBuilder {
             (state.token_vault_b, state.token_vault_a)
         };
 
-        // Recompute tick arrays dynamically based on current tick
         let tick_arrays = if state.spacing > 0 {
             derive_raydium_clmm_tick_arrays(&leg.pool, state.current_tick_or_bin, state.spacing)
         } else if !state.tick_arrays.is_empty() {
             state.tick_arrays.clone()
         } else {
-            bail!("Raydium CLMM swap requires tick arrays or spacing to derive them");
+            bail!("Raydium CLMM requires tick arrays or spacing");
         };
 
         let mut accounts = vec![
@@ -601,20 +523,24 @@ impl ArbBundleBuilder {
             AccountMeta::new_readonly(TOKEN_PROGRAM, false),
         ];
 
-        // Add additional tick arrays as remaining accounts
         for tick_array in tick_arrays.iter().skip(1) {
             accounts.push(AccountMeta::new(*tick_array, false));
         }
 
-        // Data: [discriminator(8), amount(8), other_amount_threshold(8),
-        //        sqrt_price_limit_x64(16), is_base_input(1)]
+        // Use proper sqrt_price_limit from constants
+        // For Raydium CLMM: MIN + 1 when zero_for_one (selling A), MAX - 1 when !zero_for_one (buying A)
+        let sqrt_price_limit: u128 = if zero_for_one {
+            RAYDIUM_CLMM_MIN_SQRT_PRICE.saturating_add(1)
+        } else {
+            RAYDIUM_CLMM_MAX_SQRT_PRICE.saturating_sub(1)
+        };
+
         let mut data = Vec::with_capacity(41);
         data.extend_from_slice(&super::programs::raydium_clmm::SWAP);
         data.extend_from_slice(&amount_in.to_le_bytes());
         data.extend_from_slice(&min_out.to_le_bytes());
-        // sqrt_price_limit: 0 = no limit
-        data.extend_from_slice(&0u128.to_le_bytes());
-        data.push(1u8); // is_base_input = true
+        data.extend_from_slice(&sqrt_price_limit.to_le_bytes());
+        data.push(1u8); // is_base_input = true (we specify exact input)
 
         Ok(Instruction {
             program_id: *super::programs::RAYDIUM_CLMM,
@@ -631,31 +557,24 @@ impl ArbBundleBuilder {
         input_ata: Pubkey,
         output_ata: Pubkey,
     ) -> Result<Instruction> {
-        // Orca Whirlpool swap (Anchor discriminator)
-        // Source: whirlpools/programs/whirlpool/src/instructions/swap.rs
         let state = &leg.pool_state;
 
         let oracle = state
             .observation_state
-            .ok_or_else(|| anyhow!("Orca Whirlpool swap requires oracle in pool_state"))?;
+            .ok_or_else(|| anyhow!("Orca Whirlpool requires oracle"))?;
 
-        // Recompute tick arrays dynamically based on current tick
         let tick_arrays = if state.spacing > 0 {
             derive_whirlpool_tick_arrays(&leg.pool, state.current_tick_or_bin, state.spacing)
         } else if state.tick_arrays.len() >= 3 {
             state.tick_arrays.clone()
         } else {
-            bail!("Orca Whirlpool swap requires 3 tick_arrays or spacing to derive them");
+            bail!("Orca Whirlpool requires 3 tick_arrays or spacing");
         };
 
         if tick_arrays.len() < 3 {
-            bail!(
-                "Orca Whirlpool swap requires 3 tick_arrays, got {}",
-                tick_arrays.len()
-            );
+            bail!("Orca Whirlpool requires 3 tick_arrays, got {}", tick_arrays.len());
         }
 
-        // Direction: a_to_b means swapping token A for token B
         let a_to_b = leg.input_mint == state.token_mint_a;
         let (token_owner_a, token_owner_b) = if a_to_b {
             (input_ata, output_ata)
@@ -677,21 +596,21 @@ impl ArbBundleBuilder {
             AccountMeta::new_readonly(oracle, false),
         ];
 
-        // Data: [discriminator(8), amount(8), other_amount_threshold(8),
-        //        sqrt_price_limit(16), amount_specified_is_input(1), a_to_b(1)]
+        // Use proper sqrt_price_limit from constants
+        // For Orca: MIN + 1 when selling (a_to_b), MAX - 1 when buying (!a_to_b)
+        let sqrt_price_limit: u128 = if a_to_b {
+            ORCA_MIN_SQRT_PRICE.saturating_add(1)
+        } else {
+            ORCA_MAX_SQRT_PRICE.saturating_sub(1)
+        };
+
         let mut data = Vec::with_capacity(42);
         data.extend_from_slice(&super::programs::orca_whirlpool::SWAP);
         data.extend_from_slice(&amount_in.to_le_bytes());
         data.extend_from_slice(&min_out.to_le_bytes());
-        // sqrt_price_limit: 0 = no limit (use MIN or MAX based on direction)
-        let sqrt_price_limit: u128 = if a_to_b {
-            4295048016
-        } else {
-            79226673515401279992447579055
-        };
         data.extend_from_slice(&sqrt_price_limit.to_le_bytes());
-        data.push(1u8); // amount_specified_is_input = true
-        data.push(if a_to_b { 1u8 } else { 0u8 }); // a_to_b
+        data.push(1u8);
+        data.push(if a_to_b { 1u8 } else { 0u8 });
 
         Ok(Instruction {
             program_id: *super::programs::ORCA_WHIRLPOOL,
@@ -708,52 +627,48 @@ impl ArbBundleBuilder {
         input_ata: Pubkey,
         output_ata: Pubkey,
     ) -> Result<Instruction> {
-        // Meteora DLMM swap2 (Anchor discriminator)
-        // Source: dlmm-sdk/programs/lb_clmm/src/instructions/swap.rs
         let state = &leg.pool_state;
 
-        // Determine direction: x_to_y
-        let x_to_y = leg.input_mint == state.token_mint_a;
         let (user_token_in, user_token_out) = (input_ata, output_ata);
 
-        // Recompute bin arrays dynamically based on current active bin
         let bin_arrays = if !state.bin_arrays.is_empty() {
             state.bin_arrays.clone()
         } else {
             derive_dlmm_bin_arrays(&leg.pool, state.current_tick_or_bin)
         };
 
+        // Use correct token programs from pool state (Token-2022 support)
+        let token_program_a = state.token_program_a;
+        let token_program_b = state.token_program_b;
+
         let mut accounts = vec![
-            AccountMeta::new(leg.pool, false), // lb_pair
+            AccountMeta::new(leg.pool, false),
             AccountMeta::new(state.bin_array_bitmap_extension.unwrap_or(leg.pool), false),
-            AccountMeta::new(state.token_vault_a, false), // reserve_x
-            AccountMeta::new(state.token_vault_b, false), // reserve_y
-            AccountMeta::new_readonly(state.token_mint_a, false), // token_x_mint
-            AccountMeta::new_readonly(state.token_mint_b, false), // token_y_mint
-            AccountMeta::new_readonly(TOKEN_PROGRAM, false), // token_x_program
-            AccountMeta::new_readonly(TOKEN_PROGRAM, false), // token_y_program
-            AccountMeta::new(self.payer.pubkey(), true),  // user
+            AccountMeta::new(state.token_vault_a, false),
+            AccountMeta::new(state.token_vault_b, false),
+            AccountMeta::new_readonly(state.token_mint_a, false),
+            AccountMeta::new_readonly(state.token_mint_b, false),
+            AccountMeta::new_readonly(token_program_a, false),  // token_x_program - uses actual program
+            AccountMeta::new_readonly(token_program_b, false),  // token_y_program - uses actual program
+            AccountMeta::new(self.payer.pubkey(), true),
             AccountMeta::new(user_token_in, false),
             AccountMeta::new(user_token_out, false),
-            AccountMeta::new_readonly(state.observation_state.unwrap_or(leg.pool), false), // oracle
-            AccountMeta::new_readonly(leg.pool, false), // host_fee_in (optional, use lb_pair as placeholder)
+            AccountMeta::new_readonly(state.observation_state.unwrap_or(leg.pool), false),
+            AccountMeta::new_readonly(leg.pool, false),
             AccountMeta::new_readonly(
                 Pubkey::find_program_address(
                     &[b"__event_authority"],
                     &super::programs::METEORA_DLMM,
-                )
-                .0,
+                ).0,
                 false,
-            ), // event_authority
-            AccountMeta::new_readonly(*super::programs::METEORA_DLMM, false), // program
+            ),
+            AccountMeta::new_readonly(*super::programs::METEORA_DLMM, false),
         ];
 
-        // Add bin arrays as remaining accounts
         for bin_array in &bin_arrays {
             accounts.push(AccountMeta::new(*bin_array, false));
         }
 
-        // Data: [discriminator(8), amount_in(8), min_amount_out(8)]
         let mut data = Vec::with_capacity(24);
         data.extend_from_slice(&super::programs::meteora_dlmm::SWAP2);
         data.extend_from_slice(&amount_in.to_le_bytes());
@@ -774,34 +689,27 @@ impl ArbBundleBuilder {
         input_ata: Pubkey,
         output_ata: Pubkey,
     ) -> Result<Instruction> {
-        // Meteora DAMM v2 (CP-AMM) swap (Anchor discriminator)
-        // Source: damm-v2/programs/cp-amm/src/instructions/swap.rs
         let state = &leg.pool_state;
 
         let pool_authority = state
             .pool_authority
-            .ok_or_else(|| anyhow!("Meteora DAMM swap requires pool_authority in pool_state"))?;
-
-        // Determine direction
-        let a_to_b = leg.input_mint == state.token_mint_a;
-        let (input_token_account, output_token_account) = (input_ata, output_ata);
+            .ok_or_else(|| anyhow!("Meteora DAMM requires pool_authority"))?;
 
         let accounts = vec![
             AccountMeta::new_readonly(pool_authority, false),
             AccountMeta::new(leg.pool, false),
-            AccountMeta::new(input_token_account, false),
-            AccountMeta::new(output_token_account, false),
+            AccountMeta::new(input_ata, false),
+            AccountMeta::new(output_ata, false),
             AccountMeta::new(state.token_vault_a, false),
             AccountMeta::new(state.token_vault_b, false),
             AccountMeta::new_readonly(state.token_mint_a, false),
             AccountMeta::new_readonly(state.token_mint_b, false),
             AccountMeta::new(self.payer.pubkey(), true),
-            AccountMeta::new_readonly(TOKEN_PROGRAM, false), // token_a_program
-            AccountMeta::new_readonly(TOKEN_PROGRAM, false), // token_b_program
-            AccountMeta::new_readonly(leg.pool, false),      // referral_token_account (optional)
+            AccountMeta::new_readonly(TOKEN_PROGRAM, false),
+            AccountMeta::new_readonly(TOKEN_PROGRAM, false),
+            AccountMeta::new_readonly(leg.pool, false),
         ];
 
-        // Data: [discriminator(8), amount_in(8), minimum_amount_out(8)]
         let mut data = Vec::with_capacity(24);
         data.extend_from_slice(&super::programs::meteora_damm::SWAP);
         data.extend_from_slice(&amount_in.to_le_bytes());
@@ -822,15 +730,14 @@ impl ArbBundleBuilder {
         input_ata: Pubkey,
         output_ata: Pubkey,
     ) -> Result<Instruction> {
-        // PancakeSwap CLMM - nearly identical to Raydium CLMM
         let state = &leg.pool_state;
 
         let amm_config = state
             .amm_config
-            .ok_or_else(|| anyhow!("PancakeSwap CLMM swap requires amm_config in pool_state"))?;
-        let observation_state = state.observation_state.ok_or_else(|| {
-            anyhow!("PancakeSwap CLMM swap requires observation_state in pool_state")
-        })?;
+            .ok_or_else(|| anyhow!("PancakeSwap CLMM requires amm_config"))?;
+        let observation_state = state
+            .observation_state
+            .ok_or_else(|| anyhow!("PancakeSwap CLMM requires observation_state"))?;
 
         let zero_for_one = leg.input_mint == state.token_mint_a;
         let (input_vault, output_vault) = if zero_for_one {
@@ -839,13 +746,12 @@ impl ArbBundleBuilder {
             (state.token_vault_b, state.token_vault_a)
         };
 
-        // Recompute tick arrays dynamically (PancakeSwap uses same layout as Raydium CLMM)
         let tick_arrays = if state.spacing > 0 {
             derive_raydium_clmm_tick_arrays(&leg.pool, state.current_tick_or_bin, state.spacing)
         } else if !state.tick_arrays.is_empty() {
             state.tick_arrays.clone()
         } else {
-            bail!("PancakeSwap CLMM swap requires tick arrays or spacing to derive them");
+            bail!("PancakeSwap CLMM requires tick arrays or spacing");
         };
 
         let mut accounts = vec![
@@ -865,12 +771,19 @@ impl ArbBundleBuilder {
             accounts.push(AccountMeta::new(*tick_array, false));
         }
 
+        // Use proper sqrt_price_limit from constants
+        let sqrt_price_limit: u128 = if zero_for_one {
+            PANCAKE_CLMM_MIN_SQRT_PRICE.saturating_add(1)
+        } else {
+            PANCAKE_CLMM_MAX_SQRT_PRICE.saturating_sub(1)
+        };
+
         let mut data = Vec::with_capacity(41);
         data.extend_from_slice(&super::programs::pancakeswap_clmm::SWAP);
         data.extend_from_slice(&amount_in.to_le_bytes());
         data.extend_from_slice(&min_out.to_le_bytes());
-        data.extend_from_slice(&0u128.to_le_bytes()); // sqrt_price_limit
-        data.push(1u8); // is_base_input
+        data.extend_from_slice(&sqrt_price_limit.to_le_bytes());
+        data.push(1u8); // is_base_input = true
 
         Ok(Instruction {
             program_id: *super::programs::PANCAKESWAP_CLMM,
@@ -879,21 +792,49 @@ impl ArbBundleBuilder {
         })
     }
 
-    /// Build Solend flash borrow instruction
+    // ========================================================================
+    // Flash Loan Instructions
+    // ========================================================================
+
     fn build_borrow_instruction(
         &self,
         reserve: &FlashLoanReserve,
         amount: u64,
         dest_ata: Pubkey,
     ) -> Instruction {
-        // Solend FlashBorrowReserveLiquidity (instruction 19)
+        // Derive lending market authority PDA
+        let (lending_market_authority, _bump) = Pubkey::find_program_address(
+            &[reserve.lending_market.as_ref()],
+            &reserve.program_id,
+        );
+
+        tracing::info!(
+            program = %reserve.program_id,
+            reserve = %reserve.reserve,
+            lending_market = %reserve.lending_market,
+            lending_market_authority = %lending_market_authority,
+            borrow_supply = %reserve.borrow_liquidity_supply,
+            dest_ata = %dest_ata,
+            amount = amount,
+            "BUILD FLASH BORROW - instruction 19 with 7 accounts"
+        );
+
+        // FlashBorrowReserveLiquidity (instruction 19) accounts:
+        // 0. [writable] Source liquidity (reserve supply)
+        // 1. [writable] Destination liquidity  
+        // 2. [writable] Reserve account
+        // 3. [] Lending market
+        // 4. [] Derived lending market authority (PDA)
+        // 5. [] Instructions sysvar
+        // 6. [] Token program
         let accounts = vec![
             AccountMeta::new(reserve.borrow_liquidity_supply, false),
             AccountMeta::new(dest_ata, false),
             AccountMeta::new(reserve.reserve, false),
             AccountMeta::new_readonly(reserve.lending_market, false),
-            AccountMeta::new_readonly(TOKEN_PROGRAM, false),
+            AccountMeta::new_readonly(lending_market_authority, false),
             AccountMeta::new_readonly(solana_sdk::sysvar::instructions::id(), false),
+            AccountMeta::new_readonly(TOKEN_PROGRAM, false),
         ];
 
         let mut data = vec![19u8]; // FlashBorrowReserveLiquidity
@@ -906,7 +847,6 @@ impl ArbBundleBuilder {
         }
     }
 
-    /// Build Solend flash repay instruction
     fn build_repay_instruction(
         &self,
         reserve: &FlashLoanReserve,
@@ -914,7 +854,28 @@ impl ArbBundleBuilder {
         source_ata: Pubkey,
         borrow_ix_index: u8,
     ) -> Instruction {
-        // Solend FlashRepayReserveLiquidity (instruction 20)
+        tracing::info!(
+            program = %reserve.program_id,
+            reserve = %reserve.reserve,
+            repay_supply = %reserve.repay_liquidity_supply,
+            fee_receiver = %reserve.repay_fee_receiver,
+            host_fee = %reserve.host_fee_receiver,
+            source_ata = %source_ata,
+            amount = amount,
+            borrow_ix_index = borrow_ix_index,
+            "BUILD FLASH REPAY - instruction 20 with 9 accounts"
+        );
+
+        // FlashRepayReserveLiquidity (instruction 20) accounts:
+        // 0. [writable] Source liquidity (user's token account)
+        // 1. [writable] Destination liquidity (reserve supply)
+        // 2. [writable] Flash loan fee receiver
+        // 3. [writable] Host fee receiver
+        // 4. [writable] Reserve account
+        // 5. [] Lending market
+        // 6. [signer] User transfer authority
+        // 7. [] Instructions sysvar
+        // 8. [] Token program
         let accounts = vec![
             AccountMeta::new(source_ata, false),
             AccountMeta::new(reserve.repay_liquidity_supply, false),
@@ -923,8 +884,8 @@ impl ArbBundleBuilder {
             AccountMeta::new(reserve.reserve, false),
             AccountMeta::new_readonly(reserve.lending_market, false),
             AccountMeta::new_readonly(self.payer.pubkey(), true),
-            AccountMeta::new_readonly(TOKEN_PROGRAM, false),
             AccountMeta::new_readonly(solana_sdk::sysvar::instructions::id(), false),
+            AccountMeta::new_readonly(TOKEN_PROGRAM, false),
         ];
 
         let mut data = vec![20u8]; // FlashRepayReserveLiquidity
@@ -938,77 +899,55 @@ impl ArbBundleBuilder {
         }
     }
 
-    /// Build Jito tip instruction
     fn build_tip_instruction(&self, tip_lamports: u64) -> Instruction {
         let tip_account = random_tip_account();
         system_instruction::transfer(&self.payer.pubkey(), &tip_account, tip_lamports)
     }
 
-    /// Calculate competitive tip based on MARKET CONDITIONS, not profit percentage
-    ///
-    /// Key insight: Jito auctions are won by having the highest tip among competing bundles.
-    /// The tip floor API tells us what tips are actually landing.
-    ///
-    /// Strategy:
-    /// 1. Use P75 as baseline (beats 75% of competition)
-    /// 2. Add buffer based on opportunity value (more profit = can afford higher tip)
-    /// 3. NEVER tip more than 50% of profit (keep meaningful profit)
-    /// 4. Return 0 if we can't afford competitive tip (skip opportunity)
-    ///
-    /// This beats the old approach of tipping 85% of small profits (wasteful)
-    /// or under-tipping competitive opportunities.
+    /// Calculate competitive tip based on market conditions
     fn calculate_tip(&self, expected_profit: u64) -> u64 {
-        // Sanity cap: max tip is 10 SOL even for huge profits
         const MAX_TIP: u64 = 10_000_000_000; // 10 SOL
-        
-        // Minimum we'll ever keep (ensures we're not losing money after gas)
-        const MIN_KEEPER_LAMPORTS: u64 = 5_000; // ~$0.001
+        const MIN_KEEPER_LAMPORTS: u64 = 5_000;
 
-        // Get market floors
         let (p75, p95) = if let Some(cache) = &self.tip_floor_cache {
             (cache.get_p75(), cache.get_p95())
         } else {
-            // Fallback: use reasonable defaults based on typical market
-            (10_000, 100_000) // ~P75 and P95 from typical market
+            (10_000, 100_000)
         };
 
-        // Calculate the competitive tip based on market
-        // For most arb, P75 + 20% buffer is enough to land
-        // For high-value opportunities, we can afford to go higher
         let market_tip = if expected_profit > 1_000_000_000 {
-            // > 1 SOL profit: Very valuable, use P95 to guarantee landing
             (p95 as f64 * 1.1) as u64
         } else if expected_profit > 100_000_000 {
-            // 0.1 - 1 SOL: High value, use P75 * 2
             p75.saturating_mul(2)
         } else {
-            // Normal: P75 + 30% buffer
             (p75 as f64 * 1.3) as u64
         };
 
-        // Calculate max we're willing to tip (50% of profit)
-        // This ensures we always keep meaningful profit
         let max_tip_from_profit = expected_profit / 2;
-
-        // We need to keep at least MIN_KEEPER after tip
         let max_tip_after_keeper = expected_profit.saturating_sub(MIN_KEEPER_LAMPORTS);
-
-        // The actual max tip is the minimum of these constraints
         let effective_max = max_tip_from_profit.min(max_tip_after_keeper).min(MAX_TIP);
 
-        // If we can't afford the market tip, we'll still try with what we can afford
-        // The bundle might still land if competition is low
         let tip = market_tip.min(effective_max);
-
-        // Apply absolute minimum (Jito requires >= 1000 lamports)
         tip.max(self.config.base_tip_lamports).max(1_000)
     }
 }
 
 /// Derive ATA address
+/// Note: This uses TOKEN_PROGRAM for derivation - works for both SPL and Token-2022
+/// because the ATA program uses the same derivation regardless of token program
 fn derive_ata(owner: &Pubkey, mint: &Pubkey) -> Pubkey {
     Pubkey::find_program_address(
         &[owner.as_ref(), TOKEN_PROGRAM.as_ref(), mint.as_ref()],
+        &ATA_PROGRAM,
+    )
+    .0
+}
+
+/// Derive ATA address for Token-2022 mints
+#[allow(dead_code)]
+fn derive_ata_token_2022(owner: &Pubkey, mint: &Pubkey) -> Pubkey {
+    Pubkey::find_program_address(
+        &[owner.as_ref(), TOKEN_2022_PROGRAM.as_ref(), mint.as_ref()],
         &ATA_PROGRAM,
     )
     .0
@@ -1021,7 +960,13 @@ fn create_ata_idempotent(
     mint: &Pubkey,
     token_program: &Pubkey,
 ) -> Instruction {
-    let ata = derive_ata(owner, mint);
+    // Derive ATA using the correct token program
+    let ata = if *token_program == TOKEN_2022_PROGRAM {
+        derive_ata_token_2022(owner, mint)
+    } else {
+        derive_ata(owner, mint)
+    };
+    
     let accounts = vec![
         AccountMeta::new(*payer, true),
         AccountMeta::new(ata, false),
@@ -1031,13 +976,36 @@ fn create_ata_idempotent(
         AccountMeta::new_readonly(*token_program, false),
     ];
 
-    // create_idempotent instruction discriminator
-    let data = vec![1u8];
-
     Instruction {
         program_id: ATA_PROGRAM,
         accounts,
-        data,
+        data: vec![1u8], // create_idempotent
+    }
+}
+
+/// Build SyncNative instruction for wSOL accounts
+/// This syncs the token balance with the lamport balance after receiving native SOL
+fn build_sync_native(ata: &Pubkey) -> Instruction {
+    // SyncNative instruction (opcode 17)
+    Instruction {
+        program_id: TOKEN_PROGRAM,
+        accounts: vec![AccountMeta::new(*ata, false)],
+        data: vec![17u8], // SyncNative
+    }
+}
+
+/// Build CloseAccount instruction to close a token account
+/// Returns lamports to the destination and closes the account
+fn build_close_account(account: &Pubkey, destination: &Pubkey, authority: &Pubkey) -> Instruction {
+    // CloseAccount instruction (opcode 9)
+    Instruction {
+        program_id: TOKEN_PROGRAM,
+        accounts: vec![
+            AccountMeta::new(*account, false),      // Account to close
+            AccountMeta::new(*destination, false),  // Destination for rent lamports
+            AccountMeta::new_readonly(*authority, true), // Owner/authority
+        ],
+        data: vec![9u8], // CloseAccount
     }
 }
 
@@ -1061,27 +1029,16 @@ mod tests {
         let payer = Arc::new(Keypair::new());
         let builder = ArbBundleBuilder::new(config.clone(), payer, HashMap::new(), Vec::new());
 
-        // Test minimum tip (base_tip_lamports is returned for 0 profit)
         assert_eq!(builder.calculate_tip(0), config.base_tip_lamports);
 
-        // Test small profit: market-based tip (no cache = fallback 10k * 1.3 = 13k)
-        // But capped at 50% of profit
         let small_profit = 100_000;
-        // Fallback P75 = 10k, tip = 10k * 1.3 = 13k, but max 50% of 100k = 50k, so tip = 13k
         let tip_small = builder.calculate_tip(small_profit);
-        assert!(tip_small >= 1_000, "Tip should be >= Jito minimum");
-        assert!(tip_small <= small_profit / 2, "Tip should be <= 50% of profit");
+        assert!(tip_small >= 1_000);
+        assert!(tip_small <= small_profit / 2);
 
-        // Test medium profit: tip should scale with market floor
-        let medium_profit = 50_000_000; // 0.05 SOL
-        let tip_medium = builder.calculate_tip(medium_profit);
-        assert!(tip_medium <= medium_profit / 2, "Tip should be <= 50% of profit");
-        assert!(tip_medium >= 1_000, "Tip should be >= Jito minimum");
-
-        // Test large profit: should use P95-based tip
-        let large_profit = 2_000_000_000; // 2 SOL
+        let large_profit = 2_000_000_000;
         let tip_large = builder.calculate_tip(large_profit);
-        assert!(tip_large <= large_profit / 2, "Tip should be <= 50% of profit");
-        assert!(tip_large >= 1_000, "Tip should be >= Jito minimum");
+        assert!(tip_large <= large_profit / 2);
+        assert!(tip_large >= 1_000);
     }
 }

@@ -269,19 +269,36 @@ def parse_meteora_dlmm(account: dict) -> Optional[dict]:
         return None
 
 def parse_meteora_damm(account: dict) -> Optional[dict]:
-    """Parse Meteora DAMM (CP-AMM) pool account."""
+    """Parse Meteora DAMM v2 (CP-AMM with concentrated liquidity) pool account.
+    
+    IMPORTANT: Meteora DAMM v2 uses CLMM math with sqrt_price and liquidity,
+    NOT constant product! Reference: MeteoraAg/damm-v2/programs/cp-amm/src/state/pool.rs
+    
+    Pool struct layout (from SDK analysis):
+    - pool_fees: PoolFeesStruct (200 bytes) @ 8
+    - token_a_mint: Pubkey (32 bytes) @ 168
+    - token_b_mint: Pubkey (32 bytes) @ 200
+    - token_a_vault: Pubkey (32 bytes) @ 232
+    - token_b_vault: Pubkey (32 bytes) @ 264
+    - whitelisted_vault: Pubkey @ 296
+    - partner: Pubkey @ 328
+    - liquidity: u128 (16 bytes) @ 360
+    - _padding: u128 @ 376
+    - protocol_a_fee: u64 @ 392
+    - protocol_b_fee: u64 @ 400
+    - partner_a_fee: u64 @ 408
+    - partner_b_fee: u64 @ 416
+    - sqrt_min_price: u128 @ 424
+    - sqrt_max_price: u128 @ 440
+    - sqrt_price: u128 @ 456
+    """
     try:
         data = base64.b64decode(account["account"]["data"][0])
-        # DAMM pools are 1112 bytes
-        if len(data) != 1112:
+        # DAMM v2 pools are 1104-1112 bytes
+        if len(data) < 1104:
             return None
         
-        # DAMM layout (discovered from on-chain analysis):
-        # Token mint A @ 168
-        # Token mint B @ 200
-        # Token vault A @ 232
-        # Token vault B @ 264
-        
+        # Parse token mints and vaults
         token_a_mint = decode_pubkey(data, 168)
         token_b_mint = decode_pubkey(data, 200)
         token_a_vault = decode_pubkey(data, 232)
@@ -289,6 +306,35 @@ def parse_meteora_damm(account: dict) -> Optional[dict]:
         
         if token_a_mint not in MINT_TO_TOKEN or token_b_mint not in MINT_TO_TOKEN:
             return None
+        
+        # Parse CLMM-specific fields (these are critical for correct swap math!)
+        # liquidity: u128 at offset 360
+        liquidity = struct.unpack_from("<QQ", data, 360)
+        liquidity = liquidity[0] | (liquidity[1] << 64)
+        
+        # sqrt_min_price: u128 at offset 424
+        sqrt_min_price = struct.unpack_from("<QQ", data, 424)
+        sqrt_min_price = sqrt_min_price[0] | (sqrt_min_price[1] << 64)
+        
+        # sqrt_max_price: u128 at offset 440
+        sqrt_max_price = struct.unpack_from("<QQ", data, 440)
+        sqrt_max_price = sqrt_max_price[0] | (sqrt_max_price[1] << 64)
+        
+        # sqrt_price: u128 at offset 456
+        sqrt_price = struct.unpack_from("<QQ", data, 456)
+        sqrt_price = sqrt_price[0] | (sqrt_price[1] << 64)
+        
+        # Convert sqrt_price to current_tick for CLMM compatibility
+        # tick = 2 * log_{1.0001}(sqrt_price / 2^64)
+        import math
+        if sqrt_price > 0:
+            sqrt_price_float = sqrt_price / (2**64)
+            if sqrt_price_float > 0:
+                tick = int(2 * math.log(sqrt_price_float) / math.log(1.0001))
+            else:
+                tick = 0
+        else:
+            tick = 0
         
         return {
             "address": account["pubkey"],
@@ -299,9 +345,12 @@ def parse_meteora_damm(account: dict) -> Optional[dict]:
             "token_vault_b": token_b_vault,
             "decimals_a": MINT_TO_DECIMALS[token_a_mint],
             "decimals_b": MINT_TO_DECIMALS[token_b_mint],
-            "fee_bps": 25,  # Default, actual fee may vary
-            "spacing": 0,
-            "_comment": f"Meteora {MINT_TO_TOKEN[token_a_mint]}/{MINT_TO_TOKEN[token_b_mint]} DAMM"
+            "fee_bps": 25,  # Default, actual fee may vary per pool
+            "spacing": 1,   # DAMM uses virtual ticks, spacing of 1
+            "current_tick_or_bin": tick,
+            "sqrt_price": str(sqrt_price),  # Store as string to preserve u128
+            "liquidity": str(liquidity),     # Store as string to preserve u128
+            "_comment": f"Meteora {MINT_TO_TOKEN[token_a_mint]}/{MINT_TO_TOKEN[token_b_mint]} DAMM v2 (CLMM)"
         }
     except Exception as e:
         return None

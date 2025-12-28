@@ -12,9 +12,7 @@
     "endpoint": "http://127.0.0.1:10000",
     "arb": {
       "arb_enabled": true,
-      "min_swap_amount": 10000000,
       "min_profit_lamports": 50000,
-      "min_trigger_slippage_bps": 30,
       "compute_units": 400000,
       "compute_unit_price": 1000,
       "tip_profit_share_bps": 5000

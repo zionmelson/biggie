@@ -656,6 +656,106 @@ pub fn parse_dlmm(address: Pubkey, data: &[u8]) -> Option<DiscoveredPool> {
     })
 }
 
+// ============================================================================
+// Meteora DAMM v2 (Concentrated Liquidity with sqrt_price/liquidity)
+// Reference: MeteoraAg/damm-v2/programs/cp-amm/src/state/pool.rs
+// ============================================================================
+
+/// Meteora DAMM v2 pool layout offsets
+/// NOTE: Despite the name "CP-AMM", DAMM v2 uses CLMM math with sqrt_price/liquidity!
+mod damm_layout {
+    /// Token A mint @ 168
+    pub const TOKEN_A_MINT: usize = 168;
+    /// Token B mint @ 200
+    pub const TOKEN_B_MINT: usize = 200;
+    /// Token A vault @ 232
+    pub const TOKEN_A_VAULT: usize = 232;
+    /// Token B vault @ 264
+    pub const TOKEN_B_VAULT: usize = 264;
+    /// liquidity: u128 @ 360 (after whitelisted_vault and partner)
+    pub const LIQUIDITY: usize = 360;
+    /// sqrt_min_price: u128 @ 424
+    pub const SQRT_MIN_PRICE: usize = 424;
+    /// sqrt_max_price: u128 @ 440
+    pub const SQRT_MAX_PRICE: usize = 440;
+    /// sqrt_price: u128 @ 456
+    pub const SQRT_PRICE: usize = 456;
+    /// Minimum pool size (1104 bytes per SDK)
+    pub const MIN_SIZE: usize = 1104;
+}
+
+/// Parse Meteora DAMM v2 pool account
+/// IMPORTANT: DAMM v2 uses CLMM math (sqrt_price + liquidity), NOT constant product!
+pub fn parse_meteora_damm(address: Pubkey, data: &[u8]) -> Option<DiscoveredPool> {
+    if data.len() < damm_layout::MIN_SIZE {
+        return None;
+    }
+
+    // Parse token mints and vaults
+    let token_a_mint =
+        Pubkey::try_from(&data[damm_layout::TOKEN_A_MINT..damm_layout::TOKEN_A_MINT + 32]).ok()?;
+    let token_b_mint =
+        Pubkey::try_from(&data[damm_layout::TOKEN_B_MINT..damm_layout::TOKEN_B_MINT + 32]).ok()?;
+    let token_a_vault =
+        Pubkey::try_from(&data[damm_layout::TOKEN_A_VAULT..damm_layout::TOKEN_A_VAULT + 32]).ok()?;
+    let token_b_vault =
+        Pubkey::try_from(&data[damm_layout::TOKEN_B_VAULT..damm_layout::TOKEN_B_VAULT + 32]).ok()?;
+
+    // Parse CLMM-specific fields (critical for correct swap math!)
+    let liquidity = u128::from_le_bytes(
+        data[damm_layout::LIQUIDITY..damm_layout::LIQUIDITY + 16]
+            .try_into()
+            .ok()?,
+    );
+
+    let sqrt_price = u128::from_le_bytes(
+        data[damm_layout::SQRT_PRICE..damm_layout::SQRT_PRICE + 16]
+            .try_into()
+            .ok()?,
+    );
+
+    // Derive current tick from sqrt_price
+    // tick = 2 * log_{1.0001}(sqrt_price / 2^64)
+    let current_tick = if sqrt_price > 0 {
+        let sqrt_price_float = (sqrt_price as f64) / ((1u128 << 64) as f64);
+        if sqrt_price_float > 0.0 {
+            (2.0 * sqrt_price_float.ln() / 1.0001_f64.ln()) as i32
+        } else {
+            0
+        }
+    } else {
+        0
+    };
+
+    // Derive pool authority PDA
+    let pool_authority =
+        Pubkey::find_program_address(&[b"pool_authority", address.as_ref()], &METEORA_DAMM).0;
+
+    Some(DiscoveredPool {
+        address,
+        dex: DexType::MeteoraDamm,
+        token_mint_a: token_a_mint,
+        token_mint_b: token_b_mint,
+        token_vault_a: token_a_vault,
+        token_vault_b: token_b_vault,
+        spacing: 1,                                // DAMM uses virtual ticks with spacing of 1
+        current_tick_or_bin: current_tick,
+        sqrt_price: Some(sqrt_price),              // CRITICAL: used for CLMM swap math
+        active_liquidity: Some(liquidity),         // CRITICAL: used for CLMM swap math
+        fee_bps: Some(25),                         // Default, actual may vary per pool
+        decimals_a: 0,                             // Will be populated from pools.json
+        decimals_b: 0,
+        // Swap instruction accounts
+        amm_authority: None,
+        amm_config: None,
+        observation_state: None,
+        tick_arrays: Vec::new(),                   // DAMM doesn't use external tick arrays
+        bin_array_bitmap_extension: None,
+        bin_arrays: Vec::new(),
+        pool_authority: Some(pool_authority),
+    })
+}
+
 /// Parse a Raydium AMM (constant product) account
 pub fn parse_raydium_amm(address: Pubkey, data: &[u8]) -> Option<DiscoveredPool> {
     if data.len() < raydium_amm_layout::MIN_SIZE {
@@ -769,6 +869,8 @@ pub fn parse_pool_account(
         parse_raydium_clmm(address, data)
     } else if *program_id == *METEORA_DLMM {
         parse_dlmm(address, data)
+    } else if *program_id == *METEORA_DAMM {
+        parse_meteora_damm(address, data)
     } else if *program_id == *RAYDIUM_AMM {
         parse_raydium_amm(address, data)
     } else if *program_id == *PANCAKESWAP_CLMM {
