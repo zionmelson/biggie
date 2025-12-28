@@ -405,9 +405,11 @@ pub fn derive_damm_pool_authority(_pool: &Pubkey) -> Pubkey {
 }
 
 /// Derive Raydium AMM authority PDA
+/// The AUTHORITY_AMM seed is "amm authority" (ASCII bytes: [97, 109, 109, 32, 97, 117, 116, 104, 111, 114, 105, 116, 121])
+/// See: https://github.com/raydium-io/raydium-sdk-v2/blob/main/src/raydium/liquidity/utils.ts#L58-L64
 pub fn derive_raydium_amm_authority() -> Pubkey {
-    // Raydium AMM uses a fixed nonce-based authority
-    Pubkey::find_program_address(&[&[1, 0, 0, 0, 0][..]], &RAYDIUM_AMM).0
+    // Raydium AMM uses "amm authority" as the seed
+    Pubkey::find_program_address(&[b"amm authority"], &RAYDIUM_AMM).0
 }
 
 // ============================================================================

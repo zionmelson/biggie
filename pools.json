@@ -10,7 +10,7 @@
       "decimals_a": 6,
       "decimals_b": 9,
       "fee_bps": 25,
-      "spacing": 0,
+      "spacing": 1,
       "_comment": "Meteora JUP/SOL DAMM"
     },
     {
@@ -23,7 +23,7 @@
       "decimals_a": 9,
       "decimals_b": 6,
       "fee_bps": 25,
-      "spacing": 0,
+      "spacing": 1,
       "_comment": "Meteora SOL/USDC DAMM"
     },
     {
@@ -36,7 +36,7 @@
       "decimals_a": 9,
       "decimals_b": 6,
       "fee_bps": 25,
-      "spacing": 0,
+      "spacing": 1,
       "_comment": "Meteora SOL/USDC DAMM"
     },
     {
@@ -49,7 +49,7 @@
       "decimals_a": 9,
       "decimals_b": 6,
       "fee_bps": 25,
-      "spacing": 0,
+      "spacing": 1,
       "_comment": "Meteora SOL/USDC DAMM"
     },
     {
@@ -62,7 +62,7 @@
       "decimals_a": 6,
       "decimals_b": 6,
       "fee_bps": 25,
-      "spacing": 0,
+      "spacing": 1,
       "_comment": "Meteora USDT/USDC DAMM"
     },
     {
@@ -75,7 +75,7 @@
       "decimals_a": 9,
       "decimals_b": 6,
       "fee_bps": 25,
-      "spacing": 0,
+      "spacing": 1,
       "_comment": "Meteora jupSOL/USDC DAMM"
     },
     {

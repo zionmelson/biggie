@@ -690,6 +690,7 @@ impl PoolStateManager {
     /// - CLMM pools use tick-based simulation (with cached tick data)
     /// - DLMM pools use bin-based simulation (with cached bin data)
     /// - AMM pools use constant product
+    /// - DAMM v2 uses CLMM math but with single continuous liquidity range (no tick arrays)
     pub fn get_simulator(&self, pool: &Pubkey) -> Option<PoolSimulator> {
         let pools = self.pools.read();
         let state = pools.get(pool)?;
@@ -697,26 +698,43 @@ impl PoolStateManager {
         // Build simulator with cached tick/bin data if available
         match state.curve {
             CurveType::ConcentratedLiquidity => {
-                if let (Some(sqrt_price), Some(tick), Some(spacing), Some(liquidity)) = (
+                // For DAMM v2, we need sqrt_price and liquidity but NOT tick arrays
+                // (DAMM uses single continuous range, unlike Whirlpool/Raydium CLMM)
+                let is_damm = state.dex == DexType::MeteoraDamm;
+                
+                if let (Some(sqrt_price), Some(liquidity)) = (
                     state.confirmed_sqrt_price,
-                    state.confirmed_tick_or_bin,
-                    state.spacing,
                     state.active_liquidity,
                 ) {
+                    // For DAMM, use defaults if tick/spacing not set (single continuous range)
+                    let tick = state.confirmed_tick_or_bin.unwrap_or(0);
+                    let spacing = state.spacing.unwrap_or(1);
                     let fee_rate = (state.fee_bps as u32) * 100;
                     let mut clmm =
                         ClmmPoolState::new(sqrt_price, tick, spacing, liquidity, fee_rate);
 
-                    // Populate ticks from cache
-                    let cached_ticks = self.tick_cache.get_pool_ticks(pool);
-                    for tick_info in cached_ticks {
-                        clmm.add_tick(tick_info.tick, tick_info.liquidity_net);
+                    // Populate ticks from cache (only relevant for non-DAMM CLMMs)
+                    // DAMM v2 has all liquidity in one range, so tick cache will be empty
+                    if !is_damm {
+                        let cached_ticks = self.tick_cache.get_pool_ticks(pool);
+                        for tick_info in cached_ticks {
+                            clmm.add_tick(tick_info.tick, tick_info.liquidity_net);
+                        }
                     }
 
                     return Some(PoolSimulator::Clmm(clmm));
                 }
-                // Fallback to constant product if CLMM data incomplete
-                Some(PoolSimulator::ConstantProduct(state.virtual_state()))
+                
+                // CRITICAL: For CLMM pools, falling back to constant product gives WRONG results!
+                // Log a warning and return None instead of silently using wrong math.
+                tracing::warn!(
+                    pool = %pool,
+                    dex = ?state.dex,
+                    has_sqrt_price = state.confirmed_sqrt_price.is_some(),
+                    has_liquidity = state.active_liquidity.is_some(),
+                    "CLMM pool missing sqrt_price or liquidity - cannot simulate accurately"
+                );
+                None
             }
             CurveType::Dlmm => {
                 if let (Some(bin_id), Some(spacing)) = (
@@ -734,8 +752,14 @@ impl PoolStateManager {
 
                     return Some(PoolSimulator::Dlmm(dlmm));
                 }
-                // Fallback to constant product if DLMM data incomplete
-                Some(PoolSimulator::ConstantProduct(state.virtual_state()))
+                // CRITICAL: For DLMM pools, falling back to constant product gives WRONG results!
+                tracing::warn!(
+                    pool = %pool,
+                    has_bin_id = state.confirmed_tick_or_bin.is_some(),
+                    has_spacing = state.spacing.is_some(),
+                    "DLMM pool missing bin_id or spacing - cannot simulate accurately"
+                );
+                None
             }
             CurveType::ConstantProduct => {
                 Some(PoolSimulator::ConstantProduct(state.virtual_state()))

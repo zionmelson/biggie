@@ -403,7 +403,8 @@ fn parse_meteora_dlmm_swap(
 }
 
 /// Parse Meteora DAMM v2 swap instruction
-/// DAMM is a constant-product AMM, always ExactIn
+/// NOTE: Despite the name "CP-AMM", DAMM v2 uses CLMM math (sqrt_price/liquidity)
+/// NOT constant product! Always ExactIn mode.
 fn parse_meteora_damm_swap(
     instruction: &CompiledInstruction,
     account_keys: &[Pubkey],
@@ -437,7 +438,7 @@ fn parse_meteora_damm_swap(
         user: user.clone(),
         instruction_index,
         amount_specified_is_input: Some(true), // DAMM swap is always ExactIn
-        sqrt_price_limit: None, // DAMM is constant-product, no price limit
+        sqrt_price_limit: None, // DAMM v2 uses CLMM math but swap doesn't take price limit param
     })
 }
 
