@@ -109,12 +109,12 @@ async fn run_arb_pipeline(config: Config) -> Result<(), Box<dyn std::error::Erro
     // Log the TX source mode
     if turbine_config.enabled {
         tracing::info!("=== Turbine UDP + Geyser Unified Pipeline ===");
-        tracing::info!("TX Source: Direct Turbine UDP (ultra-low-latency ~0.5-2ms)");
+        tracing::info!("TX Source: Direct Turbine UDP (only faster if co-located with high-stake validator)");
         tracing::info!("Turbine bind address: {}", turbine_config.bind_addr);
         tracing::info!("Turbine receiver threads: {}", turbine_config.receiver_threads);
     } else {
-        tracing::info!("=== ShredStream + Geyser Unified Pipeline ===");
-        tracing::info!("TX Source: ShredStream proxy (fallback ~5-10ms)");
+        tracing::info!("=== Jito ShredStream + Geyser Unified Pipeline ===");
+        tracing::info!("TX Source: Jito ShredStream proxy (stake-weighted, layer-1 access)");
         tracing::info!("ShredStream endpoint: {}", config.shredstream.endpoint);
     }
     tracing::info!("Geyser endpoint: {}", config.geyser.endpoint);

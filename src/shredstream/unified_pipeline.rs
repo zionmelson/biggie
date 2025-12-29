@@ -1181,7 +1181,7 @@ pub async fn spawn_unified_pipeline(
         run_bundle_submission_task(pipeline_for_submit, opportunity_rx, submit_config).await;
     });
 
-    // Spawn TX source task - either Turbine UDP (primary) or ShredStream (fallback)
+    // Spawn TX source task - ShredStream (preferred) or Turbine UDP (only if high-stake co-located)
     if config.use_turbine_udp {
         tracing::info!(
             bind_addr = %config.turbine_config.bind_addr,
@@ -1198,7 +1198,7 @@ pub async fn spawn_unified_pipeline(
     } else {
         tracing::info!(
             endpoint = %config.shredstream_endpoint,
-            "Starting ShredStream proxy client (fallback mode)"
+            "Starting Jito ShredStream client (stake-weighted shred access)"
         );
 
         let pipeline_for_shred = Arc::clone(&pipeline);
