@@ -317,8 +317,8 @@ mod tests {
     }
 
     #[test]
-    fn test_pools_file_deserialize_with_legacy_fields() {
-        // Test backward compatibility: old pools.json with stale fields should still parse
+    fn test_pools_file_deserialize_with_extra_fields() {
+        // Test that pools.json with extra fields still parses correctly
         // (serde ignores unknown fields by default)
         let json = r#"{
             "pools": [

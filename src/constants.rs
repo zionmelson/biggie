@@ -44,6 +44,9 @@ pub const TOKEN_2022_PROGRAM: Pubkey =
 pub const ATA_PROGRAM: Pubkey = solana_sdk::pubkey!("ATokenGPvbdGVxr1b2hvZbsiqW5xWH25efTNsLJA8knL");
 /// System program
 pub const SYSTEM_PROGRAM: Pubkey = solana_sdk::pubkey!("11111111111111111111111111111111");
+/// SPL Memo program (required for Meteora DLMM swaps)
+pub const SPL_MEMO_PROGRAM: Pubkey =
+    solana_sdk::pubkey!("MemoSq4gqABAXKb96qnH8TysNcWxMyWCqXgDLGmfcHr");
 
 // =============================================================================
 // TOKEN-2022 SUPPORT

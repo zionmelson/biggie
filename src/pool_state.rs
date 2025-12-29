@@ -728,6 +728,17 @@ impl PoolStateManager {
             .collect()
     }
 
+    /// Get all AMM pools with their vault addresses for bootstrap
+    /// Returns (pool_address, vault_a, vault_b) for each constant-product AMM pool
+    pub fn all_amm_pool_vaults(&self) -> Vec<(Pubkey, Pubkey, Pubkey)> {
+        let pools = self.pools.read();
+        pools
+            .values()
+            .filter(|p| matches!(p.curve, CurveType::ConstantProduct))
+            .map(|p| (p.address, p.token_vault_a, p.token_vault_b))
+            .collect()
+    }
+
     /// Check if an address is a tracked CLMM/DLMM pool
     pub fn is_clmm_pool(&self, address: &Pubkey) -> bool {
         let pools = self.pools.read();

@@ -1,7 +1,7 @@
 {
   "shredstream": {
     "turbine": {
-      "enabled": true,
+      "enabled": false,
       "bind_addr": "127.0.0.1:9012",
       "receiver_threads": 2,
       "recv_buffer_size": 134217728,
@@ -17,8 +17,8 @@
       "compute_units": 400000,
       "compute_unit_price": 1000,
       "base_tip_lamports": 10000,
-      "tip_profit_share_bps": 5000,
-      "max_tip_profit_bps": 8000,
+      "tip_profit_share_bps": 6500,
+      "max_tip_profit_bps": 8500,
       "slippage_bps": 100,
       "tip_floor_multiplier": 2.0,
       "submission_timeout_secs": 5,

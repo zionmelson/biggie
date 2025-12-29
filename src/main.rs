@@ -181,9 +181,9 @@ async fn run_arb_pipeline(config: Config) -> Result<(), Box<dyn std::error::Erro
 
     tracing::info!("Arbitrage pipeline started (turbine + geyser + pool_state)");
 
-    // Note: Pool state updates (DEX program accounts, vault balances) are now handled
-    // by the unified pipeline's consolidated Geyser connection - no separate task needed.
-    tracing::info!("Pool state updates consolidated into unified pipeline Geyser connection");
+    // Pool state updates (DEX program accounts, vault balances) are handled
+    // by the unified pipeline's Geyser connection.
+    tracing::info!("Pool state updates handled by unified pipeline Geyser connection");
 
     // Wait for shutdown signal
     tokio::signal::ctrl_c().await?;

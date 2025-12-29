@@ -109,11 +109,18 @@ pub struct ShredstreamConfig {
 }
 
 /// Direct Turbine UDP configuration for ultra-low-latency shred reception
-/// Receives shreds directly from validator's TVU broadcast (0.5-2ms vs 5-10ms with proxy)
+/// 
+/// NOTE: ShredStream proxy is now preferred over direct Turbine UDP because:
+/// - Jito aggregates shreds from high-stake validators (stake-weighted priority)
+/// - Provides effective "layer 1" Turbine access without owning stake
+/// - More reliable in remote/unstaked locations
+/// 
+/// Direct Turbine is only faster if co-located with a high-stake validator.
 #[derive(Clone, Debug, Serialize, Deserialize)]
 pub struct TurbineUdpConfig {
     /// Whether to use direct Turbine UDP instead of ShredStream proxy
-    #[serde(default = "default_true")]
+    /// Default: false (ShredStream preferred for stake-weighted access)
+    #[serde(default)]
     pub enabled: bool,
     /// UDP bind address for receiving shreds (e.g., "0.0.0.0:8002")
     #[serde(default = "default_turbine_bind_addr")]
@@ -162,7 +169,7 @@ fn default_fec_timeout_ms() -> u64 {
 impl Default for TurbineUdpConfig {
     fn default() -> Self {
         Self {
-            enabled: true, // Default to Turbine UDP for lowest latency
+            enabled: false, // Default to ShredStream proxy (stake-weighted, better shred access)
             bind_addr: default_turbine_bind_addr(),
             receiver_threads: default_receiver_threads(),
             recv_buffer_size: default_recv_buffer_size(),

@@ -24,7 +24,7 @@ use solana_sdk::pubkey::Pubkey;
 use std::sync::Arc;
 use std::time::Instant;
 
-// Re-export from constants for backward compatibility and documentation
+// Re-export from central constants module
 /// Minimum trade size in base units (lamports for SOL-based arbs)
 /// Note: All amounts in this module are in "base units" - the smallest denomination
 /// of each token (e.g., lamports for SOL with 9 decimals, micro-units for USDC with 6 decimals).
@@ -372,19 +372,18 @@ impl ArbEvaluator {
                 continue;
             }
 
-            // LOG: Show actual reserves for both pools
-            let price_a = pool_a_state.confirmed_quote_reserve as f64 / pool_a_state.confirmed_base_reserve.max(1) as f64;
-            let price_b = pool_b_state.confirmed_quote_reserve as f64 / pool_b_state.confirmed_base_reserve.max(1) as f64;
+            // LOG: Show spot prices using proper curve-specific pricing
+            let price_a = pool_a_state.spot_price().unwrap_or(0.0);
+            let price_b = pool_b_state.spot_price().unwrap_or(0.0);
             tracing::debug!(
                 pool_a = %updated_pool,
-                pool_a_base = pool_a_state.confirmed_base_reserve,
-                pool_a_quote = pool_a_state.confirmed_quote_reserve,
+                pool_a_dex = ?pool_a_state.dex,
                 pool_a_price = %format!("{:.6}", price_a),
                 pool_b = %alt_pool_addr,
-                pool_b_base = pool_b_state.confirmed_base_reserve,
-                pool_b_quote = pool_b_state.confirmed_quote_reserve,
+                pool_b_dex = ?pool_b_state.dex,
                 pool_b_price = %format!("{:.6}", price_b),
-                "POOL PAIR RESERVES"
+                spread_bps = %format!("{:.2}", ((price_a - price_b).abs() / price_a.max(price_b).max(1e-10)) * 10_000.0),
+                "POOL PAIR PRICES"
             );
 
             // Determine if borrow_mint is the base or quote of the pool
@@ -417,46 +416,20 @@ impl ArbEvaluator {
             let transfer_fee_base_bps = pool_a_state.transfer_fee_bps_a;
             let transfer_fee_quote_bps = pool_a_state.transfer_fee_bps_b;
 
-            // Find optimal pure arb (wrapped in catch_unwind to handle math overflows)
+            // Find optimal pure arb
             // Pass borrow_is_base so simulation uses correct swap directions
-            let arb_result = std::panic::catch_unwind(std::panic::AssertUnwindSafe(|| {
-                find_optimal_pure_arb_unified_with_fees(
-                    &pool_a_sim,
-                    &pool_b_sim,
-                    max_trade,
-                    30,  // flash_fee_bps: 0.3%
-                    borrow_is_base,
-                    SLIPPAGE_BPS,
-                    transfer_fee_base_bps,
-                    transfer_fee_quote_bps,
-                )
-            }));
-
-            let arb_result = match arb_result {
-                Ok(result) => result,
-                Err(_) => {
-                    tracing::trace!(
-                        pool_a = %updated_pool,
-                        pool_b = %alt_pool_addr,
-                        "Arb calc panicked (likely math overflow), skipping"
-                    );
-                    continue;
-                }
-            };
+            let arb_result = find_optimal_pure_arb_unified_with_fees(
+                &pool_a_sim,
+                &pool_b_sim,
+                max_trade,
+                30,  // flash_fee_bps: 0.3%
+                borrow_is_base,
+                SLIPPAGE_BPS,
+                transfer_fee_base_bps,
+                transfer_fee_quote_bps,
+            );
 
             if let Some(result) = arb_result {
-                // SANITY CHECK: Profit cannot exceed 50% of trade amount (otherwise data is bad)
-                if result.profit > result.trade_amount / 2 {
-                    tracing::trace!(
-                        pool_a = %updated_pool,
-                        pool_b = %alt_pool_addr,
-                        profit = result.profit,
-                        trade = result.trade_amount,
-                        "Unrealistic profit (>50% of trade), likely bad data - skipping"
-                    );
-                    continue;
-                }
-
                 // Use profit directly - slippage is already factored into min_leg1/leg2_output
                 // No additional buffer needed (was causing double-counting)
                 if result.profit < MIN_PROFIT_LAMPORTS {

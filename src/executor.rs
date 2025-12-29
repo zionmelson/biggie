@@ -13,14 +13,14 @@ use solana_sdk::instruction::Instruction;
 use solana_sdk::pubkey::Pubkey;
 use std::str::FromStr;
 
-// Re-export for backward compatibility
+// Re-export fee constants from central constants module
 pub use crate::constants::{
     calculate_flash_loan_fee, flash_loan_repay_amount, min_output_for_flash_loan, AVG_SWAP_FEE_BPS,
     BASE_TIP_LAMPORTS, MAX_TIP_PROFIT_BPS, MIN_TIP_LAMPORTS,
     SOLEND_FLASH_LOAN_BPS, TIP_PROFIT_SHARE_BPS, WSOL_MINT,
 };
 
-/// Fee constants module - re-exports from constants for backward compatibility
+/// Fee constants module - re-exports from central constants module
 pub mod fees {
     pub use crate::constants::{
         calculate_flash_loan_fee, flash_loan_repay_amount, min_output_for_flash_loan,

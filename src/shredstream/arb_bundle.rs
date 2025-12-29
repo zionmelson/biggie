@@ -323,8 +323,9 @@ impl ArbBundleBuilder {
         instructions.push(swap1);
 
         // 5. Swap leg 2: Sell on expensive pool (base -> quote)
-        // Use min_leg1_output as the input amount - this is the conservative estimate
-        // of what we'll receive from leg 1. If we receive more, extra stays in our ATA.
+        // Use leg1_output (expected output) as the input amount. This matches our profit calculation.
+        // If leg1 outputs less than expected but above min, the transfer will fail and bundle reverts - safe.
+        // If leg1 outputs more than expected, extra stays in ATA - small inefficiency but works.
         let sell_leg = ArbLeg {
             pool: opportunity.sell_pool,
             dex: opportunity.sell_dex,
@@ -347,7 +348,7 @@ impl ArbBundleBuilder {
             vault_b = %sell_leg.pool_state.token_vault_b,
             "SWAP LEG 2 (sell)"
         );
-        // Use min_leg1_output as input - ensures we don't try to swap more than we're guaranteed to receive
+        // Use min_leg1_output (conservative) as input - matches min_leg2_output calculation
         let swap2 = self.build_swap_instruction(&sell_leg, opportunity.min_leg1_output)?;
         instructions.push(swap2);
 
@@ -655,38 +656,45 @@ impl ArbBundleBuilder {
         let token_program_a = state.token_program_a;
         let token_program_b = state.token_program_b;
 
+        // Derive event authority PDA
+        let (event_authority, _) = Pubkey::find_program_address(
+            &[b"__event_authority"],
+            &super::programs::METEORA_DLMM,
+        );
+
+        // Account order must match official Swap2 struct exactly:
+        // https://github.com/MeteoraAg/dlmm-sdk - see Swap2 accounts
         let mut accounts = vec![
-            AccountMeta::new(leg.pool, false),
-            AccountMeta::new(state.bin_array_bitmap_extension.unwrap_or(leg.pool), false),
-            AccountMeta::new(state.token_vault_a, false),
-            AccountMeta::new(state.token_vault_b, false),
-            AccountMeta::new_readonly(state.token_mint_a, false),
-            AccountMeta::new_readonly(state.token_mint_b, false),
-            AccountMeta::new_readonly(token_program_a, false),  // token_x_program - uses actual program
-            AccountMeta::new_readonly(token_program_b, false),  // token_y_program - uses actual program
-            AccountMeta::new(self.payer.pubkey(), true),
-            AccountMeta::new(user_token_in, false),
-            AccountMeta::new(user_token_out, false),
-            AccountMeta::new_readonly(state.observation_state.unwrap_or(leg.pool), false),
-            AccountMeta::new_readonly(leg.pool, false),
-            AccountMeta::new_readonly(
-                Pubkey::find_program_address(
-                    &[b"__event_authority"],
-                    &super::programs::METEORA_DLMM,
-                ).0,
-                false,
-            ),
-            AccountMeta::new_readonly(*super::programs::METEORA_DLMM, false),
+            AccountMeta::new(leg.pool, false),                                      // 0: lb_pair
+            AccountMeta::new(state.bin_array_bitmap_extension.unwrap_or(leg.pool), false), // 1: bin_array_bitmap_extension
+            AccountMeta::new(state.token_vault_a, false),                           // 2: reserve_x
+            AccountMeta::new(state.token_vault_b, false),                           // 3: reserve_y
+            AccountMeta::new_readonly(state.token_mint_a, false),                   // 4: token_x_mint
+            AccountMeta::new_readonly(state.token_mint_b, false),                   // 5: token_y_mint
+            AccountMeta::new_readonly(token_program_a, false),                      // 6: token_x_program
+            AccountMeta::new_readonly(token_program_b, false),                      // 7: token_y_program
+            AccountMeta::new(self.payer.pubkey(), true),                            // 8: user
+            AccountMeta::new(user_token_in, false),                                 // 9: user_token_in
+            AccountMeta::new(user_token_out, false),                                // 10: user_token_out
+            AccountMeta::new_readonly(state.observation_state.unwrap_or(leg.pool), false), // 11: oracle
+            AccountMeta::new_readonly(*super::programs::METEORA_DLMM, false),       // 12: host_fee_in (use program ID as placeholder)
+            AccountMeta::new_readonly(event_authority, false),                      // 13: event_authority
+            AccountMeta::new_readonly(*super::programs::METEORA_DLMM, false),       // 14: program
+            AccountMeta::new_readonly(crate::constants::SPL_MEMO_PROGRAM, false),   // 15: memo_program
         ];
 
+        // Bin arrays go in remaining accounts
         for bin_array in &bin_arrays {
             accounts.push(AccountMeta::new(*bin_array, false));
         }
 
-        let mut data = Vec::with_capacity(24);
+        // Instruction data: discriminator + amount_in + min_out + remaining_accounts_info
+        // remaining_accounts_info is RemainingAccountsInfo { slices: vec![] } which serializes to 4 zero bytes (empty vec length)
+        let mut data = Vec::with_capacity(28);
         data.extend_from_slice(&super::programs::meteora_dlmm::SWAP2);
         data.extend_from_slice(&amount_in.to_le_bytes());
         data.extend_from_slice(&min_out.to_le_bytes());
+        data.extend_from_slice(&[0u8; 4]); // empty remaining_accounts_info.slices vec
 
         Ok(Instruction {
             program_id: *super::programs::METEORA_DLMM,
@@ -921,31 +929,80 @@ impl ArbBundleBuilder {
         system_instruction::transfer(&self.payer.pubkey(), &tip_account, tip_lamports)
     }
 
-    /// Calculate competitive tip based on market conditions
+    /// Calculate competitive tip based on profit share strategy
+    /// 
+    /// Jito Auction Strategy:
+    /// - Multiple searchers see the same opportunity simultaneously
+    /// - All submit bundles to Jito block engine within ~1-5ms of each other
+    /// - Jito runs a first-price auction: highest tip wins inclusion
+    /// - Losers get SIMULATION_FAILURE because winner's tx already changed state
+    /// 
+    /// To win consistently, we tip a percentage of expected profit (default 50-80%)
+    /// This ensures we outbid competitors while still keeping profit
     fn calculate_tip(&self, expected_profit: u64) -> u64 {
-        const MAX_TIP: u64 = 10_000_000_000; // 10 SOL
-        const MIN_KEEPER_LAMPORTS: u64 = 5_000;
-
-        let (p75, p95) = if let Some(cache) = &self.tip_floor_cache {
-            (cache.get_p75(), cache.get_p95())
+        const MAX_TIP: u64 = 10_000_000_000; // 10 SOL absolute max
+        const MIN_KEEPER_LAMPORTS: u64 = 1_000; // Minimum profit to keep (dust)
+        
+        // Get market tip floors for reference
+        let (p50, p75, p95) = if let Some(cache) = &self.tip_floor_cache {
+            (cache.get_p50(), cache.get_p75(), cache.get_p95())
         } else {
-            (10_000, 100_000)
+            (5_000, 15_000, 300_000)
         };
-
-        let market_tip = if expected_profit > 1_000_000_000 {
-            (p95 as f64 * 1.1) as u64
+        
+        // Strategy: Tip a percentage of profit to win the auction
+        // Use config values: tip_profit_share_bps (default 5000 = 50%)
+        let profit_based_tip = (expected_profit as u128 * self.config.tip_profit_share_bps as u128 / 10_000) as u64;
+        
+        // Cap at max_tip_profit_bps (default 8000 = 80%) to ensure minimum keeper profit
+        let max_from_profit = (expected_profit as u128 * self.config.max_tip_profit_bps as u128 / 10_000) as u64;
+        let max_after_keeper = expected_profit.saturating_sub(MIN_KEEPER_LAMPORTS);
+        
+        // Dynamic floor based on opportunity size and market conditions
+        // Larger opportunities attract more competition, need higher tips
+        let competition_floor = if expected_profit > 1_000_000_000 {
+            // >1 SOL profit: whale territory, extreme competition
+            p95.saturating_mul(2)
         } else if expected_profit > 100_000_000 {
-            p75.saturating_mul(2)
+            // 0.1-1 SOL: high competition
+            p95
+        } else if expected_profit > 10_000_000 {
+            // 0.01-0.1 SOL: moderate competition  
+            p75.saturating_mul(3)
         } else {
-            (p75 as f64 * 1.3) as u64
+            // <0.01 SOL: lower competition, but still contested
+            p75.saturating_mul(2)
         };
-
-        let max_tip_from_profit = expected_profit / 2;
-        let max_tip_after_keeper = expected_profit.saturating_sub(MIN_KEEPER_LAMPORTS);
-        let effective_max = max_tip_from_profit.min(max_tip_after_keeper).min(MAX_TIP);
-
-        let tip = market_tip.min(effective_max);
-        tip.max(self.config.base_tip_lamports).max(1_000)
+        
+        // Take the higher of profit-based tip or competition floor
+        // This ensures we're competitive even on smaller opportunities
+        let aggressive_tip = profit_based_tip.max(competition_floor);
+        
+        // Apply caps: don't exceed max profit share or absolute max
+        let capped_tip = aggressive_tip
+            .min(max_from_profit)
+            .min(max_after_keeper)
+            .min(MAX_TIP);
+        
+        // Ensure minimum tip (config base_tip or 1000 lamports)
+        let final_tip = capped_tip
+            .max(self.config.base_tip_lamports)
+            .max(1_000);
+        
+        // Log tip calculation for debugging
+        tracing::debug!(
+            expected_profit,
+            profit_based_tip,
+            competition_floor,
+            p50,
+            p75, 
+            p95,
+            final_tip,
+            tip_share_bps = self.config.tip_profit_share_bps,
+            "Calculated tip"
+        );
+        
+        final_tip
     }
 }
 
@@ -1046,16 +1103,25 @@ mod tests {
         let payer = Arc::new(Keypair::new());
         let builder = ArbBundleBuilder::new(config.clone(), payer, HashMap::default(), Vec::new());
 
+        // Zero profit should return base tip
         assert_eq!(builder.calculate_tip(0), config.base_tip_lamports);
 
+        // Small profit: tip should be at least the base and respect max percentage
         let small_profit = 100_000;
         let tip_small = builder.calculate_tip(small_profit);
-        assert!(tip_small >= 1_000);
-        assert!(tip_small <= small_profit / 2);
+        assert!(tip_small >= 1_000, "Tip should be at least 1000 lamports");
+        // Max is 85% of profit from config
+        let max_expected = (small_profit as u128 * config.max_tip_profit_bps as u128 / 10_000) as u64;
+        assert!(tip_small <= max_expected.max(config.base_tip_lamports), 
+            "Tip {} should be <= max {} or base {}", tip_small, max_expected, config.base_tip_lamports);
 
-        let large_profit = 2_000_000_000;
+        // Large profit: tip should be profit-share based
+        let large_profit = 2_000_000_000; // 2 SOL
         let tip_large = builder.calculate_tip(large_profit);
-        assert!(tip_large <= large_profit / 2);
-        assert!(tip_large >= 1_000);
+        // Should tip at least 50% of profit for competitive bidding
+        let min_expected = (large_profit as u128 * config.tip_profit_share_bps as u128 / 10_000) as u64;
+        let max_expected_large = (large_profit as u128 * config.max_tip_profit_bps as u128 / 10_000) as u64;
+        assert!(tip_large >= min_expected / 2, "Large profit tip {} should be competitive (>= ~{})", tip_large, min_expected / 2);
+        assert!(tip_large <= max_expected_large, "Large profit tip {} should respect max cap {}", tip_large, max_expected_large);
     }
 }

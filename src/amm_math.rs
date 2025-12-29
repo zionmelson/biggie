@@ -369,7 +369,7 @@ impl PoolSimulator {
         }
     }
 
-    /// Create from VirtualPoolState (for backwards compatibility)
+    /// Create a ConstantProduct simulator from a VirtualPoolState
     pub fn from_virtual(state: VirtualPoolState) -> Self {
         PoolSimulator::ConstantProduct(state)
     }
@@ -521,22 +521,28 @@ pub fn simulate_pure_arb_unified_with_fees(
     };
 
     // Return the more profitable direction
-    let (profit, leg1_out, leg2_out, direction) = match (dir1_result, dir2_result) {
+    // Track which pool is used for leg2 to re-simulate with conservative input
+    let (profit, leg1_out, leg2_out, direction, leg2_pool) = match (dir1_result, dir2_result) {
         (Some((p1, l1_1, l2_1)), Some((p2, l1_2, l2_2))) => {
             if p1 >= p2 {
-                (p1, l1_1, l2_1, true)
+                (p1, l1_1, l2_1, true, pool_b)
             } else {
-                (p2, l1_2, l2_2, false)
+                (p2, l1_2, l2_2, false, pool_a)
             }
         }
-        (Some((p, l1, l2)), None) => (p, l1, l2, true),
-        (None, Some((p, l1, l2))) => (p, l1, l2, false),
+        (Some((p, l1, l2)), None) => (p, l1, l2, true, pool_b),
+        (None, Some((p, l1, l2))) => (p, l1, l2, false, pool_a),
         (None, None) => return None,
     };
 
-    // Calculate min outputs with slippage
+    // Calculate min_leg1_output with slippage
     let min_leg1_output = leg1_out.saturating_mul(slippage_mult) / 10_000;
-    let min_leg2_output = leg2_out.saturating_mul(slippage_mult) / 10_000;
+    
+    // CRITICAL: Simulate leg 2 with conservative input (min_leg1_output) to get realistic min_leg2_output
+    // This ensures the bundle's leg 2 slippage guard matches what we'll actually execute
+    let (conservative_leg2_raw, _) = leg2_pool.simulate_swap(min_leg1_output, leg2_base_to_quote);
+    let conservative_leg2_out = apply_transfer_fee(conservative_leg2_raw, leg2_fee_bps);
+    let min_leg2_output = conservative_leg2_out.saturating_mul(slippage_mult) / 10_000;
 
     Some(PureArbResult {
         profit,

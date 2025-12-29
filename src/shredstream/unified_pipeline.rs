@@ -144,7 +144,7 @@ pub struct UnifiedPipelineConfig {
 impl Default for UnifiedPipelineConfig {
     fn default() -> Self {
         Self {
-            use_turbine_udp: true, // Default to Turbine UDP for lowest latency
+            use_turbine_udp: false, // Default to ShredStream proxy (stake-weighted, better shred access)
             turbine_config: TurbineUdpConfig::default(),
             shredstream_endpoint: "http://127.0.0.1:10000".to_string(),
             rpc_url: "http://localhost:8899".to_string(),
@@ -807,6 +807,10 @@ impl UnifiedArbPipeline {
             return;
         };
 
+        // Increment both opportunity counters
+        self.stats
+            .opportunities_found
+            .fetch_add(1, Ordering::Relaxed);
         self.stats
             .pure_arb_opportunities
             .fetch_add(1, Ordering::Relaxed);
@@ -1678,6 +1682,85 @@ async fn run_geyser_loop(
     // Subscribe to slots (for timing)
     let mut slot_stream = client.subscribe_slots().await?;
 
+    // Bootstrap CLMM pool state via RPC BEFORE setting up account subscriptions
+    // This is CRITICAL: bootstrap derives tick arrays, so we must run it first
+    // to ensure tick arrays are available for Geyser subscription
+    if !*bootstrap_done {
+        use crate::bootstrap::bootstrap_clmm_pools;
+        use solana_client::nonblocking::rpc_client::RpcClient;
+        
+        tracing::info!("Running CLMM bootstrap before Geyser account subscriptions...");
+        let rpc_client = RpcClient::new(config.rpc_url.clone());
+        
+        match tokio::time::timeout(
+            std::time::Duration::from_secs(30),
+            bootstrap_clmm_pools(&rpc_client, &pipeline.pool_state)
+        ).await {
+            Ok(Ok(stats)) => {
+                tracing::info!("Bootstrap complete: {}", stats.summary());
+                tracing::info!("Bootstrap health: {}", stats.health_summary());
+                
+                // Warn if bootstrap is unhealthy
+                if !stats.is_healthy() {
+                    tracing::warn!(
+                        "⚠️ Bootstrap health check FAILED: only {:.1}% of pools initialized (threshold: 90%)",
+                        stats.success_rate() * 100.0
+                    );
+                    tracing::warn!(
+                        "  Errors: {} parse failures, {} missing accounts, {} RPC errors",
+                        stats.pools_failed_parse, stats.pools_no_data, stats.pools_rpc_error
+                    );
+                    tracing::warn!("  Affected pools will be unavailable for arb until Geyser updates arrive");
+                }
+                
+                // Warn about specific failure types
+                if stats.pools_rpc_error > 0 {
+                    tracing::warn!(
+                        "RPC errors during bootstrap: {} pools affected - check RPC health",
+                        stats.pools_rpc_error
+                    );
+                }
+                if stats.pools_no_data > 0 {
+                    tracing::warn!(
+                        "Missing pool accounts: {} - pools may have been closed or migrated",
+                        stats.pools_no_data
+                    );
+                }
+                if stats.pools_failed_parse > 0 {
+                    tracing::warn!(
+                        "Parse failures: {} - possible DEX protocol changes or corrupted data",
+                        stats.pools_failed_parse
+                    );
+                }
+                
+                pipeline.pool_state.mark_bootstrap_complete();
+            }
+            Ok(Err(e)) => {
+                tracing::error!("❌ Bootstrap FAILED: {} - continuing with Geyser only", e);
+                tracing::error!("  All CLMM/DLMM pools will be unavailable until Geyser updates arrive");
+            }
+            Err(_) => {
+                tracing::error!("❌ Bootstrap TIMEOUT after 30s - continuing with Geyser only");
+                tracing::error!("  RPC may be overloaded or unreachable. All CLMM/DLMM pools unavailable until Geyser updates.");
+            }
+        }
+        
+        *bootstrap_done = true;
+        tracing::info!("Bootstrap state: {}", pipeline.pool_state.bootstrap_summary());
+        
+        // Fetch and cache payer balance for bundle building
+        let payer_pubkey = pipeline.payer_pubkey().await;
+        match rpc_client.get_balance(&payer_pubkey).await {
+            Ok(balance) => {
+                pipeline.update_payer_balance(balance).await;
+            }
+            Err(e) => {
+                tracing::error!("Failed to fetch payer balance: {} - bundle building may fail", e);
+            }
+        }
+    }
+
+    // NOW collect addresses for subscription - AFTER bootstrap has derived tick arrays
     // Subscribe to vault accounts (for reserve updates) using PSM's vault_index
     let vault_addresses: Vec<Pubkey> = pipeline.pool_state.all_vaults();
 
@@ -1688,8 +1771,22 @@ async fn run_geyser_loop(
     // Get tick array addresses for real-time CLMM tick updates
     // This is CRITICAL for accurate swap simulation - without tick updates,
     // simulations use stale tick data leading to slippage failures
+    // NOTE: This now returns populated tick arrays because bootstrap ran first
     let tick_array_addresses: Vec<Pubkey> = pipeline.pool_state.tick_cache().get_all_tick_array_addresses();
     let num_tick_arrays = tick_array_addresses.len();
+    
+    // Get bin array addresses for DLMM pools
+    let bin_array_addresses: Vec<Pubkey> = pipeline.pool_state.bin_cache().get_all_bin_array_addresses();
+    let num_bin_arrays = bin_array_addresses.len();
+    
+    if num_tick_arrays == 0 && num_bin_arrays == 0 {
+        tracing::warn!("No tick/bin arrays registered after bootstrap - CLMM/DLMM simulation accuracy will be degraded!");
+    } else {
+        tracing::info!(
+            "Bootstrap registered {} tick arrays + {} bin arrays for simulation",
+            num_tick_arrays, num_bin_arrays
+        );
+    }
     
     // Debug: Check if target pool vaults are in subscription
     let target_vault_a = "DQyrAcCrDXQ7NeoqGgDCZwBvWDcYmFCjSb9JtteuvPpz";
@@ -1710,25 +1807,27 @@ async fn run_geyser_loop(
         tracing::warn!("TARGET POOL 58oQChx4 vaults NOT in subscription list!");
     }
 
-    // Combine vault, CLMM pool, and tick array addresses for single subscription
+    // Combine vault, CLMM pool, tick array, and bin array addresses for single subscription
     let mut all_account_addresses: Vec<Pubkey> = vault_addresses;
     all_account_addresses.extend(clmm_pool_addresses.iter().cloned());
     all_account_addresses.extend(tick_array_addresses.iter().cloned());
+    all_account_addresses.extend(bin_array_addresses.iter().cloned());
 
     let has_account_subscription = !all_account_addresses.is_empty();
-    let num_vaults = all_account_addresses.len() - clmm_pool_addresses.len() - num_tick_arrays;
+    let num_vaults = all_account_addresses.len() - clmm_pool_addresses.len() - num_tick_arrays - num_bin_arrays;
     let num_clmm_pools = clmm_pool_addresses.len();
 
     let mut account_stream = if has_account_subscription {
         tracing::info!(
-            "Subscribing to {} accounts ({} vaults + {} CLMM pools + {} tick arrays) for real-time updates",
+            "Subscribing to {} accounts ({} vaults + {} CLMM pools + {} tick arrays + {} bin arrays) for real-time updates",
             all_account_addresses.len(),
             num_vaults,
             num_clmm_pools,
-            num_tick_arrays
+            num_tick_arrays,
+            num_bin_arrays
         );
         let stream = client.subscribe_accounts(all_account_addresses).await?;
-        tracing::info!("Account subscription stream created successfully (vaults + CLMM pools + tick arrays)");
+        tracing::info!("Account subscription stream created successfully");
         Some(stream)
     } else {
         None
@@ -1739,52 +1838,12 @@ async fn run_geyser_loop(
     // No dynamic pool discovery - all pools must be in pools.json.
 
     tracing::info!(
-        "Geyser subscriptions established (vaults={}, clmm_pools={}, tick_arrays={})",
+        "Geyser subscriptions established (vaults={}, clmm_pools={}, tick_arrays={}, bin_arrays={})",
         num_vaults,
         num_clmm_pools,
-        num_tick_arrays
+        num_tick_arrays,
+        num_bin_arrays
     );
-
-    // Bootstrap CLMM pool state via RPC BEFORE processing Geyser updates
-    // This is synchronous - Geyser processing starts after bootstrap completes
-    if !*bootstrap_done {
-        use crate::bootstrap::bootstrap_clmm_pools;
-        use solana_client::nonblocking::rpc_client::RpcClient;
-        
-        tracing::info!("Running CLMM bootstrap before Geyser processing...");
-        let rpc_client = RpcClient::new(config.rpc_url.clone());
-        
-        match tokio::time::timeout(
-            std::time::Duration::from_secs(30),
-            bootstrap_clmm_pools(&rpc_client, &pipeline.pool_state)
-        ).await {
-            Ok(Ok(stats)) => {
-                tracing::info!("Bootstrap complete: {}", stats.summary());
-                // Update stats for logging
-                pipeline.pool_state.mark_bootstrap_complete();
-            }
-            Ok(Err(e)) => {
-                tracing::error!("Bootstrap failed: {} - continuing with Geyser only", e);
-            }
-            Err(_) => {
-                tracing::error!("Bootstrap timed out after 30s - continuing with Geyser only");
-            }
-        }
-        
-        *bootstrap_done = true;
-        tracing::info!("Bootstrap state: {}", pipeline.pool_state.bootstrap_summary());
-        
-        // Fetch and cache payer balance for bundle building
-        let payer_pubkey = pipeline.payer_pubkey().await;
-        match rpc_client.get_balance(&payer_pubkey).await {
-            Ok(balance) => {
-                pipeline.update_payer_balance(balance).await;
-            }
-            Err(e) => {
-                tracing::error!("Failed to fetch payer balance: {} - bundle building may fail", e);
-            }
-        }
-    }
 
     // Process all streams concurrently (static subscriptions only - no dynamic vault additions)
     loop {

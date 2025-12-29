@@ -81,9 +81,50 @@ Logs are written to `/tmp/tre-arb.log`. Press `Ctrl+C` to stop.
 
 ## Configuration (`config.json`)
 
-### Turbine UDP Settings (Ultra-Low-Latency - DEFAULT)
+### Jito ShredStream Proxy (Stake-Weighted - DEFAULT)
 
-Direct Turbine UDP reception provides minimum latency (~0.5-2ms).
+ShredStream proxy is the **recommended** method for receiving shreds because:
+- **Stake-weighted access**: Jito aggregates shreds from high-stake validators
+- **Layer 1 Turbine position**: Get effective first-layer access without owning stake
+- **Better in remote locations**: Outperforms direct Turbine for unstaked/low-stake setups
+
+```json
+{
+  "shredstream": {
+    "turbine": {
+      "enabled": false
+    },
+    "endpoint": "http://127.0.0.1:10000",
+    "arb": {
+      "arb_enabled": true,
+      "min_profit_lamports": 50000,
+      "compute_units": 400000,
+      "compute_unit_price": 1000,
+      "tip_profit_share_bps": 6500
+    }
+  }
+}
+```
+
+**ShredStream Proxy Setup:**
+
+Run the [Jito ShredStream proxy](https://github.com/jito-labs/shredstream-proxy) locally:
+```bash
+# Get approved at https://web.miniextensions.com/WV3gZjFwqNqITsMufIEp
+
+# Run the proxy (gRPC on port 10000)
+RUST_LOG=info cargo run --release --bin jito-shredstream-proxy -- shredstream \
+    --block-engine-url https://mainnet.block-engine.jito.wtf \
+    --auth-keypair /path/to/jito-auth.json \
+    --desired-regions ny,amsterdam \
+    --dest-ip-ports 127.0.0.1:8001 \
+    --grpc-service-port 10000
+```
+
+### Direct Turbine UDP (Only for High-Stake Co-location)
+
+Direct Turbine UDP is only faster if you're co-located with a **high-stake validator** you control.
+If your validator is unstaked or low-stake, ShredStream will actually be faster.
 
 ```json
 {
@@ -99,12 +140,10 @@ Direct Turbine UDP reception provides minimum latency (~0.5-2ms).
     },
     "arb": {
       "arb_enabled": true,
-      "min_swap_amount": 10000000,
       "min_profit_lamports": 50000,
-      "min_trigger_slippage_bps": 30,
       "compute_units": 400000,
       "compute_unit_price": 1000,
-      "tip_profit_share_bps": 5000
+      "tip_profit_share_bps": 6500
     }
   }
 }
@@ -130,30 +169,6 @@ sudo iptables -t mangle -A PREROUTING -p udp --dport 8002 -j TEE --gateway 127.0
 
 # Option 2: Run bot on same machine and configure validator's TVU broadcast
 # Add to validator startup: --tvu-receive-threads 2
-```
-
-### ShredStream Settings (Fallback - Higher Latency)
-
-To use ShredStream proxy instead of direct Turbine UDP, disable Turbine:
-
-```json
-{
-  "shredstream": {
-    "turbine": {
-      "enabled": false
-    },
-    "endpoint": "http://127.0.0.1:10000",
-    "arb": {
-      "arb_enabled": true,
-      "min_swap_amount": 10000000,
-      "min_profit_lamports": 50000,
-      "min_trigger_slippage_bps": 30,
-      "compute_units": 400000,
-      "compute_unit_price": 1000,
-      "tip_profit_share_bps": 5000
-    }
-  }
-}
 ```
 
 ### Geyser Settings (Authoritative State)
