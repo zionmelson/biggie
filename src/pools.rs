@@ -4,17 +4,19 @@
 //! for vault accounts before dynamic discovery begins. This eliminates RPC
 //! calls during runtime by pre-populating the PoolStateManager.
 //!
-//! The pools file contains:
+//! The pools file contains ONLY static/structural data:
 //! - Pool address and DEX type
 //! - Token mints and vault addresses (critical for Geyser reserve tracking)
-//! - CLMM/DLMM parameters (spacing, fee)
-//! - Swap instruction accounts (derived PDAs can be omitted)
+//! - Token decimals
+//! - Optional swap instruction accounts (can be derived if omitted)
+//!
+//! Dynamic state is ALWAYS fetched from Geyser/RPC bootstrap:
+//! - sqrt_price, liquidity, tick/bin (CLMM/DLMM state)
+//! - fee rates (including dynamic DLMM fees)
+//! - spacing/bin_step (immutable but read from chain)
 
 use crate::amm_math::CurveType;
-use crate::pool_discovery::{
-    derive_dlmm_bin_arrays, derive_raydium_amm_authority, derive_raydium_clmm_tick_arrays,
-    derive_whirlpool_oracle, derive_whirlpool_tick_arrays,
-};
+use crate::pool_discovery::{derive_raydium_amm_authority, derive_whirlpool_oracle};
 use crate::pool_state::{PoolState, PoolStateManager};
 use crate::shredstream::programs::DexType;
 use anyhow::{Context, Result};
@@ -23,7 +25,11 @@ use solana_sdk::pubkey::Pubkey;
 use std::path::Path;
 use std::str::FromStr;
 
-/// A pool definition loaded from the static pools file
+/// A pool definition loaded from the static pools file.
+/// 
+/// Contains ONLY static/structural data. All dynamic state (sqrt_price, liquidity,
+/// fees, tick/bin) is populated at runtime from Geyser/RPC bootstrap.
+/// 
 /// Note: Extra fields like "_comment" in JSON are ignored (serde default behavior)
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct StaticPool {
@@ -45,24 +51,6 @@ pub struct StaticPool {
     /// Token B decimals
     #[serde(default = "default_decimals")]
     pub decimals_b: u8,
-    /// Fee in basis points
-    #[serde(default = "default_fee_bps")]
-    pub fee_bps: u16,
-    /// Tick spacing (CLMM) or bin step (DLMM), 0 for AMM
-    #[serde(default)]
-    pub spacing: u16,
-    /// Current tick/bin (optional, will be updated via Geyser)
-    #[serde(default)]
-    pub current_tick_or_bin: i32,
-
-    // === CLMM-specific fields (Meteora DAMM v2, Raydium CLMM, etc.) ===
-    /// sqrt_price in Q64.64 format (stored as string to preserve u128 precision)
-    /// Used by Meteora DAMM v2, Raydium CLMM, Orca Whirlpool
-    #[serde(default)]
-    pub sqrt_price: Option<String>,
-    /// Active liquidity in the current tick range (stored as string for u128)
-    #[serde(default)]
-    pub liquidity: Option<String>,
 
     // === Optional swap instruction accounts (can be derived if omitted) ===
     /// AMM config account (Raydium CLMM, PancakeSwap CLMM)
@@ -78,10 +66,6 @@ pub struct StaticPool {
 
 fn default_decimals() -> u8 {
     9
-}
-
-fn default_fee_bps() -> u16 {
-    25
 }
 
 /// Pools file structure
@@ -206,8 +190,8 @@ impl StaticPool {
             .transpose()
             .with_context(|| "Invalid bin_array_bitmap_extension")?;
 
-        // Create base state - reserves initialized to 0, Geyser will populate
-        // DO NOT use pools.json reserves - they are stale! Geyser is the source of truth.
+        // Create base state - reserves initialized to 0, Geyser/bootstrap will populate
+        // All dynamic state (fees, sqrt_price, liquidity, tick/bin) comes from Geyser
         let mut state = PoolState::new(
             address,
             dex,
@@ -217,116 +201,70 @@ impl StaticPool {
             0, // quote_reserve - Geyser will update
             self.decimals_a,
             self.decimals_b,
-            self.fee_bps,
             curve,
             0, // slot will be updated by Geyser
         );
 
         // Derive PDAs based on DEX type
-        let (amm_authority, derived_observation, tick_arrays, bin_arrays, pool_authority) =
-            self.derive_pdas(&address, dex, observation_state)?;
+        // Note: tick/bin arrays are derived at runtime from Geyser state, not from pools.json
+        let (amm_authority, derived_observation, pool_authority) =
+            Self::derive_pdas(&address, dex, observation_state)?;
 
-        // Set metadata
+        // Set metadata (tick/bin arrays will be populated by bootstrap/Geyser)
         state.set_metadata(
             token_vault_a,
             token_vault_b,
             amm_authority,
             amm_config,
             derived_observation,
-            tick_arrays,
+            vec![], // tick_arrays - populated by bootstrap
             bin_array_bitmap_extension,
-            bin_arrays,
+            vec![], // bin_arrays - populated by bootstrap
             pool_authority,
         );
-
-        // Set CLMM/DLMM specific state
-        if self.spacing > 0 {
-            state.spacing = Some(self.spacing);
-            state.confirmed_tick_or_bin = Some(self.current_tick_or_bin);
-        }
-
-        // Parse and set CLMM sqrt_price and liquidity (critical for Meteora DAMM v2!)
-        if let Some(ref sqrt_price_str) = self.sqrt_price {
-            if let Ok(sqrt_price) = sqrt_price_str.parse::<u128>() {
-                state.confirmed_sqrt_price = Some(sqrt_price);
-            }
-        }
-        if let Some(ref liquidity_str) = self.liquidity {
-            if let Ok(liquidity) = liquidity_str.parse::<u128>() {
-                state.active_liquidity = Some(liquidity);
-            }
-        }
-
-        // For Meteora DAMM, ensure spacing is set even if 0 in config (use default of 1)
-        if dex == DexType::MeteoraDamm && state.spacing.is_none() {
-            state.spacing = Some(1);
-            // If no tick was set, derive from sqrt_price if available
-            if state.confirmed_tick_or_bin.is_none() {
-                if let Some(sqrt_price) = state.confirmed_sqrt_price {
-                    // tick = 2 * log_{1.0001}(sqrt_price / 2^64)
-                    let sqrt_price_float = (sqrt_price as f64) / ((1u128 << 64) as f64);
-                    if sqrt_price_float > 0.0 {
-                        let tick = (2.0 * sqrt_price_float.ln() / 1.0001_f64.ln()) as i32;
-                        state.confirmed_tick_or_bin = Some(tick);
-                    }
-                }
-            }
-        }
 
         Ok(state)
     }
 
     /// Derive PDAs for swap instruction building
+    /// Note: tick/bin arrays are derived at runtime when we have current tick/bin from Geyser
     fn derive_pdas(
-        &self,
         pool: &Pubkey,
         dex: DexType,
         observation_override: Option<Pubkey>,
     ) -> Result<(
         Option<Pubkey>,           // amm_authority
         Option<Pubkey>,           // observation_state
-        Vec<Pubkey>,              // tick_arrays
-        Vec<Pubkey>,              // bin_arrays
         Option<Pubkey>,           // pool_authority
     )> {
         match dex {
             DexType::RaydiumAmm => {
                 let authority = derive_raydium_amm_authority();
-                Ok((Some(authority), None, vec![], vec![], None))
+                Ok((Some(authority), None, None))
             }
             DexType::RaydiumClmm | DexType::PancakeSwapClmm => {
-                // Tick arrays are derived from current tick
-                let tick_arrays = if self.spacing > 0 {
-                    derive_raydium_clmm_tick_arrays(pool, self.current_tick_or_bin, self.spacing)
-                } else {
-                    vec![]
-                };
-                Ok((None, observation_override, tick_arrays, vec![], None))
+                // Tick arrays derived at runtime from Geyser state
+                Ok((None, observation_override, None))
             }
             DexType::OrcaWhirlpool => {
                 let oracle = observation_override.unwrap_or_else(|| derive_whirlpool_oracle(pool));
-                let tick_arrays = if self.spacing > 0 {
-                    derive_whirlpool_tick_arrays(pool, self.current_tick_or_bin, self.spacing)
-                } else {
-                    vec![]
-                };
-                Ok((None, Some(oracle), tick_arrays, vec![], None))
+                // Tick arrays derived at runtime from Geyser state
+                Ok((None, Some(oracle), None))
             }
             DexType::MeteoraDlmm => {
-                let bin_arrays = derive_dlmm_bin_arrays(pool, self.current_tick_or_bin);
-                Ok((None, None, vec![], bin_arrays, None))
+                // Bin arrays derived at runtime from Geyser state
+                Ok((None, None, None))
             }
             DexType::MeteoraDamm => {
                 // DAMM v2 uses a GLOBAL pool authority (unlike DLMM which is per-pool)
                 // The seed is just "pool_authority" with NO pool address suffix
                 // See: https://github.com/MeteoraAg/damm-v2/blob/main/programs/cp-amm/src/const_pda.rs
-                // Global pool authority: HLnpSz9h2S4hiLQ43rnSD9XkcUThA7B8hQMKmDaiTLcC
                 let pool_authority = Pubkey::find_program_address(
                     &[b"pool_authority"],
                     &crate::shredstream::programs::METEORA_DAMM,
                 )
                 .0;
-                Ok((None, None, vec![], vec![], Some(pool_authority)))
+                Ok((None, None, Some(pool_authority)))
             }
         }
     }
@@ -347,11 +285,6 @@ mod tests {
             token_vault_b: "11111111111111111111111111111111".to_string(),
             decimals_a: 9,
             decimals_b: 6,
-            fee_bps: 25,
-            spacing: 0,
-            current_tick_or_bin: 0,
-            sqrt_price: None,
-            liquidity: None,
             amm_config: None,
             observation_state: None,
             bin_array_bitmap_extension: None,
@@ -362,6 +295,31 @@ mod tests {
 
     #[test]
     fn test_pools_file_deserialize() {
+        // Test that pools.json format without stale fields works
+        let json = r#"{
+            "pools": [
+                {
+                    "address": "58oQChx4yWmvKdwLLZzBi4ChoCc2fqCUWBkwMihLYQo2",
+                    "dex": "RaydiumAmm",
+                    "token_mint_a": "So11111111111111111111111111111111111111112",
+                    "token_mint_b": "EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v",
+                    "token_vault_a": "DQyrAcCrDXQ7NeoqGgDCZwBvWDcYmFCjSb9JtteuvPpz",
+                    "token_vault_b": "HLmqeL62xR1QoZ1HKKbXRrdN1p3phKpxRMb2VVopvBBz",
+                    "decimals_a": 9,
+                    "decimals_b": 6
+                }
+            ]
+        }"#;
+
+        let pools_file: PoolsFile = serde_json::from_str(json).unwrap();
+        assert_eq!(pools_file.pools.len(), 1);
+        assert_eq!(pools_file.pools[0].dex, "RaydiumAmm");
+    }
+
+    #[test]
+    fn test_pools_file_deserialize_with_legacy_fields() {
+        // Test backward compatibility: old pools.json with stale fields should still parse
+        // (serde ignores unknown fields by default)
         let json = r#"{
             "pools": [
                 {
@@ -373,7 +331,11 @@ mod tests {
                     "token_vault_b": "HLmqeL62xR1QoZ1HKKbXRrdN1p3phKpxRMb2VVopvBBz",
                     "decimals_a": 9,
                     "decimals_b": 6,
-                    "fee_bps": 25
+                    "fee_bps": 25,
+                    "spacing": 1,
+                    "current_tick_or_bin": 0,
+                    "sqrt_price": "18446744073709551616",
+                    "liquidity": "1000000"
                 }
             ]
         }"#;

@@ -253,7 +253,6 @@ Once your validator is running with Geyser, configure tre for the unified pipeli
   "geyser": {
     "enabled": true,
     "endpoint": "http://localhost:10000",
-    "skip_votes": true,
     "connect_timeout_ms": 10000,
     "request_timeout_ms": 30000
   },

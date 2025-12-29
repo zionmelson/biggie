@@ -261,8 +261,12 @@ pub struct DiscoveredPool {
     pub sqrt_price: Option<u128>,
     /// Active liquidity in the current tick/bin range (for slippage estimation)
     pub active_liquidity: Option<u128>,
-    /// Fee in basis points (if available)
+    /// Fee in basis points (if available, for non-DLMM pools)
     pub fee_bps: Option<u16>,
+    /// DLMM base fee rate in millionths (base_factor * bin_step * 10)
+    pub dlmm_base_fee_rate: Option<u32>,
+    /// DLMM variable fee rate in millionths (from volatility accumulator)
+    pub dlmm_variable_fee_rate: Option<u32>,
     /// Decimals for token A
     pub decimals_a: u8,
     /// Decimals for token B
@@ -494,6 +498,8 @@ pub fn parse_whirlpool(address: Pubkey, data: &[u8]) -> Option<DiscoveredPool> {
         sqrt_price: Some(sqrt_price),
         active_liquidity: Some(liquidity),
         fee_bps: Some(fee_rate / 100), // fee_rate is in hundredths of a bip
+        dlmm_base_fee_rate: None,
+        dlmm_variable_fee_rate: None,
         decimals_a: 0,                 // Will be fetched separately if needed
         decimals_b: 0,
         // Swap instruction accounts
@@ -591,6 +597,8 @@ pub fn parse_raydium_clmm(address: Pubkey, data: &[u8]) -> Option<DiscoveredPool
         sqrt_price: Some(sqrt_price),
         active_liquidity: Some(liquidity),
         fee_bps: None, // Stored in AmmConfig, not pool
+        dlmm_base_fee_rate: None,
+        dlmm_variable_fee_rate: None,
         decimals_a: decimals_0,
         decimals_b: decimals_1,
         // Swap instruction accounts
@@ -616,6 +624,9 @@ pub fn parse_dlmm(address: Pubkey, data: &[u8]) -> Option<DiscoveredPool> {
         return None;
     }
 
+    // Parse fee parameters
+    let base_factor = u16::from_le_bytes([data[dlmm_layout::BASE_FACTOR], data[dlmm_layout::BASE_FACTOR + 1]]);
+
     let bin_step =
         u16::from_le_bytes([data[dlmm_layout::BIN_STEP], data[dlmm_layout::BIN_STEP + 1]]);
 
@@ -637,6 +648,14 @@ pub fn parse_dlmm(address: Pubkey, data: &[u8]) -> Option<DiscoveredPool> {
     let reserve_y =
         Pubkey::try_from(&data[dlmm_layout::RESERVE_Y..dlmm_layout::RESERVE_Y + 32]).ok()?;
 
+    // Calculate DLMM base fee rate: base_factor * bin_step * 10 (in millionths)
+    // Reference: MeteoraAg/dlmm-sdk lb_clmm::state::parameters
+    let base_fee_rate = (base_factor as u32) * (bin_step as u32) * 10;
+    
+    // Variable fee would need volatility accumulator parsing - set to 0 for now
+    // Will be updated via Geyser when pool state changes
+    let variable_fee_rate = 0u32;
+
     // Derive bin arrays
     let bin_arrays = derive_dlmm_bin_arrays(&address, active_id);
 
@@ -651,7 +670,9 @@ pub fn parse_dlmm(address: Pubkey, data: &[u8]) -> Option<DiscoveredPool> {
         current_tick_or_bin: active_id,
         sqrt_price: None,       // DLMM uses bin_id directly
         active_liquidity: None, // DLMM liquidity is per-bin, not pooled
-        fee_bps: None,          // Dynamic based on volatility
+        fee_bps: None,          // DLMM uses dynamic fees via dlmm_* fields
+        dlmm_base_fee_rate: Some(base_fee_rate),
+        dlmm_variable_fee_rate: Some(variable_fee_rate),
         decimals_a: 0,
         decimals_b: 0,
         // Swap instruction accounts
@@ -755,6 +776,8 @@ pub fn parse_meteora_damm(address: Pubkey, data: &[u8]) -> Option<DiscoveredPool
         sqrt_price: Some(sqrt_price),              // CRITICAL: used for CLMM swap math
         active_liquidity: Some(liquidity),         // CRITICAL: used for CLMM swap math
         fee_bps: Some(25),                         // Default, actual may vary per pool
+        dlmm_base_fee_rate: None,
+        dlmm_variable_fee_rate: None,
         decimals_a: 0,                             // Will be populated from pools.json
         decimals_b: 0,
         // Swap instruction accounts
@@ -856,6 +879,8 @@ pub fn parse_raydium_amm(address: Pubkey, data: &[u8]) -> Option<DiscoveredPool>
         sqrt_price: None,
         active_liquidity: None, // AMM uses x*y=k, liquidity = sqrt(x*y)
         fee_bps,
+        dlmm_base_fee_rate: None,
+        dlmm_variable_fee_rate: None,
         decimals_a: base_decimal as u8,
         decimals_b: quote_decimal as u8,
         // Swap instruction accounts

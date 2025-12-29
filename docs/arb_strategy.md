@@ -333,8 +333,7 @@ to generate enough to repay, the entire TX reverts - no capital at risk.
     "receiver_threads": 2
   },
   "geyser": {
-    "endpoint": "http://localhost:10000",
-    "skip_votes": true
+    "endpoint": "http://localhost:10000"
   },
   "arb": {
     "min_profit_lamports": 50000,

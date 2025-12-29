@@ -155,6 +155,14 @@ pub async fn bootstrap_clmm_pools(
                 pool_data.active_liquidity,
                 batch_slot,
             );
+            
+            // Set fee information based on pool type
+            if let Some(fee_bps) = pool_data.fee_bps {
+                psm.set_pool_fee_bps(&address, fee_bps);
+            }
+            if let (Some(base_fee), Some(var_fee)) = (pool_data.dlmm_base_fee_rate, pool_data.dlmm_variable_fee_rate) {
+                psm.set_dlmm_fees(&address, base_fee, var_fee);
+            }
 
             stats.pools_updated += 1;
 
@@ -163,6 +171,8 @@ pub async fn bootstrap_clmm_pools(
                 sqrt_price = ?pool_data.sqrt_price,
                 tick = pool_data.current_tick_or_bin,
                 liquidity = ?pool_data.active_liquidity,
+                fee_bps = ?pool_data.fee_bps,
+                dlmm_base_fee = ?pool_data.dlmm_base_fee_rate,
                 slot = batch_slot,
                 "Bootstrapped CLMM pool"
             );
@@ -287,6 +297,7 @@ fn parse_whirlpool_state(data: &[u8]) -> Option<ParsedClmmState> {
     // Whirlpool layout offsets
     const MIN_SIZE: usize = 653;
     const TICK_SPACING: usize = 41;
+    const FEE_RATE: usize = 43; // u16 fee_rate in hundredths of a bip
     const LIQUIDITY: usize = 49;
     const SQRT_PRICE: usize = 65;
     const TICK_CURRENT: usize = 81;
@@ -302,23 +313,33 @@ fn parse_whirlpool_state(data: &[u8]) -> Option<ParsedClmmState> {
     }
 
     let tick_spacing = u16::from_le_bytes([data[TICK_SPACING], data[TICK_SPACING + 1]]);
+    let fee_rate = u16::from_le_bytes([data[FEE_RATE], data[FEE_RATE + 1]]);
     let liquidity = u128::from_le_bytes(data[LIQUIDITY..LIQUIDITY + 16].try_into().ok()?);
     let sqrt_price = u128::from_le_bytes(data[SQRT_PRICE..SQRT_PRICE + 16].try_into().ok()?);
     let tick_current = i32::from_le_bytes(data[TICK_CURRENT..TICK_CURRENT + 4].try_into().ok()?);
+    
+    // Convert fee_rate from hundredths of a bip to bps
+    let fee_bps = fee_rate / 100;
 
     Some(ParsedClmmState {
         sqrt_price: Some(sqrt_price),
         active_liquidity: Some(liquidity),
         current_tick_or_bin: tick_current,
         spacing: tick_spacing,
+        fee_bps: Some(fee_bps),
+        dlmm_base_fee_rate: None,
+        dlmm_variable_fee_rate: None,
     })
 }
 
-/// Parse Meteora DLMM state
+/// Parse Meteora DLMM state including dynamic fees
 fn parse_dlmm_state(data: &[u8]) -> Option<ParsedClmmState> {
     const MIN_SIZE: usize = 904;
-    const BIN_STEP: usize = 8;
-    const ACTIVE_ID: usize = 72;
+    // DLMM layout offsets from pool_discovery.rs
+    const BASE_FACTOR: usize = 8;       // u16 at offset 8
+    const VAR_FEE_CONTROL: usize = 16;  // u32 at offset 16 (for variable fee calc)
+    const ACTIVE_ID: usize = 72;        // i32
+    const BIN_STEP: usize = 76;         // u16
 
     if data.len() < MIN_SIZE {
         return None;
@@ -330,14 +351,27 @@ fn parse_dlmm_state(data: &[u8]) -> Option<ParsedClmmState> {
         return None;
     }
 
+    let base_factor = u16::from_le_bytes([data[BASE_FACTOR], data[BASE_FACTOR + 1]]);
     let bin_step = u16::from_le_bytes([data[BIN_STEP], data[BIN_STEP + 1]]);
     let active_id = i32::from_le_bytes(data[ACTIVE_ID..ACTIVE_ID + 4].try_into().ok()?);
+    
+    // Calculate base fee rate: base_factor * bin_step * 10 (in millionths)
+    // Reference: MeteoraAg/dlmm-sdk lb_clmm::state::parameters
+    let base_fee_rate = (base_factor as u32) * (bin_step as u32) * 10;
+    
+    // Variable fee is calculated from volatility accumulator, which we'd need to parse
+    // For now, we'll set it to 0 and let Geyser updates populate it
+    // The variable fee changes dynamically based on trading activity
+    let variable_fee_rate = 0u32;
 
     Some(ParsedClmmState {
         sqrt_price: None,
         active_liquidity: None,
         current_tick_or_bin: active_id,
         spacing: bin_step,
+        fee_bps: None, // DLMM uses dynamic fees
+        dlmm_base_fee_rate: Some(base_fee_rate),
+        dlmm_variable_fee_rate: Some(variable_fee_rate),
     })
 }
 
@@ -347,6 +381,12 @@ struct ParsedClmmState {
     active_liquidity: Option<u128>,
     current_tick_or_bin: i32,
     spacing: u16,
+    /// Fee in basis points (for CLMM pools like Raydium, Orca)
+    fee_bps: Option<u16>,
+    /// DLMM base fee rate in millionths
+    dlmm_base_fee_rate: Option<u32>,
+    /// DLMM variable fee rate in millionths
+    dlmm_variable_fee_rate: Option<u32>,
 }
 
 impl From<crate::pool_discovery::DiscoveredPool> for ParsedClmmState {
@@ -356,6 +396,9 @@ impl From<crate::pool_discovery::DiscoveredPool> for ParsedClmmState {
             active_liquidity: p.active_liquidity,
             current_tick_or_bin: p.current_tick_or_bin,
             spacing: p.spacing,
+            fee_bps: p.fee_bps,
+            dlmm_base_fee_rate: None, // DLMM parsed separately
+            dlmm_variable_fee_rate: None,
         }
     }
 }

@@ -53,7 +53,7 @@
 
 - **`UnifiedArbPipeline`** ([src/shredstream/unified_pipeline.rs](src/shredstream/unified_pipeline.rs)): Main pipeline orchestrating Turbine + Geyser integration.
 - **`PoolStateManager`** ([src/pool_state.rs](src/pool_state.rs)): Unified state manager tracking pool states—the single source of truth for pool reserves.
-- **`GeyserClient`** ([src/geyser.rs](src/geyser.rs)): gRPC client for transaction, account, and slot streaming from local validator.
+- **`GeyserClient`** ([src/geyser.rs](src/geyser.rs)): gRPC client for account, block, and slot streaming from local validator.
 - **`TurbineReceiver`** ([src/turbine/](src/turbine/)): Direct UDP shred receiver for minimum latency.
 - **`VaultTracker`** ([src/pool_discovery.rs](src/pool_discovery.rs)): Dynamic pool discovery and state tracking via Geyser account updates.
 - **`TipFloorMonitor`** ([src/tip_monitor.rs](src/tip_monitor.rs)): Real-time Jito tip floor monitoring for competitive tipping.
@@ -163,7 +163,6 @@ To use ShredStream proxy instead of direct Turbine UDP, disable Turbine:
   "geyser": {
     "enabled": true,
     "endpoint": "http://localhost:10000",
-    "skip_votes": true,
     "connect_timeout_ms": 10000,
     "request_timeout_ms": 30000
   }
@@ -252,7 +251,8 @@ To use ShredStream proxy instead of direct Turbine UDP, disable Turbine:
 
 3. **Authoritative State (Geyser):**
 
-   - Subscribes to `TransactionUpdates` for TX confirmation
+   - Subscribes to `SlotUpdates` for slot timing signals
+   - Subscribes to `BlockUpdates` for blockhash retrieval
    - Subscribes to `AccountUpdates` for vault balance changes
    - Provides ground truth pool state data
 

@@ -1044,7 +1044,7 @@ mod tests {
     fn test_tip_calculation() {
         let config = BundleBuilderConfig::default();
         let payer = Arc::new(Keypair::new());
-        let builder = ArbBundleBuilder::new(config.clone(), payer, HashMap::new(), Vec::new());
+        let builder = ArbBundleBuilder::new(config.clone(), payer, HashMap::default(), Vec::new());
 
         assert_eq!(builder.calculate_tip(0), config.base_tip_lamports);
 

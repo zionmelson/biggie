@@ -69,11 +69,6 @@ use solana_sdk::pubkey::Pubkey;
 use rustc_hash::FxHashMap as HashMap;
 use std::sync::Arc;
 use std::time::{Duration, Instant};
-use tokio::sync::mpsc;
-
-/// Channel type for notifying Geyser loop of new vaults to subscribe
-pub type NewVaultSender = mpsc::UnboundedSender<Vec<Pubkey>>;
-pub type NewVaultReceiver = mpsc::UnboundedReceiver<Vec<Pubkey>>;
 
 /// Route information for 3-hop arbitrage through an anchor mint
 #[derive(Clone, Debug)]
@@ -134,6 +129,14 @@ pub struct PoolState {
     pub spacing: Option<u16>,
     /// Active liquidity in current range
     pub active_liquidity: Option<u128>,
+    
+    // === DLMM DYNAMIC FEE STATE ===
+    /// DLMM base fee rate in millionths (e.g., 2500 = 0.25%)
+    /// Formula: base_fee = base_factor * bin_step
+    pub dlmm_base_fee_rate: u32,
+    /// DLMM variable fee rate in millionths (volatility-based)
+    /// Changes dynamically based on trading activity
+    pub dlmm_variable_fee_rate: u32,
 
     // === POOL METADATA (for swap instruction building) ===
     /// Token A vault
@@ -173,7 +176,10 @@ pub struct PoolState {
 }
 
 impl PoolState {
-    /// Create a new pool state
+    /// Create a new pool state.
+    /// 
+    /// Note: fee_bps is initialized to 0 and will be populated by Geyser/bootstrap.
+    /// For DLMM pools, dynamic fees (base + variable) are tracked separately.
     pub fn new(
         address: Pubkey,
         dex: DexType,
@@ -183,7 +189,6 @@ impl PoolState {
         quote_reserve: u64,
         base_decimals: u8,
         quote_decimals: u8,
-        fee_bps: u16,
         curve: CurveType,
         slot: u64,
     ) -> Self {
@@ -197,7 +202,7 @@ impl PoolState {
             confirmed_quote_reserve: quote_reserve,
             base_decimals,
             quote_decimals,
-            fee_bps,
+            fee_bps: 0, // Will be populated by Geyser/bootstrap
             curve,
             last_confirmed_slot: slot,
             last_confirmed_at: now,
@@ -205,6 +210,9 @@ impl PoolState {
             confirmed_sqrt_price: None,
             confirmed_tick_or_bin: None,
             spacing: None,
+            active_liquidity: None,
+            dlmm_base_fee_rate: 0,
+            dlmm_variable_fee_rate: 0,
             token_vault_a: Pubkey::default(),
             token_vault_b: Pubkey::default(),
             amm_authority: None,
@@ -214,7 +222,6 @@ impl PoolState {
             bin_array_bitmap_extension: None,
             bin_arrays: Vec::new(),
             pool_authority: None,
-            active_liquidity: None,
             // Default to SPL Token program - will be updated via set_token_programs()
             token_program_a: TOKEN_PROGRAM,
             token_program_b: TOKEN_PROGRAM,
@@ -345,6 +352,30 @@ impl PoolState {
         self.bootstrapped = true;
     }
 
+    /// Set fee in basis points (for non-DLMM pools)
+    pub fn set_fee_bps(&mut self, fee_bps: u16) {
+        self.fee_bps = fee_bps;
+    }
+
+    /// Set DLMM dynamic fees from on-chain data
+    /// 
+    /// # Arguments
+    /// * `base_fee_rate` - Base fee rate in millionths (base_factor * bin_step * 10)
+    /// * `variable_fee_rate` - Variable fee rate in millionths (from volatility accumulator)
+    pub fn set_dlmm_fees(&mut self, base_fee_rate: u32, variable_fee_rate: u32) {
+        self.dlmm_base_fee_rate = base_fee_rate;
+        self.dlmm_variable_fee_rate = variable_fee_rate;
+        // Also set fee_bps as an approximation for logging/display
+        // total_fee_rate is in millionths, convert to bps: / 100_000
+        let total_rate = base_fee_rate.saturating_add(variable_fee_rate);
+        self.fee_bps = (total_rate / 100_000) as u16;
+    }
+
+    /// Get total DLMM fee rate in millionths
+    pub fn dlmm_total_fee_rate(&self) -> u32 {
+        self.dlmm_base_fee_rate.saturating_add(self.dlmm_variable_fee_rate)
+    }
+
     /// Check if pool is ready for arb evaluation
     pub fn is_ready_for_arb(&self) -> bool {
         self.bootstrapped
@@ -423,9 +454,6 @@ pub struct PoolStateManager {
     tick_cache: Arc<TickArrayCache>,
     /// Bin array cache for accurate DLMM simulation
     bin_cache: Arc<BinArrayCache>,
-    /// Channel to notify Geyser loop of new vaults to subscribe
-    /// Wrapped in Option since it's set after construction
-    new_vault_sender: RwLock<Option<NewVaultSender>>,
 }
 
 #[derive(Debug, Default, Clone)]
@@ -453,16 +481,7 @@ impl PoolStateManager {
             stats: RwLock::new(PoolStateStats::default()),
             tick_cache: Arc::new(TickArrayCache::new()),
             bin_cache: Arc::new(BinArrayCache::new()),
-            new_vault_sender: RwLock::new(None),
         }
-    }
-    
-    /// Create a new vault subscription channel and return the receiver
-    /// Call this before starting the Geyser loop
-    pub fn create_vault_subscription_channel(&self) -> NewVaultReceiver {
-        let (tx, rx) = mpsc::unbounded_channel();
-        *self.new_vault_sender.write() = Some(tx);
-        rx
     }
     
     /// Mark a pool's vaults as subscribed (called when subscription is established)
@@ -600,27 +619,8 @@ impl PoolStateManager {
             );
         }
         
-        // Notify Geyser loop about new vaults that need subscription
-        // (only for pools not already subscribed - i.e., dynamically discovered)
-        if vault_a != Pubkey::default() {
-            if let Some(sender) = self.new_vault_sender.read().as_ref() {
-                let vaults = vec![vault_a, vault_b];
-                if let Err(e) = sender.send(vaults) {
-                    tracing::warn!(
-                        "Failed to send new vaults to Geyser loop: {} (pool {})",
-                        e,
-                        &address.to_string()[..8]
-                    );
-                } else {
-                    tracing::debug!(
-                        "Notified Geyser loop of new vaults for pool {} (vault_a={}, vault_b={})",
-                        &address.to_string()[..8],
-                        &vault_a.to_string()[..8],
-                        &vault_b.to_string()[..8]
-                    );
-                }
-            }
-        }
+        // Note: All pools come from pools.json (loaded at startup) with vault subscriptions.
+        // No dynamic pool discovery - pools.json is the single source of truth.
     }
 
     /// Register a pool with pre-set vault subscription status
@@ -934,8 +934,11 @@ impl PoolStateManager {
                     state.confirmed_tick_or_bin,
                     state.spacing,
                 ) {
-                    let fee_rate = (state.fee_bps as u32) * 100_000;
+                    // Use dynamic DLMM fees (base + variable) from on-chain data
+                    let fee_rate = state.dlmm_total_fee_rate();
                     let mut dlmm = DlmmPoolState::new(spacing, bin_id, fee_rate);
+                    // Set variable fee separately for accurate simulation
+                    dlmm.variable_fee_rate = state.dlmm_variable_fee_rate;
 
                     // Populate bins from cache
                     let cached_bins = self.bin_cache.get_pool_bins_for_simulation(pool, spacing);
@@ -1185,6 +1188,27 @@ impl PoolStateManager {
         }
     }
 
+    /// Set fee in basis points for a pool (for non-DLMM pools like Raydium CLMM, Orca, etc.)
+    pub fn set_pool_fee_bps(&self, pool: &Pubkey, fee_bps: u16) {
+        let mut pools = self.pools.write();
+        if let Some(state) = pools.get_mut(pool) {
+            state.set_fee_bps(fee_bps);
+        }
+    }
+
+    /// Set DLMM dynamic fees for a pool
+    /// 
+    /// # Arguments
+    /// * `pool` - Pool address
+    /// * `base_fee_rate` - Base fee rate in millionths
+    /// * `variable_fee_rate` - Variable fee rate in millionths (from volatility)
+    pub fn set_dlmm_fees(&self, pool: &Pubkey, base_fee_rate: u32, variable_fee_rate: u32) {
+        let mut pools = self.pools.write();
+        if let Some(state) = pools.get_mut(pool) {
+            state.set_dlmm_fees(base_fee_rate, variable_fee_rate);
+        }
+    }
+
     /// Check if a pool is ready for arb evaluation
     pub fn is_pool_ready_for_arb(&self, pool: &Pubkey) -> bool {
         let pools = self.pools.read();
@@ -1295,7 +1319,7 @@ mod tests {
     use super::*;
 
     fn make_test_pool(address: Pubkey, base: u64, quote: u64) -> PoolState {
-        PoolState::new(
+        let mut pool = PoolState::new(
             address,
             DexType::RaydiumAmm,
             Pubkey::new_unique(),
@@ -1304,10 +1328,11 @@ mod tests {
             quote,
             9,
             6,
-            30, // 0.3% fee
             CurveType::ConstantProduct,
             100,
-        )
+        );
+        pool.fee_bps = 30; // 0.3% fee - normally set by Geyser/bootstrap
+        pool
     }
 
     #[test]

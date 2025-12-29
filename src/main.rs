@@ -132,7 +132,6 @@ async fn run_arb_pipeline(config: Config) -> Result<(), Box<dyn std::error::Erro
         geyser_endpoint: config.geyser.endpoint.clone(),
         connect_timeout: Duration::from_millis(config.geyser.connect_timeout_ms),
         request_timeout: Duration::from_millis(config.geyser.request_timeout_ms),
-        skip_votes: config.geyser.skip_votes,
         bundle_config: BundleBuilderConfig {
             compute_units: arb_config.compute_units,
             compute_unit_price: arb_config.compute_unit_price,
@@ -203,11 +202,11 @@ async fn run_arb_pipeline(config: Config) -> Result<(), Box<dyn std::error::Erro
     };
     
     tracing::info!(
-        "FINAL STATS: source={} entries={} swaps={} geyser_txs={} opps={} sent={} accepted={} profit={:.6} SOL",
+        "FINAL STATS: source={} entries={} swaps={} geyser_accts={} opps={} sent={} accepted={} profit={:.6} SOL",
         source_name,
         entries_count,
         s.shredstream_swaps_detected.load(std::sync::atomic::Ordering::Relaxed),
-        s.geyser_txs_received.load(std::sync::atomic::Ordering::Relaxed),
+        s.geyser_account_updates.load(std::sync::atomic::Ordering::Relaxed),
         s.opportunities_found.load(std::sync::atomic::Ordering::Relaxed),
         s.bundles_submitted.load(std::sync::atomic::Ordering::Relaxed),
         s.bundles_accepted.load(std::sync::atomic::Ordering::Relaxed),

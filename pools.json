@@ -9,8 +9,6 @@
       "token_vault_b": "4PNeR1NvVkYyxQEn6HEGHcym2wa13jzqUkfZN69Zgk6i",
       "decimals_a": 6,
       "decimals_b": 9,
-      "fee_bps": 25,
-      "spacing": 1,
       "_comment": "Meteora JUP/SOL DAMM"
     },
     {
@@ -22,8 +20,6 @@
       "token_vault_b": "HK2HggD4Eg1tAyr3gnRvNG32Z8v7s1NQGjH77b14qvsx",
       "decimals_a": 9,
       "decimals_b": 6,
-      "fee_bps": 25,
-      "spacing": 1,
       "_comment": "Meteora SOL/USDC DAMM"
     },
     {
@@ -35,8 +31,6 @@
       "token_vault_b": "5WGizqYRSs3viSANuZpv6dRMtTUmCmWqGVxvNApsHZoq",
       "decimals_a": 9,
       "decimals_b": 6,
-      "fee_bps": 25,
-      "spacing": 1,
       "_comment": "Meteora SOL/USDC DAMM"
     },
     {
@@ -48,8 +42,6 @@
       "token_vault_b": "8S8HjmPZr8tNNEmMj5pcqS5RN73uF6DmcUDEDaoUQ1Ei",
       "decimals_a": 9,
       "decimals_b": 6,
-      "fee_bps": 25,
-      "spacing": 1,
       "_comment": "Meteora SOL/USDC DAMM"
     },
     {
@@ -61,8 +53,6 @@
       "token_vault_b": "8Kor2VwBn2tXZ5xWic6abct4TDBwVAABtPNe9EeX4TNA",
       "decimals_a": 6,
       "decimals_b": 6,
-      "fee_bps": 25,
-      "spacing": 1,
       "_comment": "Meteora USDT/USDC DAMM"
     },
     {
@@ -74,8 +64,6 @@
       "token_vault_b": "CnwbV4Q7vbGpUs2BPcFPbMgBs4FKWR9p9gcru5x1JWZa",
       "decimals_a": 9,
       "decimals_b": 6,
-      "fee_bps": 25,
-      "spacing": 1,
       "_comment": "Meteora jupSOL/USDC DAMM"
     },
     {
@@ -87,9 +75,6 @@
       "token_vault_b": "9iKvd5kvcFGKAHx489rcBS3sX8nSTsouLFBvQirwNhGG",
       "decimals_a": 5,
       "decimals_b": 9,
-      "fee_bps": 25,
-      "spacing": 25,
-      "current_tick_or_bin": 6653,
       "_comment": "Meteora BONK/SOL DLMM"
     },
     {
@@ -101,9 +86,6 @@
       "token_vault_b": "3d6ieKbz74WkACA6J5UJ1Szgfm8SxZwejfb5GQwgTN5N",
       "decimals_a": 5,
       "decimals_b": 9,
-      "fee_bps": 20,
-      "spacing": 20,
-      "current_tick_or_bin": 5375,
       "_comment": "Meteora BONK/SOL DLMM"
     },
     {
@@ -115,9 +97,6 @@
       "token_vault_b": "8o3V6AYjnPRoZkPKLYmxPXv2EgZ5bfC8M5UyzJcso3Yj",
       "decimals_a": 5,
       "decimals_b": 9,
-      "fee_bps": 40,
-      "spacing": 400,
-      "current_tick_or_bin": 102654,
       "_comment": "Meteora BONK/SOL DLMM"
     },
     {
@@ -129,9 +108,6 @@
       "token_vault_b": "6gYLgky8wa2euDMAZeMkudBHBV3h44Fv2hf4CD4ES6am",
       "decimals_a": 5,
       "decimals_b": 9,
-      "fee_bps": 3,
-      "spacing": 10,
-      "current_tick_or_bin": 2815,
       "_comment": "Meteora BONK/SOL DLMM"
     },
     {
@@ -143,9 +119,6 @@
       "token_vault_b": "61wSQd9okbmzn9CYG3RXbbG8zFKDjKcW6EzP6v3zajXr",
       "decimals_a": 5,
       "decimals_b": 9,
-      "fee_bps": 25,
-      "spacing": 100,
-      "current_tick_or_bin": 25853,
       "_comment": "Meteora BONK/SOL DLMM"
     },
     {
@@ -157,9 +130,6 @@
       "token_vault_b": "FrXW8vGr5GfhAufuqaqfQfJYK2umwd7kGYoFEbRdu2aB",
       "decimals_a": 5,
       "decimals_b": 9,
-      "fee_bps": 100,
-      "spacing": 400,
-      "current_tick_or_bin": 102653,
       "_comment": "Meteora BONK/SOL DLMM"
     },
     {
@@ -171,9 +141,6 @@
       "token_vault_b": "8dcbm1o3XFX2GzeZzRDNDCmo9WZZW9Eda1uX18qsvZjQ",
       "decimals_a": 5,
       "decimals_b": 9,
-      "fee_bps": 100,
-      "spacing": 100,
-      "current_tick_or_bin": 50357503,
       "_comment": "Meteora BONK/SOL DLMM"
     },
     {
@@ -185,9 +152,6 @@
       "token_vault_b": "Hh4cKPxWHWri74Ui8gZx7hfscyuyjUTxcsfBmWgoS89k",
       "decimals_a": 5,
       "decimals_b": 9,
-      "fee_bps": 200,
-      "spacing": 200,
-      "current_tick_or_bin": 51455,
       "_comment": "Meteora BONK/SOL DLMM"
     },
     {
@@ -199,9 +163,6 @@
       "token_vault_b": "CDxKWsQbe2HWLzvUZ7hAPvhk7381WjFGYMXYVG8Ahdim",
       "decimals_a": 5,
       "decimals_b": 9,
-      "fee_bps": 5,
-      "spacing": 8,
-      "current_tick_or_bin": 2303,
       "_comment": "Meteora BONK/SOL DLMM"
     },
     {
@@ -213,9 +174,6 @@
       "token_vault_b": "6kFL9kyP2QJZ8NmP7NnfcgqmpRFavTECYWnk48hjjdYM",
       "decimals_a": 5,
       "decimals_b": 9,
-      "fee_bps": 10,
-      "spacing": 50,
-      "current_tick_or_bin": 13055,
       "_comment": "Meteora BONK/SOL DLMM"
     },
     {
@@ -227,9 +185,6 @@
       "token_vault_b": "4tMKMEeowZxUWFjpxmmGog3NKpJuXc2R5vv4TYz5KsJD",
       "decimals_a": 5,
       "decimals_b": 9,
-      "fee_bps": 10,
-      "spacing": 10,
-      "current_tick_or_bin": 2815,
       "_comment": "Meteora BONK/SOL DLMM"
     },
     {
@@ -241,9 +196,6 @@
       "token_vault_b": "7731J9wPWYLQD3ka2ZBPX9YRg4X4uSAWovVsZ9ZiNfVX",
       "decimals_a": 5,
       "decimals_b": 6,
-      "fee_bps": 20,
-      "spacing": 20,
-      "current_tick_or_bin": 5374,
       "_comment": "Meteora BONK/USDC DLMM"
     },
     {
@@ -255,9 +207,6 @@
       "token_vault_b": "7UbhBBVhuWMARp9ZQEctvz2bSwzqaCysVg1WMUEXtesU",
       "decimals_a": 5,
       "decimals_b": 6,
-      "fee_bps": 25,
-      "spacing": 100,
-      "current_tick_or_bin": 25855,
       "_comment": "Meteora BONK/USDC DLMM"
     },
     {
@@ -269,9 +218,6 @@
       "token_vault_b": "Ew9PcDEQr9BMC54HPSJzJhKJrf4R38rupwefxTMSgCyP",
       "decimals_a": 5,
       "decimals_b": 6,
-      "fee_bps": 40,
-      "spacing": 50,
-      "current_tick_or_bin": 13055,
       "_comment": "Meteora BONK/USDC DLMM"
     },
     {
@@ -283,9 +229,6 @@
       "token_vault_b": "GHLPM9obAuuNz35jh1RMp2b3tPgwdzGHmPwx1YzP2T5x",
       "decimals_a": 5,
       "decimals_b": 6,
-      "fee_bps": 200,
-      "spacing": 400,
-      "current_tick_or_bin": 102655,
       "_comment": "Meteora BONK/USDC DLMM"
     },
     {
@@ -297,9 +240,6 @@
       "token_vault_b": "AEfbLQLmA3CiaP4kMWrXfkRjcha4XcekD9bqpriM7aYS",
       "decimals_a": 5,
       "decimals_b": 6,
-      "fee_bps": 20,
-      "spacing": 80,
-      "current_tick_or_bin": 50352383,
       "_comment": "Meteora BONK/USDC DLMM"
     },
     {
@@ -311,9 +251,6 @@
       "token_vault_b": "8oKKHz5FVFU3ybNDqCY7uSJ1wD2LkpUrtZExm88rL8ys",
       "decimals_a": 5,
       "decimals_b": 6,
-      "fee_bps": 60,
-      "spacing": 80,
-      "current_tick_or_bin": 20734,
       "_comment": "Meteora BONK/USDC DLMM"
     },
     {
@@ -325,9 +262,6 @@
       "token_vault_b": "JBx6USHjrnGNms6LAyGkpyhX6G8g3YcpqFY3C6nmAZT4",
       "decimals_a": 8,
       "decimals_b": 9,
-      "fee_bps": 15,
-      "spacing": 15,
-      "current_tick_or_bin": 4090,
       "_comment": "Meteora ETH/SOL DLMM"
     },
     {
@@ -339,9 +273,6 @@
       "token_vault_b": "E7ARu8jvDooaLWLmhCgCixE5q9hVWejAjzBvR6UiPrqj",
       "decimals_a": 8,
       "decimals_b": 9,
-      "fee_bps": 1,
-      "spacing": 10,
-      "current_tick_or_bin": 2814,
       "_comment": "Meteora ETH/SOL DLMM"
     },
     {
@@ -353,9 +284,6 @@
       "token_vault_b": "FGiMxZTiUTn75gnxCkKYcVqwZd4K8EvsvsCG1VKHSo4H",
       "decimals_a": 8,
       "decimals_b": 9,
-      "fee_bps": 4,
-      "spacing": 4,
-      "current_tick_or_bin": 1279,
       "_comment": "Meteora ETH/SOL DLMM"
     },
     {
@@ -367,9 +295,6 @@
       "token_vault_b": "4SwCYJXFDVKnP9CXGb5cFKUtaii9vj4cxjffLuff2PAU",
       "decimals_a": 8,
       "decimals_b": 9,
-      "fee_bps": 2,
-      "spacing": 2,
-      "current_tick_or_bin": 767,
       "_comment": "Meteora ETH/SOL DLMM"
     },
     {
@@ -381,9 +306,6 @@
       "token_vault_b": "FB2uPKjvtTSaJxWwLwUm4hXtHwvr8QCkZCFRSWpsdaSo",
       "decimals_a": 8,
       "decimals_b": 6,
-      "fee_bps": 10,
-      "spacing": 10,
-      "current_tick_or_bin": 2814,
       "_comment": "Meteora ETH/USDC DLMM"
     },
     {
@@ -395,9 +317,6 @@
       "token_vault_b": "GFWdCHt8deRVmVgSmb5czn6SrSfS3Z7zSaXGjrwnQYL4",
       "decimals_a": 8,
       "decimals_b": 6,
-      "fee_bps": 10,
-      "spacing": 50,
-      "current_tick_or_bin": 13055,
       "_comment": "Meteora ETH/USDC DLMM"
     },
     {
@@ -409,9 +328,6 @@
       "token_vault_b": "EEgZMC6z6jCP88dmgMem5dRB7YhLAH37A333nvFfVKwt",
       "decimals_a": 9,
       "decimals_b": 9,
-      "fee_bps": 25,
-      "spacing": 125,
-      "current_tick_or_bin": 32254,
       "_comment": "Meteora JTO/SOL DLMM"
     },
     {
@@ -423,9 +339,6 @@
       "token_vault_b": "FVd7DnwgX3ShmFqL78D3W1yPev2U62VMcLiS9TKtYrmz",
       "decimals_a": 9,
       "decimals_b": 9,
-      "fee_bps": 100,
-      "spacing": 125,
-      "current_tick_or_bin": 32254,
       "_comment": "Meteora JTO/SOL DLMM"
     },
     {
@@ -437,9 +350,6 @@
       "token_vault_b": "Ag422d3DXPRzeVN2nuDXEhkHhgEsPbzWhhbhvnECxgfe",
       "decimals_a": 9,
       "decimals_b": 6,
-      "fee_bps": 20,
-      "spacing": 100,
-      "current_tick_or_bin": 25855,
       "_comment": "Meteora JTO/USDC DLMM"
     },
     {
@@ -451,9 +361,6 @@
       "token_vault_b": "Bw6cx5Nnc9q9opMC5TVE95CVn4KsgzTkC8na8PFhxuzA",
       "decimals_a": 9,
       "decimals_b": 6,
-      "fee_bps": 25,
-      "spacing": 25,
-      "current_tick_or_bin": 6655,
       "_comment": "Meteora JTO/USDC DLMM"
     },
     {
@@ -465,9 +372,6 @@
       "token_vault_b": "FYHm46mvJfwtyFMQUp39mFkyMNpTqc3nKH4UAaqHTGBh",
       "decimals_a": 9,
       "decimals_b": 6,
-      "fee_bps": 10,
-      "spacing": 10,
-      "current_tick_or_bin": 50334463,
       "_comment": "Meteora JTO/USDC DLMM"
     },
     {
@@ -479,9 +383,6 @@
       "token_vault_b": "C1qZxtr6ouNiv8B4wm6stWdEx9J7coN3FEtHkM4z3WUp",
       "decimals_a": 6,
       "decimals_b": 5,
-      "fee_bps": 100,
-      "spacing": 200,
-      "current_tick_or_bin": 51451,
       "_comment": "Meteora JUP/BONK DLMM"
     },
     {
@@ -493,9 +394,6 @@
       "token_vault_b": "zRoFQLqKvKWTkX5kEV71aTSk18WWBXx13tbGtEDnwPR",
       "decimals_a": 6,
       "decimals_b": 5,
-      "fee_bps": 60,
-      "spacing": 100,
-      "current_tick_or_bin": 50357503,
       "_comment": "Meteora JUP/BONK DLMM"
     },
     {
@@ -507,9 +405,6 @@
       "token_vault_b": "9B67BXnxvwSb4XxPedmURbuciYHtnX7EmbVMeNGHCB4C",
       "decimals_a": 6,
       "decimals_b": 5,
-      "fee_bps": 30,
-      "spacing": 200,
-      "current_tick_or_bin": 51452,
       "_comment": "Meteora JUP/BONK DLMM"
     },
     {
@@ -521,9 +416,6 @@
       "token_vault_b": "GZmdfPRXR7Yu7kARif23yB4ycQrW4BDP2hA5z2SvP3tR",
       "decimals_a": 6,
       "decimals_b": 9,
-      "fee_bps": 30,
-      "spacing": 200,
-      "current_tick_or_bin": 51455,
       "_comment": "Meteora JUP/JitoSOL DLMM"
     },
     {
@@ -535,9 +427,6 @@
       "token_vault_b": "a3MbU2MxmzcQiGSm4EF8HQJcg8NFGaJQ6tzY8jjYW3Q",
       "decimals_a": 6,
       "decimals_b": 9,
-      "fee_bps": 500,
-      "spacing": 250,
-      "current_tick_or_bin": 64253,
       "_comment": "Meteora JUP/SOL DLMM"
     },
     {
@@ -549,9 +438,6 @@
       "token_vault_b": "BjRhLiEAQ1oKFt2t5oZMDdVnYy7NSimnT4E6eT1jsX2e",
       "decimals_a": 6,
       "decimals_b": 9,
-      "fee_bps": 5,
-      "spacing": 50,
-      "current_tick_or_bin": 13054,
       "_comment": "Meteora JUP/SOL DLMM"
     },
     {
@@ -563,9 +449,6 @@
       "token_vault_b": "7RSsQ5hECmCEnWAuKYnTP2WwCSgU9tPuJRYiH1gDqS8a",
       "decimals_a": 6,
       "decimals_b": 9,
-      "fee_bps": 20,
-      "spacing": 20,
-      "current_tick_or_bin": 5374,
       "_comment": "Meteora JUP/SOL DLMM"
     },
     {
@@ -577,9 +460,6 @@
       "token_vault_b": "HGCgHsHQmp4rgLDhtwKYgGvTkv3VYuVwLZc2egaBB8dB",
       "decimals_a": 6,
       "decimals_b": 9,
-      "fee_bps": 15,
-      "spacing": 15,
-      "current_tick_or_bin": 4095,
       "_comment": "Meteora JUP/SOL DLMM"
     },
     {
@@ -591,9 +471,6 @@
       "token_vault_b": "5DaXj8PBS4D4FbYLuRnD7VcbTKLyZrfQiJ2L3B9eMd5m",
       "decimals_a": 6,
       "decimals_b": 9,
-      "fee_bps": 4,
-      "spacing": 4,
-      "current_tick_or_bin": 1279,
       "_comment": "Meteora JUP/SOL DLMM"
     },
     {
@@ -605,9 +482,6 @@
       "token_vault_b": "3Qb5viFPcRkNibNrrV3FA2PGQy7ASd7BMdR4yZ6UrXHp",
       "decimals_a": 6,
       "decimals_b": 9,
-      "fee_bps": 30,
-      "spacing": 30,
-      "current_tick_or_bin": 7934,
       "_comment": "Meteora JUP/SOL DLMM"
     },
     {
@@ -619,9 +493,6 @@
       "token_vault_b": "EDjy73quMPkf8NG8w6goRSVnQewsJP75S4sidhGR6kRd",
       "decimals_a": 6,
       "decimals_b": 9,
-      "fee_bps": 40,
-      "spacing": 200,
-      "current_tick_or_bin": 51454,
       "_comment": "Meteora JUP/SOL DLMM"
     },
     {
@@ -633,9 +504,6 @@
       "token_vault_b": "6cpjuj74vjPSzTL1AidGgvTNHQoyD9oKm8QDPpacBHit",
       "decimals_a": 6,
       "decimals_b": 9,
-      "fee_bps": 100,
-      "spacing": 80,
-      "current_tick_or_bin": 20735,
       "_comment": "Meteora JUP/SOL DLMM"
     },
     {
@@ -647,9 +515,6 @@
       "token_vault_b": "5cTEqrp41dUtk7LHSvSiUfPUSCNe68txpphJt8j7z9zb",
       "decimals_a": 6,
       "decimals_b": 9,
-      "fee_bps": 1,
-      "spacing": 5,
-      "current_tick_or_bin": 1533,
       "_comment": "Meteora JUP/SOL DLMM"
     },
     {
@@ -661,9 +526,6 @@
       "token_vault_b": "CWMhSHMTXSp7ZcJgo2bF2bZXmkqaTFBoJpnX6ATusAMs",
       "decimals_a": 6,
       "decimals_b": 9,
-      "fee_bps": 10,
-      "spacing": 50,
-      "current_tick_or_bin": 13054,
       "_comment": "Meteora JUP/SOL DLMM"
     },
     {
@@ -675,9 +537,6 @@
       "token_vault_b": "7pgEw5iHnkVtJvoJq9WPBCihzbcfK6M7mYNrUgCP4VKJ",
       "decimals_a": 6,
       "decimals_b": 9,
-      "fee_bps": 100,
-      "spacing": 200,
-      "current_tick_or_bin": 51455,
       "_comment": "Meteora JUP/SOL DLMM"
     },
     {
@@ -689,9 +548,6 @@
       "token_vault_b": "5rJ5PvB5MyxsyV9VSid2esNLJUykRiq9xcGxnMmoDJhh",
       "decimals_a": 6,
       "decimals_b": 9,
-      "fee_bps": 15,
-      "spacing": 80,
-      "current_tick_or_bin": 20735,
       "_comment": "Meteora JUP/SOL DLMM"
     },
     {
@@ -703,9 +559,6 @@
       "token_vault_b": "7pUi1PcbZQd3ysuvLPtuxW8BksLRrL2sG5PGqejhQm2n",
       "decimals_a": 6,
       "decimals_b": 9,
-      "fee_bps": 4,
-      "spacing": 10,
-      "current_tick_or_bin": 2814,
       "_comment": "Meteora JUP/SOL DLMM"
     },
     {
@@ -717,9 +570,6 @@
       "token_vault_b": "7c37aUAQC3XYziZL4B5qEMJn5M4n4tHmEU67W8o1vafA",
       "decimals_a": 6,
       "decimals_b": 9,
-      "fee_bps": 10,
-      "spacing": 80,
-      "current_tick_or_bin": 20735,
       "_comment": "Meteora JUP/SOL DLMM"
     },
     {
@@ -731,9 +581,6 @@
       "token_vault_b": "HuB7yEUXeTzWPLBHF73gnvQo67nzRfChecvPfrR8HRwp",
       "decimals_a": 6,
       "decimals_b": 9,
-      "fee_bps": 5,
-      "spacing": 8,
-      "current_tick_or_bin": 2303,
       "_comment": "Meteora JUP/SOL DLMM"
     },
     {
@@ -745,9 +592,6 @@
       "token_vault_b": "2Zigy2ZhxsJF49iq49WLa6qER22P92s4K5Ty97HgAAxq",
       "decimals_a": 6,
       "decimals_b": 9,
-      "fee_bps": 200,
-      "spacing": 250,
-      "current_tick_or_bin": 64254,
       "_comment": "Meteora JUP/SOL DLMM"
     },
     {
@@ -759,9 +603,6 @@
       "token_vault_b": "9zXV3Ju93iaMK36NHQ7kvRp7SfkprHJhAw8FFBQn2P9M",
       "decimals_a": 6,
       "decimals_b": 9,
-      "fee_bps": 4,
-      "spacing": 5,
-      "current_tick_or_bin": 1535,
       "_comment": "Meteora JUP/SOL DLMM"
     },
     {
@@ -773,9 +614,6 @@
       "token_vault_b": "J8dhCG8DpTmF1WorRF7LDmNbx1BGBjn8U1F6EfHhMeRH",
       "decimals_a": 6,
       "decimals_b": 9,
-      "fee_bps": 40,
-      "spacing": 400,
-      "current_tick_or_bin": 102653,
       "_comment": "Meteora JUP/SOL DLMM"
     },
     {
@@ -787,9 +625,6 @@
       "token_vault_b": "HqEFDuwmLgN91AGSAicp1cZgGu8GNnKwtLewH9ohpTwr",
       "decimals_a": 6,
       "decimals_b": 9,
-      "fee_bps": 25,
-      "spacing": 125,
-      "current_tick_or_bin": 32255,
       "_comment": "Meteora JUP/SOL DLMM"
     },
     {
@@ -801,9 +636,6 @@
       "token_vault_b": "Efziy8kGLUU4nVRogeWGQGJ9tSR6wCcy9ye1VKamjyqe",
       "decimals_a": 6,
       "decimals_b": 9,
-      "fee_bps": 100,
-      "spacing": 100,
-      "current_tick_or_bin": 25854,
       "_comment": "Meteora JUP/SOL DLMM"
     },
     {
@@ -815,9 +647,6 @@
       "token_vault_b": "3yRSKQ35iJ4vS48Q4CN7kG6osxmmbNzzt4khDdvNfCNb",
       "decimals_a": 6,
       "decimals_b": 9,
-      "fee_bps": 1,
-      "spacing": 1,
-      "current_tick_or_bin": 511,
       "_comment": "Meteora JUP/SOL DLMM"
     },
     {
@@ -829,9 +658,6 @@
       "token_vault_b": "85vaFRZTroUc65gbrCNwVAyEdFsMq2HBBUGX49aqNTm9",
       "decimals_a": 6,
       "decimals_b": 6,
-      "fee_bps": 100,
-      "spacing": 200,
-      "current_tick_or_bin": 51454,
       "_comment": "Meteora JUP/USDC DLMM"
     },
     {
@@ -843,9 +669,6 @@
       "token_vault_b": "9Q2Ak7gQ1up1Gbs5jNucQGRYU62NN5Jbc2jrT1aKtRdb",
       "decimals_a": 6,
       "decimals_b": 6,
-      "fee_bps": 10,
-      "spacing": 10,
-      "current_tick_or_bin": 2815,
       "_comment": "Meteora JUP/USDC DLMM"
     },
     {
@@ -857,9 +680,6 @@
       "token_vault_b": "CykkTYQvCQphX9aAqF9hfCCQrjecvDCrmBBJeAfW59Ly",
       "decimals_a": 6,
       "decimals_b": 6,
-      "fee_bps": 100,
-      "spacing": 100,
-      "current_tick_or_bin": 25854,
       "_comment": "Meteora JUP/USDC DLMM"
     },
     {
@@ -871,9 +691,6 @@
       "token_vault_b": "Fnv5ewUYrAJncjJV2VE1SFXQafAdV4xqYEoLvjhktZKc",
       "decimals_a": 6,
       "decimals_b": 6,
-      "fee_bps": 15,
-      "spacing": 80,
-      "current_tick_or_bin": 20735,
       "_comment": "Meteora JUP/USDC DLMM"
     },
     {
@@ -885,9 +702,6 @@
       "token_vault_b": "2A9TJtcb8bGTXPgycX1dQx1fHkbNsxn7vujaAuVw8X6N",
       "decimals_a": 6,
       "decimals_b": 6,
-      "fee_bps": 500,
-      "spacing": 80,
-      "current_tick_or_bin": 16797950,
       "_comment": "Meteora JUP/USDC DLMM"
     },
     {
@@ -899,9 +713,6 @@
       "token_vault_b": "J8wasX44CGm6cw6y9KT8qbRugc8XcErW83EjbrRB6Xuw",
       "decimals_a": 6,
       "decimals_b": 6,
-      "fee_bps": 15,
-      "spacing": 15,
-      "current_tick_or_bin": 4095,
       "_comment": "Meteora JUP/USDC DLMM"
     },
     {
@@ -913,9 +724,6 @@
       "token_vault_b": "EVkVa8BKwNtEJFoDiDQhG9uiX6SuXuWPNn8h3wJiznXk",
       "decimals_a": 6,
       "decimals_b": 6,
-      "fee_bps": 500,
-      "spacing": 80,
-      "current_tick_or_bin": 20735,
       "_comment": "Meteora JUP/USDC DLMM"
     },
     {
@@ -927,9 +735,6 @@
       "token_vault_b": "5DbXruo9CKe3zhrccKUFmuZLWLyPTiAaQCeVkBV7xLpA",
       "decimals_a": 6,
       "decimals_b": 6,
-      "fee_bps": 3,
-      "spacing": 10,
-      "current_tick_or_bin": 2815,
       "_comment": "Meteora JUP/USDC DLMM"
     },
     {
@@ -941,9 +746,6 @@
       "token_vault_b": "9vSQQpWUXuGWv4x4yu289Y13QJTK2EfYmgT67cqAjgi9",
       "decimals_a": 6,
       "decimals_b": 6,
-      "fee_bps": 4,
-      "spacing": 4,
-      "current_tick_or_bin": 1276,
       "_comment": "Meteora JUP/USDC DLMM"
     },
     {
@@ -955,9 +757,6 @@
       "token_vault_b": "8QNTwnF3rSdbbvq73ARYxvMDhng9ed8ckJ8vytrUoEW5",
       "decimals_a": 6,
       "decimals_b": 6,
-      "fee_bps": 25,
-      "spacing": 80,
-      "current_tick_or_bin": 20732,
       "_comment": "Meteora JUP/USDC DLMM"
     },
     {
@@ -969,9 +768,6 @@
       "token_vault_b": "AribPpdA5dxJoWU5n1E9xKyvUtem2Hgh7buwXbo7Qc4Y",
       "decimals_a": 6,
       "decimals_b": 6,
-      "fee_bps": 25,
-      "spacing": 125,
-      "current_tick_or_bin": 32253,
       "_comment": "Meteora JUP/USDC DLMM"
     },
     {
@@ -983,9 +779,6 @@
       "token_vault_b": "2QANsJARmrkK2ow3eFhuDM8mM7zwZqqSx967RJtVQbYc",
       "decimals_a": 6,
       "decimals_b": 6,
-      "fee_bps": 10,
-      "spacing": 50,
-      "current_tick_or_bin": 13053,
       "_comment": "Meteora JUP/USDC DLMM"
     },
     {
@@ -997,9 +790,6 @@
       "token_vault_b": "A8pPnJ9AgTKtR2xSZjMTtyqYBV7eu2qCsh8FtFbCnSAx",
       "decimals_a": 6,
       "decimals_b": 6,
-      "fee_bps": 5,
-      "spacing": 8,
-      "current_tick_or_bin": 2302,
       "_comment": "Meteora JUP/USDC DLMM"
     },
     {
@@ -1011,9 +801,6 @@
       "token_vault_b": "2BVQ6P3L3UqkkM3NPE9sy1KKCoFsb7CfzhzAU7NmsFsU",
       "decimals_a": 6,
       "decimals_b": 6,
-      "fee_bps": 5,
-      "spacing": 80,
-      "current_tick_or_bin": 20731,
       "_comment": "Meteora JUP/USDC DLMM"
     },
     {
@@ -1025,9 +812,6 @@
       "token_vault_b": "CDYrA7quBg5UBgLN9Ly489VBzD9EDf6RMwKJdc28VnQm",
       "decimals_a": 6,
       "decimals_b": 6,
-      "fee_bps": 25,
-      "spacing": 25,
-      "current_tick_or_bin": 6654,
       "_comment": "Meteora JUP/USDC DLMM"
     },
     {
@@ -1039,9 +823,6 @@
       "token_vault_b": "6vn3TVwgkWJvCGYdnq2vqonUDaphrDEXqLZVyUNJYkdz",
       "decimals_a": 6,
       "decimals_b": 6,
-      "fee_bps": 50,
-      "spacing": 50,
-      "current_tick_or_bin": 50344701,
       "_comment": "Meteora JUP/USDC DLMM"
     },
     {
@@ -1053,9 +834,6 @@
       "token_vault_b": "AmubyAzdyCUSXQiiuzGKXNDTgduZeFaTxxRXukJcCZCV",
       "decimals_a": 6,
       "decimals_b": 6,
-      "fee_bps": 1,
-      "spacing": 1,
-      "current_tick_or_bin": 508,
       "_comment": "Meteora JUP/USDC DLMM"
     },
     {
@@ -1067,9 +845,6 @@
       "token_vault_b": "essCQCA21doXcm6RfncHnWfTdUKCcCCRQ8XWDVeGCQs",
       "decimals_a": 6,
       "decimals_b": 6,
-      "fee_bps": 25,
-      "spacing": 25,
-      "current_tick_or_bin": 6655,
       "_comment": "Meteora JUP/USDT DLMM"
     },
     {
@@ -1081,9 +856,6 @@
       "token_vault_b": "864ArNDSGF9pVsF16VkNeMKipqmPEQuwsKaLhZzwhUrZ",
       "decimals_a": 6,
       "decimals_b": 5,
-      "fee_bps": 100,
-      "spacing": 200,
-      "current_tick_or_bin": 51454,
       "_comment": "Meteora JUP/WEN DLMM"
     },
     {
@@ -1095,9 +867,6 @@
       "token_vault_b": "GdxtBmttzB9guUR1xH8yWcLyrc7TeSXc5HiMfg9G9qM6",
       "decimals_a": 6,
       "decimals_b": 9,
-      "fee_bps": 30,
-      "spacing": 200,
-      "current_tick_or_bin": 51455,
       "_comment": "Meteora JUP/bSOL DLMM"
     },
     {
@@ -1109,9 +878,6 @@
       "token_vault_b": "J3vQ8GQRR8nesRi2r5yD3LbQ5q7GHx8RbrbJ6VNVApz4",
       "decimals_a": 6,
       "decimals_b": 9,
-      "fee_bps": 30,
-      "spacing": 200,
-      "current_tick_or_bin": 51455,
       "_comment": "Meteora JUP/jupSOL DLMM"
     },
     {
@@ -1123,9 +889,6 @@
       "token_vault_b": "CodroyzrRNvc5kHRoAQYjpVSr1jA9fLcUWVFouiuWGsD",
       "decimals_a": 9,
       "decimals_b": 9,
-      "fee_bps": 1,
-      "spacing": 1,
-      "current_tick_or_bin": 510,
       "_comment": "Meteora JitoSOL/SOL DLMM"
     },
     {
@@ -1137,9 +900,6 @@
       "token_vault_b": "27ewTiSHb5JnbekXZXUk6kYgHfy6oHGiSzGFQqamECaq",
       "decimals_a": 9,
       "decimals_b": 9,
-      "fee_bps": 1,
-      "spacing": 8,
-      "current_tick_or_bin": 2302,
       "_comment": "Meteora JitoSOL/SOL DLMM"
     },
     {
@@ -1151,9 +911,6 @@
       "token_vault_b": "HRFxGxxXw2eiJ7TH37Fw3ES38e3TPChtDmtH5JsiKUvJ",
       "decimals_a": 9,
       "decimals_b": 9,
-      "fee_bps": 3,
-      "spacing": 2,
-      "current_tick_or_bin": 767,
       "_comment": "Meteora JitoSOL/jupSOL DLMM"
     },
     {
@@ -1165,9 +922,6 @@
       "token_vault_b": "CFrzcj44i54VnpUpxSvG97WdkqEoiQ8xQzqGVLewyBCN",
       "decimals_a": 9,
       "decimals_b": 9,
-      "fee_bps": 40,
-      "spacing": 50,
-      "current_tick_or_bin": 13055,
       "_comment": "Meteora POPCAT/SOL DLMM"
     },
     {
@@ -1179,9 +933,6 @@
       "token_vault_b": "6PSia6vzt256Ri53AqHq9dq8yCPDH9KWwuL9SKv39JYP",
       "decimals_a": 9,
       "decimals_b": 9,
-      "fee_bps": 80,
-      "spacing": 100,
-      "current_tick_or_bin": 25854,
       "_comment": "Meteora POPCAT/SOL DLMM"
     },
     {
@@ -1193,9 +944,6 @@
       "token_vault_b": "C1qRTUMySCGDcBcqmHjGDxvwNGk6VRKBuYYgi5pH5uqB",
       "decimals_a": 9,
       "decimals_b": 9,
-      "fee_bps": 20,
-      "spacing": 20,
-      "current_tick_or_bin": 5375,
       "_comment": "Meteora POPCAT/SOL DLMM"
     },
     {
@@ -1207,9 +955,6 @@
       "token_vault_b": "qX7JB1uX4W19r7mbCSxpTKhkXj4iu4EN7zPYSAEKdZD",
       "decimals_a": 9,
       "decimals_b": 9,
-      "fee_bps": 25,
-      "spacing": 25,
-      "current_tick_or_bin": 6655,
       "_comment": "Meteora POPCAT/SOL DLMM"
     },
     {
@@ -1221,9 +966,6 @@
       "token_vault_b": "EDftTxY1v8uj8A7FJcceBEpHriETJ3NsJFcDFDsjaDbF",
       "decimals_a": 9,
       "decimals_b": 9,
-      "fee_bps": 60,
-      "spacing": 80,
-      "current_tick_or_bin": 20735,
       "_comment": "Meteora POPCAT/SOL DLMM"
     },
     {
@@ -1235,9 +977,6 @@
       "token_vault_b": "GXpbAeyQ8akGRMz5K72vbbzeJi4fCkmNHv86UcJ4YLvm",
       "decimals_a": 9,
       "decimals_b": 9,
-      "fee_bps": 100,
-      "spacing": 200,
-      "current_tick_or_bin": 51455,
       "_comment": "Meteora POPCAT/SOL DLMM"
     },
     {
@@ -1249,9 +988,6 @@
       "token_vault_b": "EoLtVphvmhGAyyJLXSA4gJXAL43ZW6ts5V3zuwHdEbpq",
       "decimals_a": 9,
       "decimals_b": 9,
-      "fee_bps": 40,
-      "spacing": 200,
-      "current_tick_or_bin": 51455,
       "_comment": "Meteora POPCAT/SOL DLMM"
     },
     {
@@ -1263,9 +999,6 @@
       "token_vault_b": "A4mJNLWeLBR8wuSfXkjbMfZVFuqr4NPHPWFiCYtAq3Wb",
       "decimals_a": 9,
       "decimals_b": 9,
-      "fee_bps": 30,
-      "spacing": 30,
-      "current_tick_or_bin": 7935,
       "_comment": "Meteora POPCAT/SOL DLMM"
     },
     {
@@ -1277,9 +1010,6 @@
       "token_vault_b": "C4EKkVcMt3AQjwMdDGk64NFLWtU6WrNf6sevRZpe3hjM",
       "decimals_a": 9,
       "decimals_b": 6,
-      "fee_bps": 10,
-      "spacing": 10,
-      "current_tick_or_bin": 2815,
       "_comment": "Meteora POPCAT/USDC DLMM"
     },
     {
@@ -1291,9 +1021,6 @@
       "token_vault_b": "2ro1UG93UrV5rN4hdku5TwmNyGNEhWrfeeMGjG6qNWi8",
       "decimals_a": 9,
       "decimals_b": 6,
-      "fee_bps": 25,
-      "spacing": 125,
-      "current_tick_or_bin": 32255,
       "_comment": "Meteora POPCAT/USDC DLMM"
     },
     {
@@ -1305,9 +1032,6 @@
       "token_vault_b": "C85Ps3F7VfuCTbj7tnPKGtFs6iHvB21PdatFjLS411KX",
       "decimals_a": 9,
       "decimals_b": 5,
-      "fee_bps": 200,
-      "spacing": 200,
-      "current_tick_or_bin": 51452,
       "_comment": "Meteora POPCAT/WEN DLMM"
     },
     {
@@ -1319,9 +1043,6 @@
       "token_vault_b": "FU3qey9XfDeGPjMndXQGxUQSDLc2KhxxsQG5emV5u2sc",
       "decimals_a": 6,
       "decimals_b": 6,
-      "fee_bps": 100,
-      "spacing": 250,
-      "current_tick_or_bin": 64255,
       "_comment": "Meteora PYTH/JUP DLMM"
     },
     {
@@ -1333,9 +1054,6 @@
       "token_vault_b": "G7U8e4pj2yXnoem94gY75zjowwdDhaFr58oqL3oPG7L3",
       "decimals_a": 6,
       "decimals_b": 9,
-      "fee_bps": 100,
-      "spacing": 400,
-      "current_tick_or_bin": 102654,
       "_comment": "Meteora PYTH/SOL DLMM"
     },
     {
@@ -1347,9 +1065,6 @@
       "token_vault_b": "CQHS7j7tm15Mx4YEuNeoWyaw2sjacjBWoqWe9UDvkDaw",
       "decimals_a": 6,
       "decimals_b": 9,
-      "fee_bps": 20,
-      "spacing": 20,
-      "current_tick_or_bin": 50337021,
       "_comment": "Meteora PYTH/SOL DLMM"
     },
     {
@@ -1361,9 +1076,6 @@
       "token_vault_b": "79PxftnNEQ5NNS1D5S2HRKN5NsnmmtYKBHPKmqjF2dse",
       "decimals_a": 6,
       "decimals_b": 9,
-      "fee_bps": 200,
-      "spacing": 100,
-      "current_tick_or_bin": 50357503,
       "_comment": "Meteora PYTH/SOL DLMM"
     },
     {
@@ -1375,9 +1087,6 @@
       "token_vault_b": "37yYVwJZ4eAwLTdhFFGaMxa7T3NYnkqWN766awTidnsq",
       "decimals_a": 6,
       "decimals_b": 9,
-      "fee_bps": 30,
-      "spacing": 200,
-      "current_tick_or_bin": 51455,
       "_comment": "Meteora PYTH/SOL DLMM"
     },
     {
@@ -1389,9 +1098,6 @@
       "token_vault_b": "72VcqTS9owbFY1mioj3Gn2mZwR2yCKsbhaVD8nKpxips",
       "decimals_a": 6,
       "decimals_b": 9,
-      "fee_bps": 5,
-      "spacing": 8,
-      "current_tick_or_bin": 2303,
       "_comment": "Meteora PYTH/SOL DLMM"
     },
     {
@@ -1403,9 +1109,6 @@
       "token_vault_b": "9SSTmBvx3HHwkAw2NBqB3YfyeMJDt1YRJPXabc7aGPFV",
       "decimals_a": 6,
       "decimals_b": 6,
-      "fee_bps": 30,
-      "spacing": 50,
-      "current_tick_or_bin": 13053,
       "_comment": "Meteora PYTH/USDC DLMM"
     },
     {
@@ -1417,9 +1120,6 @@
       "token_vault_b": "2Zfcpv9n1q11n89pyLzNsxzYjpY88qWFEFs4Fofss6mT",
       "decimals_a": 6,
       "decimals_b": 6,
-      "fee_bps": 80,
-      "spacing": 80,
-      "current_tick_or_bin": 20733,
       "_comment": "Meteora PYTH/USDC DLMM"
     },
     {
@@ -1431,9 +1131,6 @@
       "token_vault_b": "5DgAFk62w1DU8HjJW2jjnWqJ2W4hHqXRCbLhJmuREKPG",
       "decimals_a": 6,
       "decimals_b": 6,
-      "fee_bps": 100,
-      "spacing": 400,
-      "current_tick_or_bin": 102655,
       "_comment": "Meteora PYTH/USDC DLMM"
     },
     {
@@ -1445,9 +1142,6 @@
       "token_vault_b": "VF8itzy5oF6B6v2oDD8YyvvaFfMesH2z8iRJgzigNsf",
       "decimals_a": 9,
       "decimals_b": 8,
-      "fee_bps": 30,
-      "spacing": 50,
-      "current_tick_or_bin": 13054,
       "_comment": "Meteora SOL/ETH DLMM"
     },
     {
@@ -1459,9 +1153,6 @@
       "token_vault_b": "E6coXKEXRRDwcnA9KFzpTXhBmea8Fm7zBBHhKxDtypsL",
       "decimals_a": 9,
       "decimals_b": 6,
-      "fee_bps": 10,
-      "spacing": 10,
-      "current_tick_or_bin": 2814,
       "_comment": "Meteora SOL/JUP DLMM"
     },
     {
@@ -1473,9 +1164,6 @@
       "token_vault_b": "9jwMMLiqZkyMH2XiW5tfE2Qv9AFCNb3ScNgPAmCvJsnt",
       "decimals_a": 9,
       "decimals_b": 9,
-      "fee_bps": 1,
-      "spacing": 100,
-      "current_tick_or_bin": 25855,
       "_comment": "Meteora SOL/JitoSOL DLMM"
     },
     {
@@ -1487,9 +1175,6 @@
       "token_vault_b": "CoaxzEh8p5YyGLcj36Eo3cUThVJxeKCs7qvLAGDYwBcz",
       "decimals_a": 9,
       "decimals_b": 6,
-      "fee_bps": 4,
-      "spacing": 4,
-      "current_tick_or_bin": 1279,
       "_comment": "Meteora SOL/USDC DLMM"
     },
     {
@@ -1501,9 +1186,6 @@
       "token_vault_b": "FGFaiYjXTVuLsKvzn6ueckraNTeqUGHeYqrQPQCpd7kH",
       "decimals_a": 9,
       "decimals_b": 6,
-      "fee_bps": 2,
-      "spacing": 10,
-      "current_tick_or_bin": 2813,
       "_comment": "Meteora SOL/USDC DLMM"
     },
     {
@@ -1515,9 +1197,6 @@
       "token_vault_b": "AsAhzfi3u9gihEYzV3zq6VnkfvQaM7yF13wnsTfAk936",
       "decimals_a": 9,
       "decimals_b": 6,
-      "fee_bps": 5,
-      "spacing": 80,
-      "current_tick_or_bin": 20735,
       "_comment": "Meteora SOL/USDC DLMM"
     },
     {
@@ -1529,9 +1208,6 @@
       "token_vault_b": "E13QJrZyy9Rgfvdf3pooXjSkBuKH9e4jZ3P5ZAWGhCX",
       "decimals_a": 9,
       "decimals_b": 6,
-      "fee_bps": 20,
-      "spacing": 100,
-      "current_tick_or_bin": 25855,
       "_comment": "Meteora SOL/USDC DLMM"
     },
     {
@@ -1543,9 +1219,6 @@
       "token_vault_b": "2zWBCsqELMDsny3ox89AsM4wEqvbcH2y33NtwaHVyERn",
       "decimals_a": 9,
       "decimals_b": 6,
-      "fee_bps": 15,
-      "spacing": 15,
-      "current_tick_or_bin": 4095,
       "_comment": "Meteora SOL/USDC DLMM"
     },
     {
@@ -1557,9 +1230,6 @@
       "token_vault_b": "4FkX872Wbo6NK7eNEmMnDRMJnwbu6tQsE6utb5fbDbzv",
       "decimals_a": 9,
       "decimals_b": 6,
-      "fee_bps": 4,
-      "spacing": 80,
-      "current_tick_or_bin": 20735,
       "_comment": "Meteora SOL/USDC DLMM"
     },
     {
@@ -1571,9 +1241,6 @@
       "token_vault_b": "4Zp73T1TKx4LGprTH2SvtVxdU2SpmHSuMKDc9qtAfbd5",
       "decimals_a": 9,
       "decimals_b": 6,
-      "fee_bps": 100,
-      "spacing": 100,
-      "current_tick_or_bin": 25855,
       "_comment": "Meteora SOL/USDC DLMM"
     },
     {
@@ -1585,9 +1252,6 @@
       "token_vault_b": "JAbASydb3rzXcWfEK2HyhGSAhf7fwoHCGCMsbZ1CVz6u",
       "decimals_a": 9,
       "decimals_b": 6,
-      "fee_bps": 500,
-      "spacing": 400,
-      "current_tick_or_bin": 102655,
       "_comment": "Meteora SOL/USDC DLMM"
     },
     {
@@ -1599,9 +1263,6 @@
       "token_vault_b": "yQaQddrNTyHcwT2yQrnhXMe25qjcneATWeEtpE1mTTT",
       "decimals_a": 9,
       "decimals_b": 6,
-      "fee_bps": 30,
-      "spacing": 30,
-      "current_tick_or_bin": 7934,
       "_comment": "Meteora SOL/USDC DLMM"
     },
     {
@@ -1613,9 +1274,6 @@
       "token_vault_b": "5E84baKQQCFrBRVc9aViHQ49ZTmfQPmGWqXfPY9v8ZNt",
       "decimals_a": 9,
       "decimals_b": 6,
-      "fee_bps": 1,
-      "spacing": 80,
-      "current_tick_or_bin": 20735,
       "_comment": "Meteora SOL/USDC DLMM"
     },
     {
@@ -1627,9 +1285,6 @@
       "token_vault_b": "4bH9MhpQfiJUiVtYxGtUwyxas71XareN66bZqg5AtRkQ",
       "decimals_a": 9,
       "decimals_b": 6,
-      "fee_bps": 60,
-      "spacing": 100,
-      "current_tick_or_bin": 25855,
       "_comment": "Meteora SOL/USDC DLMM"
     },
     {
@@ -1641,9 +1296,6 @@
       "token_vault_b": "73HryfddKGLwNimV4J1USuf4bsYCPPf2JsW9cyWjw7qQ",
       "decimals_a": 9,
       "decimals_b": 6,
-      "fee_bps": 500,
-      "spacing": 125,
-      "current_tick_or_bin": 32252,
       "_comment": "Meteora SOL/USDC DLMM"
     },
     {
@@ -1655,9 +1307,6 @@
       "token_vault_b": "FWHZxG274ahvsRYgpf82wfXHuzC8CxXTEhAqCviybH4h",
       "decimals_a": 9,
       "decimals_b": 6,
-      "fee_bps": 100,
-      "spacing": 125,
-      "current_tick_or_bin": 32254,
       "_comment": "Meteora SOL/USDC DLMM"
     },
     {
@@ -1669,9 +1318,6 @@
       "token_vault_b": "9kRhNww7ZWbYpUR5DVgQm5B9oRtfHTygSpATKGxtAncZ",
       "decimals_a": 9,
       "decimals_b": 6,
-      "fee_bps": 200,
-      "spacing": 200,
-      "current_tick_or_bin": 51452,
       "_comment": "Meteora SOL/USDC DLMM"
     },
     {
@@ -1683,9 +1329,6 @@
       "token_vault_b": "7du3jFJK4rhf9JnZSQmhr6qPkgdQyJ88528qyxpYPPtL",
       "decimals_a": 9,
       "decimals_b": 6,
-      "fee_bps": 20,
-      "spacing": 20,
-      "current_tick_or_bin": 5372,
       "_comment": "Meteora SOL/USDC DLMM"
     },
     {
@@ -1697,9 +1340,6 @@
       "token_vault_b": "9PhLfJ3A8SXmxoRMnx6yBFhU6yHgEyi6xnTJ1dXSdJo8",
       "decimals_a": 9,
       "decimals_b": 6,
-      "fee_bps": 15,
-      "spacing": 15,
-      "current_tick_or_bin": 4094,
       "_comment": "Meteora SOL/USDC DLMM"
     },
     {
@@ -1711,9 +1351,6 @@
       "token_vault_b": "8UpF2iFyiHiHhyWJxNJ37BHGaCYyWbuPcyXrJbUvYeQn",
       "decimals_a": 9,
       "decimals_b": 6,
-      "fee_bps": 25,
-      "spacing": 80,
-      "current_tick_or_bin": 20734,
       "_comment": "Meteora SOL/USDC DLMM"
     },
     {
@@ -1725,9 +1362,6 @@
       "token_vault_b": "Gu53fDo1UwLZW5wDqXDX33FTW7tRrDrgWFJFpMPDnxHu",
       "decimals_a": 9,
       "decimals_b": 6,
-      "fee_bps": 2,
-      "spacing": 5,
-      "current_tick_or_bin": 1532,
       "_comment": "Meteora SOL/USDC DLMM"
     },
     {
@@ -1739,9 +1373,6 @@
       "token_vault_b": "2ph6cAuB9grBQT4mntSJB3JeBcHzCUX1mx4wBon1nnuN",
       "decimals_a": 9,
       "decimals_b": 6,
-      "fee_bps": 15,
-      "spacing": 75,
-      "current_tick_or_bin": 19455,
       "_comment": "Meteora SOL/USDC DLMM"
     },
     {
@@ -1753,9 +1384,6 @@
       "token_vault_b": "4N22J4vW2juHocTntJNmXywSonYjkndCwahjZ2cYLDgb",
       "decimals_a": 9,
       "decimals_b": 6,
-      "fee_bps": 10,
-      "spacing": 10,
-      "current_tick_or_bin": 2815,
       "_comment": "Meteora SOL/USDC DLMM"
     },
     {
@@ -1767,9 +1395,6 @@
       "token_vault_b": "GDrhowqSQwTDE2SAn7w4gDftkkV3DePiXTrdkGZDjEKc",
       "decimals_a": 9,
       "decimals_b": 6,
-      "fee_bps": 25,
-      "spacing": 25,
-      "current_tick_or_bin": 6654,
       "_comment": "Meteora SOL/USDC DLMM"
     },
     {
@@ -1781,9 +1406,6 @@
       "token_vault_b": "2GHtKmEEEX2vwqD3btyNUUibhE3DvowojCpLH178t7Pk",
       "decimals_a": 9,
       "decimals_b": 6,
-      "fee_bps": 1,
-      "spacing": 16,
-      "current_tick_or_bin": 4351,
       "_comment": "Meteora SOL/USDC DLMM"
     },
     {
@@ -1795,9 +1417,6 @@
       "token_vault_b": "ALkE7UJJ2FUYDj7P4ENExcUmA91vRLzPBdeZg4RHM2xw",
       "decimals_a": 9,
       "decimals_b": 6,
-      "fee_bps": 200,
-      "spacing": 100,
-      "current_tick_or_bin": 25854,
       "_comment": "Meteora SOL/USDC DLMM"
     },
     {
@@ -1809,9 +1428,6 @@
       "token_vault_b": "GEarArxgKL19JxihPHmsSQdWajZWqyitsgf7oUht61Nb",
       "decimals_a": 9,
       "decimals_b": 6,
-      "fee_bps": 5,
-      "spacing": 8,
-      "current_tick_or_bin": 2303,
       "_comment": "Meteora SOL/USDC DLMM"
     },
     {
@@ -1823,9 +1439,6 @@
       "token_vault_b": "CQxdPWr2Xbe1uq5sFDoTyBAXujZexhEPuNxpYSyPNQwm",
       "decimals_a": 9,
       "decimals_b": 6,
-      "fee_bps": 100,
-      "spacing": 400,
-      "current_tick_or_bin": 102655,
       "_comment": "Meteora SOL/USDC DLMM"
     },
     {
@@ -1837,9 +1450,6 @@
       "token_vault_b": "CZULKXqq1fPYs8xwQGMamZm1pHH5nVnRZzmm5RLnQ33r",
       "decimals_a": 9,
       "decimals_b": 6,
-      "fee_bps": 10,
-      "spacing": 10,
-      "current_tick_or_bin": 2815,
       "_comment": "Meteora SOL/USDC DLMM"
     },
     {
@@ -1851,9 +1461,6 @@
       "token_vault_b": "2fekvNccKSRYcjKrf398kPSiJfqzrbsWi2JFGQz3wkPf",
       "decimals_a": 9,
       "decimals_b": 6,
-      "fee_bps": 4,
-      "spacing": 5,
-      "current_tick_or_bin": 1535,
       "_comment": "Meteora SOL/USDC DLMM"
     },
     {
@@ -1865,9 +1472,6 @@
       "token_vault_b": "BqQwcLb8h6tjfWdkQvq3vGjnS8sM3wgsmnErMESrUmk9",
       "decimals_a": 9,
       "decimals_b": 6,
-      "fee_bps": 2,
-      "spacing": 2,
-      "current_tick_or_bin": 767,
       "_comment": "Meteora SOL/USDC DLMM"
     },
     {
@@ -1879,9 +1483,6 @@
       "token_vault_b": "JDgcfNtP5ivGRdWdyoiPxnSGCCu6U9FjKNKARjcS6R1Y",
       "decimals_a": 9,
       "decimals_b": 6,
-      "fee_bps": 10,
-      "spacing": 50,
-      "current_tick_or_bin": 13055,
       "_comment": "Meteora SOL/USDC DLMM"
     },
     {
@@ -1893,9 +1494,6 @@
       "token_vault_b": "4qpNiqZPYCmLJ3j65oiW3QcqnZWCT6yLG5XdZMbRuKZv",
       "decimals_a": 9,
       "decimals_b": 6,
-      "fee_bps": 40,
-      "spacing": 400,
-      "current_tick_or_bin": 102655,
       "_comment": "Meteora SOL/USDC DLMM"
     },
     {
@@ -1907,9 +1505,6 @@
       "token_vault_b": "DHqUM3nbZtvuv7tm4rcAbbWSMX99hnPQvEmDQ2EyGfg3",
       "decimals_a": 9,
       "decimals_b": 6,
-      "fee_bps": 1,
-      "spacing": 8,
-      "current_tick_or_bin": 2302,
       "_comment": "Meteora SOL/USDC DLMM"
     },
     {
@@ -1921,9 +1516,6 @@
       "token_vault_b": "2vRxenZynWMyV7UFLLw1zvjEocqq1bTneaYDQi4KK7xx",
       "decimals_a": 9,
       "decimals_b": 6,
-      "fee_bps": 40,
-      "spacing": 50,
-      "current_tick_or_bin": 13054,
       "_comment": "Meteora SOL/USDC DLMM"
     },
     {
@@ -1935,9 +1527,6 @@
       "token_vault_b": "3abHCpu2sMD4A9N7NabgF7FbXQNEFMgjpa8G2XBKgrzs",
       "decimals_a": 9,
       "decimals_b": 6,
-      "fee_bps": 4,
-      "spacing": 100,
-      "current_tick_or_bin": 25855,
       "_comment": "Meteora SOL/USDC DLMM"
     },
     {
@@ -1949,9 +1538,6 @@
       "token_vault_b": "HbYjRzx7teCxqW3unpXBEcNHhfVZvW2vW9MQ99TkizWt",
       "decimals_a": 9,
       "decimals_b": 6,
-      "fee_bps": 1,
-      "spacing": 1,
-      "current_tick_or_bin": 511,
       "_comment": "Meteora SOL/USDC DLMM"
     },
     {
@@ -1963,9 +1549,6 @@
       "token_vault_b": "GSJEABEG76ZG4GADCy6bguqt9yikZfRScCxNGFbNwxXY",
       "decimals_a": 9,
       "decimals_b": 6,
-      "fee_bps": 25,
-      "spacing": 50,
-      "current_tick_or_bin": 50344702,
       "_comment": "Meteora SOL/USDC DLMM"
     },
     {
@@ -1977,9 +1560,6 @@
       "token_vault_b": "EeThDNkUuNhJFHYqR3yTB6wzcj1hrubgVQuvSSGjNt4W",
       "decimals_a": 9,
       "decimals_b": 6,
-      "fee_bps": 1,
-      "spacing": 8,
-      "current_tick_or_bin": 16779519,
       "_comment": "Meteora SOL/USDC DLMM"
     },
     {
@@ -1991,9 +1571,6 @@
       "token_vault_b": "FXvuWUCZCZx7eaeEvSs87aW8eik4bcJYTgG8r6a4LriY",
       "decimals_a": 9,
       "decimals_b": 6,
-      "fee_bps": 30,
-      "spacing": 50,
-      "current_tick_or_bin": 13054,
       "_comment": "Meteora SOL/USDC DLMM"
     },
     {
@@ -2005,9 +1582,6 @@
       "token_vault_b": "E5mt7S6oncRjuHtRxwgEdiv3AQ5aAMu1RThUm25yyNBm",
       "decimals_a": 9,
       "decimals_b": 6,
-      "fee_bps": 3,
-      "spacing": 16,
-      "current_tick_or_bin": 4351,
       "_comment": "Meteora SOL/USDC DLMM"
     },
     {
@@ -2019,9 +1593,6 @@
       "token_vault_b": "71Hjqj7G11361GquQ4oqwnpuUeQzDynzo3gRC86WAa5w",
       "decimals_a": 9,
       "decimals_b": 6,
-      "fee_bps": 40,
-      "spacing": 100,
-      "current_tick_or_bin": 25854,
       "_comment": "Meteora SOL/USDC DLMM"
     },
     {
@@ -2033,9 +1604,6 @@
       "token_vault_b": "24CjbrCiK4GaqXA7mBwtjzRaPuuaASny9WMj6vU5TdsA",
       "decimals_a": 9,
       "decimals_b": 6,
-      "fee_bps": 1,
-      "spacing": 10,
-      "current_tick_or_bin": 2814,
       "_comment": "Meteora SOL/USDC DLMM"
     },
     {
@@ -2047,9 +1615,6 @@
       "token_vault_b": "FMNjDtWziKbwX6BmKqv7uLcahFq6PFjdhcc2ZAFekGxF",
       "decimals_a": 9,
       "decimals_b": 6,
-      "fee_bps": 10,
-      "spacing": 5,
-      "current_tick_or_bin": 50333182,
       "_comment": "Meteora SOL/USDC DLMM"
     },
     {
@@ -2061,9 +1626,6 @@
       "token_vault_b": "AbYGijTSxS2YsRbrWT9GzrfGNhM7AWH3qcLjBeYxdtQW",
       "decimals_a": 9,
       "decimals_b": 6,
-      "fee_bps": 25,
-      "spacing": 125,
-      "current_tick_or_bin": 32255,
       "_comment": "Meteora SOL/USDC DLMM"
     },
     {
@@ -2075,9 +1637,6 @@
       "token_vault_b": "D8r3UK2cbAqR9pqGvhKFXWHfkEFvDRyk7ubF6MBRnGCR",
       "decimals_a": 9,
       "decimals_b": 6,
-      "fee_bps": 200,
-      "spacing": 400,
-      "current_tick_or_bin": 102654,
       "_comment": "Meteora SOL/USDC DLMM"
     },
     {
@@ -2089,9 +1648,6 @@
       "token_vault_b": "BbGPpmVta1AZpSE72a7Jnc8ACvsdc2nQvpmcb9P8JB9u",
       "decimals_a": 9,
       "decimals_b": 6,
-      "fee_bps": 100,
-      "spacing": 250,
-      "current_tick_or_bin": 64246,
       "_comment": "Meteora SOL/USDC DLMM"
     },
     {
@@ -2103,9 +1659,6 @@
       "token_vault_b": "HrFcWchFNmWzEco1qgN5KciA4qEqtV7gA1fS7tNbSe1u",
       "decimals_a": 9,
       "decimals_b": 6,
-      "fee_bps": 500,
-      "spacing": 80,
-      "current_tick_or_bin": 20734,
       "_comment": "Meteora SOL/USDC DLMM"
     },
     {
@@ -2117,9 +1670,6 @@
       "token_vault_b": "BsLY7Qxh8NM61MDj6DK1UWdSprJfTEBPnp6Lc9iw2Gmw",
       "decimals_a": 9,
       "decimals_b": 6,
-      "fee_bps": 5,
-      "spacing": 50,
-      "current_tick_or_bin": 13054,
       "_comment": "Meteora SOL/USDC DLMM"
     },
     {
@@ -2131,9 +1681,6 @@
       "token_vault_b": "DyDE7RLGZStDSMxBVp4RMRnNWmN5LNLTwXWajCKGpURx",
       "decimals_a": 9,
       "decimals_b": 6,
-      "fee_bps": 4,
-      "spacing": 10,
-      "current_tick_or_bin": 2815,
       "_comment": "Meteora SOL/USDC DLMM"
     },
     {
@@ -2145,9 +1692,6 @@
       "token_vault_b": "6AebDa7yLtrw68KTzxWJd1KJrbAovCzBz55EV8hfFQb5",
       "decimals_a": 9,
       "decimals_b": 6,
-      "fee_bps": 25,
-      "spacing": 200,
-      "current_tick_or_bin": 51454,
       "_comment": "Meteora SOL/USDC DLMM"
     },
     {
@@ -2159,9 +1703,6 @@
       "token_vault_b": "GGCf8xVyUKgfQLXDdP4t2JdYw682s1AASCqcqEnsWVSQ",
       "decimals_a": 9,
       "decimals_b": 6,
-      "fee_bps": 10,
-      "spacing": 50,
-      "current_tick_or_bin": 13055,
       "_comment": "Meteora SOL/USDT DLMM"
     },
     {
@@ -2173,9 +1714,6 @@
       "token_vault_b": "9WV9sZdMbPgLK3fhFQozJrovCDSuUBHcAiWPbbS5mas8",
       "decimals_a": 9,
       "decimals_b": 6,
-      "fee_bps": 30,
-      "spacing": 200,
-      "current_tick_or_bin": 50383099,
       "_comment": "Meteora SOL/USDT DLMM"
     },
     {
@@ -2187,9 +1725,6 @@
       "token_vault_b": "64U7eFD1Ct6S6RtAV634TpaKwFkzSazq9TLDTp67RSeR",
       "decimals_a": 9,
       "decimals_b": 6,
-      "fee_bps": 5,
-      "spacing": 50,
-      "current_tick_or_bin": 13053,
       "_comment": "Meteora SOL/USDT DLMM"
     },
     {
@@ -2201,9 +1736,6 @@
       "token_vault_b": "8PZGAYED9LxbH1yemiwUx5Gr7VJJTEuKZ8PRnbaPNV2t",
       "decimals_a": 9,
       "decimals_b": 6,
-      "fee_bps": 5,
-      "spacing": 8,
-      "current_tick_or_bin": 2300,
       "_comment": "Meteora SOL/USDT DLMM"
     },
     {
@@ -2215,9 +1747,6 @@
       "token_vault_b": "AYHwYiqBpcYMbvzcytjkEtDz4yTZyweqa6owfNHAotvM",
       "decimals_a": 9,
       "decimals_b": 6,
-      "fee_bps": 25,
-      "spacing": 25,
-      "current_tick_or_bin": 6655,
       "_comment": "Meteora SOL/USDT DLMM"
     },
     {
@@ -2229,9 +1758,6 @@
       "token_vault_b": "9K5UAQqbMJFFNaa4uhmautWzc9E9xc1a8yuT4vy2WAVu",
       "decimals_a": 9,
       "decimals_b": 6,
-      "fee_bps": 4,
-      "spacing": 80,
-      "current_tick_or_bin": 20734,
       "_comment": "Meteora SOL/USDT DLMM"
     },
     {
@@ -2243,9 +1769,6 @@
       "token_vault_b": "BRP4ruQCEovDTSnCeRJJrcke6MqqM9pzLyuxEYt3XzJv",
       "decimals_a": 9,
       "decimals_b": 6,
-      "fee_bps": 25,
-      "spacing": 80,
-      "current_tick_or_bin": 20733,
       "_comment": "Meteora SOL/USDT DLMM"
     },
     {
@@ -2257,9 +1780,6 @@
       "token_vault_b": "A45GtZWuG5TGY1JpUq6jjp4sd279egTiWozDjf3Rjqxp",
       "decimals_a": 9,
       "decimals_b": 6,
-      "fee_bps": 30,
-      "spacing": 50,
-      "current_tick_or_bin": 50344702,
       "_comment": "Meteora SOL/USDT DLMM"
     },
     {
@@ -2271,9 +1791,6 @@
       "token_vault_b": "BEd7tvMUhupVMAxGou1cpndiSAfyCFbrF4gf9pYXMJFs",
       "decimals_a": 6,
       "decimals_b": 5,
-      "fee_bps": 25,
-      "spacing": 25,
-      "current_tick_or_bin": 6652,
       "_comment": "Meteora TRUMP/BONK DLMM"
     },
     {
@@ -2285,9 +1802,6 @@
       "token_vault_b": "2x3UPXgacTTQp45bvx7UbXuHjrwa4J9jfAE8HB2YdjgU",
       "decimals_a": 6,
       "decimals_b": 9,
-      "fee_bps": 25,
-      "spacing": 100,
-      "current_tick_or_bin": 25850,
       "_comment": "Meteora TRUMP/SOL DLMM"
     },
     {
@@ -2299,9 +1813,6 @@
       "token_vault_b": "wKR9r23YDEAthwx4ZNHqNcE1Y5PLSwst3Dnk5Lp2YJ7",
       "decimals_a": 6,
       "decimals_b": 9,
-      "fee_bps": 20,
-      "spacing": 20,
-      "current_tick_or_bin": 5374,
       "_comment": "Meteora TRUMP/SOL DLMM"
     },
     {
@@ -2313,9 +1824,6 @@
       "token_vault_b": "6Hpc3sVAd9KJvGZGWEXPeLoJ6jq3HygKGW4iUJeFZmpU",
       "decimals_a": 6,
       "decimals_b": 9,
-      "fee_bps": 4,
-      "spacing": 100,
-      "current_tick_or_bin": 25855,
       "_comment": "Meteora TRUMP/SOL DLMM"
     },
     {
@@ -2327,9 +1835,6 @@
       "token_vault_b": "FQ21BZQLQWpNW5RceWwXC7hxPZpMf8JRxSvYGnG4FBM5",
       "decimals_a": 6,
       "decimals_b": 9,
-      "fee_bps": 40,
-      "spacing": 50,
-      "current_tick_or_bin": 13054,
       "_comment": "Meteora TRUMP/SOL DLMM"
     },
     {
@@ -2341,9 +1846,6 @@
       "token_vault_b": "71Luk6KkojrME1nHMYsaTmFFYQH2aBmbtSYB39HrvvUf",
       "decimals_a": 6,
       "decimals_b": 9,
-      "fee_bps": 80,
-      "spacing": 80,
-      "current_tick_or_bin": 20735,
       "_comment": "Meteora TRUMP/SOL DLMM"
     },
     {
@@ -2355,9 +1857,6 @@
       "token_vault_b": "5sVYRgfkufn4pVjMV19g2GKsT3hVd747QEH3FYvX3tTy",
       "decimals_a": 6,
       "decimals_b": 9,
-      "fee_bps": 10,
-      "spacing": 50,
-      "current_tick_or_bin": 13053,
       "_comment": "Meteora TRUMP/SOL DLMM"
     },
     {
@@ -2369,9 +1868,6 @@
       "token_vault_b": "7CzwaJ6cNY54579S6hP9udGhQYoSZapWWdHj3FrdKX1Y",
       "decimals_a": 6,
       "decimals_b": 9,
-      "fee_bps": 500,
-      "spacing": 125,
-      "current_tick_or_bin": 32255,
       "_comment": "Meteora TRUMP/SOL DLMM"
     },
     {
@@ -2383,9 +1879,6 @@
       "token_vault_b": "4VRtbQQRL6efQ62SPDPCAt1kjGu1YJ328Vwtnpuq8i9y",
       "decimals_a": 6,
       "decimals_b": 9,
-      "fee_bps": 100,
-      "spacing": 400,
-      "current_tick_or_bin": 102655,
       "_comment": "Meteora TRUMP/SOL DLMM"
     },
     {
@@ -2397,9 +1890,6 @@
       "token_vault_b": "71KtbjVeGBbB8VAsniAoFw59sZ2EWgwqj3r1rLLccL59",
       "decimals_a": 6,
       "decimals_b": 9,
-      "fee_bps": 10,
-      "spacing": 10,
-      "current_tick_or_bin": 2815,
       "_comment": "Meteora TRUMP/SOL DLMM"
     },
     {
@@ -2411,9 +1901,6 @@
       "token_vault_b": "4vbMsshEMvA5bvos7vcgurRZiMw95oNePBHf4yxRXJKf",
       "decimals_a": 6,
       "decimals_b": 9,
-      "fee_bps": 200,
-      "spacing": 100,
-      "current_tick_or_bin": 25854,
       "_comment": "Meteora TRUMP/SOL DLMM"
     },
     {
@@ -2425,9 +1912,6 @@
       "token_vault_b": "237GQgoMgSMVGn14S3uAQ96Jwoo6UFwC32ub98dW6wcH",
       "decimals_a": 6,
       "decimals_b": 9,
-      "fee_bps": 60,
-      "spacing": 80,
-      "current_tick_or_bin": 20735,
       "_comment": "Meteora TRUMP/SOL DLMM"
     },
     {
@@ -2439,9 +1923,6 @@
       "token_vault_b": "6Vd4ZeHcxzAHJGyh7tjv4edfhEvt8ychKjsg9ne8n24F",
       "decimals_a": 6,
       "decimals_b": 9,
-      "fee_bps": 25,
-      "spacing": 80,
-      "current_tick_or_bin": 20734,
       "_comment": "Meteora TRUMP/SOL DLMM"
     },
     {
@@ -2453,9 +1934,6 @@
       "token_vault_b": "GUXDoogN8MZRuZouX4eseVoSys9vY3vR8Z5qW6c9uTr4",
       "decimals_a": 6,
       "decimals_b": 9,
-      "fee_bps": 5,
-      "spacing": 8,
-      "current_tick_or_bin": 2301,
       "_comment": "Meteora TRUMP/SOL DLMM"
     },
     {
@@ -2467,9 +1945,6 @@
       "token_vault_b": "CL1e7QMCkHU89TF6DGBWPFT81K2hS3u57toQQooBkDD5",
       "decimals_a": 6,
       "decimals_b": 9,
-      "fee_bps": 30,
-      "spacing": 150,
-      "current_tick_or_bin": 38654,
       "_comment": "Meteora TRUMP/SOL DLMM"
     },
     {
@@ -2481,9 +1956,6 @@
       "token_vault_b": "wa6SkWYQLbfR7QyYn7jWRL9CioiNRHczNHipZwfdJNv",
       "decimals_a": 6,
       "decimals_b": 6,
-      "fee_bps": 100,
-      "spacing": 200,
-      "current_tick_or_bin": 51455,
       "_comment": "Meteora TRUMP/USDC DLMM"
     },
     {
@@ -2495,9 +1967,6 @@
       "token_vault_b": "DV5RfoSLbTEdfZdrH4NoUAr8tK8NRWWzqSdovvoeUB1E",
       "decimals_a": 6,
       "decimals_b": 6,
-      "fee_bps": 80,
-      "spacing": 200,
-      "current_tick_or_bin": 51454,
       "_comment": "Meteora TRUMP/USDC DLMM"
     },
     {
@@ -2509,9 +1978,6 @@
       "token_vault_b": "81BadRGfaHFpAmuXpJ65k8tYtUWsZ54EFSmsVo1rbDTV",
       "decimals_a": 6,
       "decimals_b": 6,
-      "fee_bps": 10,
-      "spacing": 50,
-      "current_tick_or_bin": 13052,
       "_comment": "Meteora TRUMP/USDC DLMM"
     },
     {
@@ -2523,9 +1989,6 @@
       "token_vault_b": "gY9t55cs74Q1AqoXMaY1wJfTGv8x7vizQ658EXt1JCi",
       "decimals_a": 6,
       "decimals_b": 6,
-      "fee_bps": 10,
-      "spacing": 100,
-      "current_tick_or_bin": 25855,
       "_comment": "Meteora TRUMP/USDC DLMM"
     },
     {
@@ -2537,9 +2000,6 @@
       "token_vault_b": "EvWUnSJRSkbamkQ2RDx6SwGBWg1jAwpWJ4rrNsRmgcEz",
       "decimals_a": 6,
       "decimals_b": 6,
-      "fee_bps": 100,
-      "spacing": 100,
-      "current_tick_or_bin": 33580286,
       "_comment": "Meteora TRUMP/USDC DLMM"
     },
     {
@@ -2551,9 +2011,6 @@
       "token_vault_b": "HbFACE7GxA7XP9PrwYBiR7ZvBbQh7fmUFcRJWrPDt51M",
       "decimals_a": 6,
       "decimals_b": 6,
-      "fee_bps": 10,
-      "spacing": 10,
-      "current_tick_or_bin": 2814,
       "_comment": "Meteora TRUMP/USDC DLMM"
     },
     {
@@ -2565,9 +2022,6 @@
       "token_vault_b": "3pS7KkBMKCT78w6WoUAJ915yYLh6fXZS8b1Rp7TzvSVt",
       "decimals_a": 6,
       "decimals_b": 6,
-      "fee_bps": 500,
-      "spacing": 400,
-      "current_tick_or_bin": 102655,
       "_comment": "Meteora TRUMP/USDC DLMM"
     },
     {
@@ -2579,9 +2033,6 @@
       "token_vault_b": "5Hrza3koqMgaLKePZTTD3GmtxJQ6WwjrSAu99iD48jyn",
       "decimals_a": 6,
       "decimals_b": 6,
-      "fee_bps": 15,
-      "spacing": 15,
-      "current_tick_or_bin": 4094,
       "_comment": "Meteora TRUMP/USDC DLMM"
     },
     {
@@ -2593,9 +2044,6 @@
       "token_vault_b": "AvuJhGmJcUtqhK47s4Co8kiHkpekDVS1WXSo7Pe1WtC7",
       "decimals_a": 6,
       "decimals_b": 6,
-      "fee_bps": 500,
-      "spacing": 125,
-      "current_tick_or_bin": 32255,
       "_comment": "Meteora TRUMP/USDC DLMM"
     },
     {
@@ -2607,9 +2055,6 @@
       "token_vault_b": "BWts8yCMGTUjPJLMkW6JjdxbTWvFNPBGYeRDnAqiMCeH",
       "decimals_a": 6,
       "decimals_b": 6,
-      "fee_bps": 80,
-      "spacing": 80,
-      "current_tick_or_bin": 20731,
       "_comment": "Meteora TRUMP/USDT DLMM"
     },
     {
@@ -2621,9 +2066,6 @@
       "token_vault_b": "5RGsHaD29PfrhHun9t5hAcomMXLBnkmVQE2ne2nkg8WU",
       "decimals_a": 6,
       "decimals_b": 6,
-      "fee_bps": 40,
-      "spacing": 100,
-      "current_tick_or_bin": 25851,
       "_comment": "Meteora TRUMP/USDT DLMM"
     },
     {
@@ -2635,9 +2077,6 @@
       "token_vault_b": "CJLG5LPDnrNuRBFVZHgq6D5NJzumrpYqF6refRfNryfo",
       "decimals_a": 6,
       "decimals_b": 6,
-      "fee_bps": 100,
-      "spacing": 250,
-      "current_tick_or_bin": 64253,
       "_comment": "Meteora USDC/PYTH DLMM"
     },
     {
@@ -2649,9 +2088,6 @@
       "token_vault_b": "3C75frXgxEKA7eTmJqUBH2SGkPhDCvjoAuYFg3RVQWUg",
       "decimals_a": 6,
       "decimals_b": 9,
-      "fee_bps": 100,
-      "spacing": 80,
-      "current_tick_or_bin": 20734,
       "_comment": "Meteora USDC/SOL DLMM"
     },
     {
@@ -2663,9 +2099,6 @@
       "token_vault_b": "9utPCKm7Hhs3W2foMQ7ZPNNm6VWepYJHbBUP1aYaUUJR",
       "decimals_a": 6,
       "decimals_b": 9,
-      "fee_bps": 500,
-      "spacing": 100,
-      "current_tick_or_bin": 25849,
       "_comment": "Meteora USDC/SOL DLMM"
     },
     {
@@ -2677,9 +2110,6 @@
       "token_vault_b": "GV8mggP2i2A9Wm5FNwNBYREuoP9Eu3SqQuTj7xCYUBum",
       "decimals_a": 6,
       "decimals_b": 9,
-      "fee_bps": 15,
-      "spacing": 100,
-      "current_tick_or_bin": 25855,
       "_comment": "Meteora USDC/SOL DLMM"
     },
     {
@@ -2691,9 +2121,6 @@
       "token_vault_b": "9DSrfXQsBWnjhduEu1Xhfh7krTw2BPytQ25BaptqvBhU",
       "decimals_a": 6,
       "decimals_b": 9,
-      "fee_bps": 100,
-      "spacing": 200,
-      "current_tick_or_bin": 51455,
       "_comment": "Meteora USDC/SOL DLMM"
     },
     {
@@ -2705,9 +2132,6 @@
       "token_vault_b": "4EXjFceKMdWPaCH7QfURfiPxEwwQTw6khC6uum5RCywN",
       "decimals_a": 6,
       "decimals_b": 9,
-      "fee_bps": 30,
-      "spacing": 150,
-      "current_tick_or_bin": 38654,
       "_comment": "Meteora USDC/SOL DLMM"
     },
     {
@@ -2719,9 +2143,6 @@
       "token_vault_b": "CAcNzCBJN9uLPRyKsdAWqYExyZUd1bxovpXCtnmYHjLL",
       "decimals_a": 6,
       "decimals_b": 9,
-      "fee_bps": 3,
-      "spacing": 5,
-      "current_tick_or_bin": 1535,
       "_comment": "Meteora USDC/SOL DLMM"
     },
     {
@@ -2733,9 +2154,6 @@
       "token_vault_b": "3QqkuGELfsYRdHj8cF2YRuzeyd8bfkNLbiB3qBsoe1A2",
       "decimals_a": 6,
       "decimals_b": 9,
-      "fee_bps": 15,
-      "spacing": 80,
-      "current_tick_or_bin": 20731,
       "_comment": "Meteora USDC/SOL DLMM"
     },
     {
@@ -2747,9 +2165,6 @@
       "token_vault_b": "9x1pwj1kXgcnPuubZnM68eZxssy3bFmCRvSYg99u1rhA",
       "decimals_a": 6,
       "decimals_b": 9,
-      "fee_bps": 20,
-      "spacing": 20,
-      "current_tick_or_bin": 5375,
       "_comment": "Meteora USDC/SOL DLMM"
     },
     {
@@ -2761,9 +2176,6 @@
       "token_vault_b": "A9rRFaJokx8Qgj1P5Su8wB7dUTuUpWWJRCniMam9ygWE",
       "decimals_a": 6,
       "decimals_b": 9,
-      "fee_bps": 2,
-      "spacing": 2,
-      "current_tick_or_bin": 767,
       "_comment": "Meteora USDC/SOL DLMM"
     },
     {
@@ -2775,9 +2187,6 @@
       "token_vault_b": "HtV9S8iMUr7MtPFciwdBq5Rdzn7cY1Z5RsUNrcJpLBaX",
       "decimals_a": 6,
       "decimals_b": 9,
-      "fee_bps": 3,
-      "spacing": 2,
-      "current_tick_or_bin": 766,
       "_comment": "Meteora USDC/SOL DLMM"
     },
     {
@@ -2789,9 +2198,6 @@
       "token_vault_b": "AxfosPGyrBuQGZ3bjE4Bgjk6tD29TNXcKxT4cq2vawo8",
       "decimals_a": 6,
       "decimals_b": 9,
-      "fee_bps": 1,
-      "spacing": 5,
-      "current_tick_or_bin": 1533,
       "_comment": "Meteora USDC/SOL DLMM"
     },
     {
@@ -2803,9 +2209,6 @@
       "token_vault_b": "GGaXETv5yMz3JdnDVSDD3GjsXHd4iaj7AdtUoqQYpaV5",
       "decimals_a": 6,
       "decimals_b": 6,
-      "fee_bps": 1,
-      "spacing": 1,
-      "current_tick_or_bin": 507,
       "_comment": "Meteora USDC/TRUMP DLMM"
     },
     {
@@ -2817,9 +2220,6 @@
       "token_vault_b": "5BD46aD8Ut24HPo62Gcae5EF8ng6xWq2J7mBXbG4e93S",
       "decimals_a": 6,
       "decimals_b": 6,
-      "fee_bps": 2,
-      "spacing": 2,
-      "current_tick_or_bin": 767,
       "_comment": "Meteora USDC/USDT DLMM"
     },
     {
@@ -2831,9 +2231,6 @@
       "token_vault_b": "71h4u51aNGGW6C9iEkBiukYzRg47YKTjNjotMA2Tvbx3",
       "decimals_a": 6,
       "decimals_b": 6,
-      "fee_bps": 4,
-      "spacing": 5,
-      "current_tick_or_bin": 1535,
       "_comment": "Meteora USDC/USDT DLMM"
     },
     {
@@ -2845,9 +2242,6 @@
       "token_vault_b": "2s4rSk6Jf8w6VPgAgezPuG16eYaecFbfZs3jqe1JoPJr",
       "decimals_a": 6,
       "decimals_b": 6,
-      "fee_bps": 4,
-      "spacing": 4,
-      "current_tick_or_bin": 1279,
       "_comment": "Meteora USDC/USDT DLMM"
     },
     {
@@ -2859,9 +2253,6 @@
       "token_vault_b": "HJ3he3Dc2VxRu6nLntJNtV58YQB9jYwjC3UxfVbVP4VH",
       "decimals_a": 6,
       "decimals_b": 6,
-      "fee_bps": 1,
-      "spacing": 8,
-      "current_tick_or_bin": 2301,
       "_comment": "Meteora USDC/USDT DLMM"
     },
     {
@@ -2873,9 +2264,6 @@
       "token_vault_b": "EpMW6L5UArAF6whzU8ngqfMwz3E4vECac8foLHxnrtG3",
       "decimals_a": 6,
       "decimals_b": 6,
-      "fee_bps": 3,
-      "spacing": 2,
-      "current_tick_or_bin": 767,
       "_comment": "Meteora USDC/USDT DLMM"
     },
     {
@@ -2887,9 +2275,6 @@
       "token_vault_b": "B7cJhktPpfbUddG4CY2WsW7fbhZ9p8o2cDVgpNb6oXBx",
       "decimals_a": 6,
       "decimals_b": 6,
-      "fee_bps": 1,
-      "spacing": 16,
-      "current_tick_or_bin": 4347,
       "_comment": "Meteora USDC/USDT DLMM"
     },
     {
@@ -2901,9 +2286,6 @@
       "token_vault_b": "6DHxE9123UyFgw43w95gz3AREY1o1jh36bUXXxqrPqNh",
       "decimals_a": 6,
       "decimals_b": 6,
-      "fee_bps": 1,
-      "spacing": 10,
-      "current_tick_or_bin": 2815,
       "_comment": "Meteora USDC/USDT DLMM"
     },
     {
@@ -2915,9 +2297,6 @@
       "token_vault_b": "9jLRC5bmZpmEBTTH65ba3EQTufc68AWMg2FZmqLqYUj7",
       "decimals_a": 6,
       "decimals_b": 6,
-      "fee_bps": 1,
-      "spacing": 80,
-      "current_tick_or_bin": 20735,
       "_comment": "Meteora USDC/USDT DLMM"
     },
     {
@@ -2929,9 +2308,6 @@
       "token_vault_b": "GkTrsQsu8WvrbairmN12aUKk74qHivRNFxaT5YxCECKQ",
       "decimals_a": 6,
       "decimals_b": 6,
-      "fee_bps": 1,
-      "spacing": 1,
-      "current_tick_or_bin": 510,
       "_comment": "Meteora USDC/USDT DLMM"
     },
     {
@@ -2943,9 +2319,6 @@
       "token_vault_b": "QpcpvHtd9oiThKnd5m64RgzAgrHboome4iR2Seh5ELg",
       "decimals_a": 6,
       "decimals_b": 6,
-      "fee_bps": 1,
-      "spacing": 5,
-      "current_tick_or_bin": 1534,
       "_comment": "Meteora USDC/USDT DLMM"
     },
     {
@@ -2957,9 +2330,6 @@
       "token_vault_b": "C5Dd8QtyT73dZXfaY4PTs48oZdu3fNNnJbW6bQnwc6JL",
       "decimals_a": 6,
       "decimals_b": 9,
-      "fee_bps": 4,
-      "spacing": 10,
-      "current_tick_or_bin": 50334463,
       "_comment": "Meteora USDT/SOL DLMM"
     },
     {
@@ -2971,9 +2341,6 @@
       "token_vault_b": "HCDehQz9ta8WD7qBawGneTzqRLybBSuyjydmFVhg1FBf",
       "decimals_a": 6,
       "decimals_b": 9,
-      "fee_bps": 3,
-      "spacing": 16,
-      "current_tick_or_bin": 4350,
       "_comment": "Meteora USDT/SOL DLMM"
     },
     {
@@ -2985,9 +2352,6 @@
       "token_vault_b": "FbbhHTunfe2fn8wJok5b37kVtjorpuBQCDxBBQf9TvZn",
       "decimals_a": 6,
       "decimals_b": 6,
-      "fee_bps": 1,
-      "spacing": 1,
-      "current_tick_or_bin": 511,
       "_comment": "Meteora USDT/USDC DLMM"
     },
     {
@@ -2999,9 +2363,6 @@
       "token_vault_b": "7aQh25Ahdn7se6TT6pnS7bE3KAKmEsurGoiDxvZsc5Fv",
       "decimals_a": 5,
       "decimals_b": 9,
-      "fee_bps": 30,
-      "spacing": 150,
-      "current_tick_or_bin": 38654,
       "_comment": "Meteora WEN/SOL DLMM"
     },
     {
@@ -3013,9 +2374,6 @@
       "token_vault_b": "5taWVMLKxGAeeyufmUfA6prLTgY4tRgNv6yBf5iKS2oH",
       "decimals_a": 5,
       "decimals_b": 9,
-      "fee_bps": 15,
-      "spacing": 80,
-      "current_tick_or_bin": 20731,
       "_comment": "Meteora WEN/SOL DLMM"
     },
     {
@@ -3027,9 +2385,6 @@
       "token_vault_b": "Dhagqha17Qk33SsPVdSdEw1kG15LVYVEyTHcdUwKj98h",
       "decimals_a": 5,
       "decimals_b": 9,
-      "fee_bps": 200,
-      "spacing": 200,
-      "current_tick_or_bin": 51454,
       "_comment": "Meteora WEN/SOL DLMM"
     },
     {
@@ -3041,9 +2396,6 @@
       "token_vault_b": "GESMAe2QZVxcrJomhDMb4tAZpT2mW4psHZcu7unWTv7G",
       "decimals_a": 5,
       "decimals_b": 9,
-      "fee_bps": 15,
-      "spacing": 15,
-      "current_tick_or_bin": 4095,
       "_comment": "Meteora WEN/SOL DLMM"
     },
     {
@@ -3055,9 +2407,6 @@
       "token_vault_b": "4sv1vVnu6mkUuQUBqGeQ7HxVVoxQ96bFsi8xA3jHfSxq",
       "decimals_a": 5,
       "decimals_b": 9,
-      "fee_bps": 100,
-      "spacing": 100,
-      "current_tick_or_bin": 25855,
       "_comment": "Meteora WEN/SOL DLMM"
     },
     {
@@ -3069,9 +2418,6 @@
       "token_vault_b": "CpbafJvp52wk6Q7LUXQBGBsNZXAUaC5hd4vmmUJ92K6Q",
       "decimals_a": 5,
       "decimals_b": 9,
-      "fee_bps": 5,
-      "spacing": 8,
-      "current_tick_or_bin": 2303,
       "_comment": "Meteora WEN/SOL DLMM"
     },
     {
@@ -3083,9 +2429,6 @@
       "token_vault_b": "Cs3tbfSnWVPo4cR2ZuYuJGD42wkwQ4ZmizF91PesgMpc",
       "decimals_a": 5,
       "decimals_b": 9,
-      "fee_bps": 20,
-      "spacing": 20,
-      "current_tick_or_bin": 50337022,
       "_comment": "Meteora WEN/SOL DLMM"
     },
     {
@@ -3097,9 +2440,6 @@
       "token_vault_b": "557NUJA6qwTjE8YkgdExevHY59iqHwiJHpoWUSi2SdNC",
       "decimals_a": 5,
       "decimals_b": 6,
-      "fee_bps": 30,
-      "spacing": 200,
-      "current_tick_or_bin": 51454,
       "_comment": "Meteora WEN/USDC DLMM"
     },
     {
@@ -3111,9 +2451,6 @@
       "token_vault_b": "7YNnP9PyB7i94tF11Te9MTGhftTrdWaDU4My71MgKMJk",
       "decimals_a": 5,
       "decimals_b": 6,
-      "fee_bps": 500,
-      "spacing": 100,
-      "current_tick_or_bin": 16803071,
       "_comment": "Meteora WEN/USDC DLMM"
     },
     {
@@ -3125,9 +2462,6 @@
       "token_vault_b": "4YX7k7xUZisPx14modAcPSbJ42VjhojDWtmpt5fN6NZc",
       "decimals_a": 5,
       "decimals_b": 6,
-      "fee_bps": 15,
-      "spacing": 80,
-      "current_tick_or_bin": 20735,
       "_comment": "Meteora WEN/USDC DLMM"
     },
     {
@@ -3139,9 +2473,6 @@
       "token_vault_b": "74R455yPxbRyn2wHMgvMAipnSMbHBMD1Y7kXUDdRHfoX",
       "decimals_a": 5,
       "decimals_b": 6,
-      "fee_bps": 100,
-      "spacing": 100,
-      "current_tick_or_bin": 25854,
       "_comment": "Meteora WEN/USDC DLMM"
     },
     {
@@ -3153,9 +2484,6 @@
       "token_vault_b": "8zMNaUMWToQfExabJz4HXRaazQ2gLjwhchZEyWvLFPdq",
       "decimals_a": 5,
       "decimals_b": 9,
-      "fee_bps": 80,
-      "spacing": 100,
-      "current_tick_or_bin": 25855,
       "_comment": "Meteora WEN/bSOL DLMM"
     },
     {
@@ -3167,9 +2495,6 @@
       "token_vault_b": "AjqxLWQNp5GWfqRJqzZf8H1rANdF3dYqzuf1GFhDcpmd",
       "decimals_a": 9,
       "decimals_b": 9,
-      "fee_bps": 1,
-      "spacing": 1,
-      "current_tick_or_bin": 510,
       "_comment": "Meteora bSOL/SOL DLMM"
     },
     {
@@ -3181,9 +2506,6 @@
       "token_vault_b": "brdVgkHqScCTCyCLQq6gbdd7XhUBRcWwaQNkDUuLM46",
       "decimals_a": 9,
       "decimals_b": 9,
-      "fee_bps": 1,
-      "spacing": 1,
-      "current_tick_or_bin": 511,
       "_comment": "Meteora jupSOL/JitoSOL DLMM"
     },
     {
@@ -3195,9 +2517,6 @@
       "token_vault_b": "HTeD5fFp1oCvnNioZFQgXAfuRDzHWpDQS5y7NvsopKXN",
       "decimals_a": 9,
       "decimals_b": 9,
-      "fee_bps": 1,
-      "spacing": 1,
-      "current_tick_or_bin": 508,
       "_comment": "Meteora jupSOL/SOL DLMM"
     },
     {
@@ -3209,9 +2528,6 @@
       "token_vault_b": "6WWkdP1KfiRdjCnzqBB3ea9WanwUjVZ2zFepb2z2Q8zr",
       "decimals_a": 9,
       "decimals_b": 6,
-      "fee_bps": 100,
-      "spacing": 400,
-      "current_tick_or_bin": 50434303,
       "_comment": "Meteora jupSOL/USDC DLMM"
     },
     {
@@ -3223,9 +2539,6 @@
       "token_vault_b": "3Aua82DSDQomPYahmWtEq7pg7rCpBQVU87RUyo1NjAZh",
       "decimals_a": 9,
       "decimals_b": 9,
-      "fee_bps": 1,
-      "spacing": 1,
-      "current_tick_or_bin": 511,
       "_comment": "Meteora jupSOL/mSOL DLMM"
     },
     {
@@ -3237,9 +2550,6 @@
       "token_vault_b": "AcSwnB4eQ1mH95V4LvaPLiiHAFSk6rsLX41Y9jCSecVF",
       "decimals_a": 9,
       "decimals_b": 9,
-      "fee_bps": 1,
-      "spacing": 1,
-      "current_tick_or_bin": 509,
       "_comment": "Meteora mSOL/SOL DLMM"
     },
     {
@@ -3251,9 +2561,6 @@
       "token_vault_b": "4tkUWwBjhbtd3HAUx4YjMPBRDdCWnEN1NB9pxmeKaQR5",
       "decimals_a": 5,
       "decimals_b": 6,
-      "fee_bps": 30,
-      "spacing": 64,
-      "current_tick_or_bin": 1766780371,
       "_comment": "Orca BONK/PYTH Whirlpool"
     },
     {
@@ -3265,9 +2572,6 @@
       "token_vault_b": "HggXczDfUVQY9BrZ4whryvjbyG3sTUUxmphApSS481gy",
       "decimals_a": 5,
       "decimals_b": 6,
-      "fee_bps": 100,
-      "spacing": 128,
-      "current_tick_or_bin": 1766768254,
       "_comment": "Orca BONK/USDC Whirlpool"
     },
     {
@@ -3279,9 +2583,6 @@
       "token_vault_b": "GRzFQNPFBgchFZ5AxfruZUDXALw2anp5ipLt281Qut76",
       "decimals_a": 5,
       "decimals_b": 6,
-      "fee_bps": 30,
-      "spacing": 64,
-      "current_tick_or_bin": 1766786434,
       "_comment": "Orca BONK/USDC Whirlpool"
     },
     {
@@ -3293,9 +2594,6 @@
       "token_vault_b": "9xnMDDY6F8d1DfT1cmLnjcTb931Ypq9Rob7dwYVUACrg",
       "decimals_a": 8,
       "decimals_b": 9,
-      "fee_bps": 30,
-      "spacing": 64,
-      "current_tick_or_bin": 1766771334,
       "_comment": "Orca ETH/JitoSOL Whirlpool"
     },
     {
@@ -3307,9 +2605,6 @@
       "token_vault_b": "5BPPoc8yziKuLoDnCLTSD8agx7UDPs3fLWJzYhjyF6RC",
       "decimals_a": 8,
       "decimals_b": 6,
-      "fee_bps": 100,
-      "spacing": 128,
-      "current_tick_or_bin": 1763728749,
       "_comment": "Orca ETH/USDC Whirlpool"
     },
     {
@@ -3321,9 +2616,6 @@
       "token_vault_b": "4iznQFptuX2A2L5NNinFjSvnXzc2Vhd6b6w8a4nXCpqA",
       "decimals_a": 8,
       "decimals_b": 6,
-      "fee_bps": 5,
-      "spacing": 8,
-      "current_tick_or_bin": 1766789368,
       "_comment": "Orca ETH/USDC Whirlpool"
     },
     {
@@ -3335,9 +2627,6 @@
       "token_vault_b": "3rmdaUuDJviwHBSaVdwiZW6PKrWkMvPUZCvez5i1GSbD",
       "decimals_a": 8,
       "decimals_b": 6,
-      "fee_bps": 30,
-      "spacing": 64,
-      "current_tick_or_bin": 1748655446,
       "_comment": "Orca ETH/USDC Whirlpool"
     },
     {
@@ -3349,9 +2638,6 @@
       "token_vault_b": "8RSJWE8NZEVSQR73EjpneAAKkfEsLHNu7MXDhhvWtMU2",
       "decimals_a": 8,
       "decimals_b": 6,
-      "fee_bps": 5,
-      "spacing": 8,
-      "current_tick_or_bin": 1763728202,
       "_comment": "Orca ETH/USDC Whirlpool"
     },
     {
@@ -3363,9 +2649,6 @@
       "token_vault_b": "9PGFK8A9xotAythnsFozwxNkzZ194Hn1ND5CL1cMhr4u",
       "decimals_a": 9,
       "decimals_b": 5,
-      "fee_bps": 100,
-      "spacing": 128,
-      "current_tick_or_bin": 1766764735,
       "_comment": "Orca JTO/BONK Whirlpool"
     },
     {
@@ -3377,9 +2660,6 @@
       "token_vault_b": "Af3amonhntoi6TyCdL1pP36oK2DyACSb7Z3MaDSiCKKN",
       "decimals_a": 9,
       "decimals_b": 9,
-      "fee_bps": 200,
-      "spacing": 256,
-      "current_tick_or_bin": 1758876802,
       "_comment": "Orca JTO/JitoSOL Whirlpool"
     },
     {
@@ -3391,9 +2671,6 @@
       "token_vault_b": "AVZgewZzC8AQRCeXJTSnzQof25Y4R77tma59Htp5w245",
       "decimals_a": 9,
       "decimals_b": 9,
-      "fee_bps": 30,
-      "spacing": 64,
-      "current_tick_or_bin": 1766789289,
       "_comment": "Orca JTO/JitoSOL Whirlpool"
     },
     {
@@ -3405,9 +2682,6 @@
       "token_vault_b": "HKqKeYGhZYShJ5fYwK4o33XDuvW3SqviSdbXfoyorsKd",
       "decimals_a": 9,
       "decimals_b": 9,
-      "fee_bps": 100,
-      "spacing": 128,
-      "current_tick_or_bin": 1766778808,
       "_comment": "Orca JTO/JitoSOL Whirlpool"
     },
     {
@@ -3419,9 +2693,6 @@
       "token_vault_b": "6cqF4AyLFKYKZULBgXRBSjvb577QG7tN8DYvdyahNrzm",
       "decimals_a": 9,
       "decimals_b": 9,
-      "fee_bps": 100,
-      "spacing": 32896,
-      "current_tick_or_bin": 1766762099,
       "_comment": "Orca JTO/JitoSOL Whirlpool"
     },
     {
@@ -3433,9 +2704,6 @@
       "token_vault_b": "469Y2FtYSdxGT34Jjn1oXrgNpB3CRr1yj5TDNsprat2E",
       "decimals_a": 9,
       "decimals_b": 6,
-      "fee_bps": 100,
-      "spacing": 128,
-      "current_tick_or_bin": 1766761021,
       "_comment": "Orca JTO/PYTH Whirlpool"
     },
     {
@@ -3447,9 +2715,6 @@
       "token_vault_b": "GMuwwT6rNFPGRJ8nMt1KxL58Nf9K3wPTVUzHHLAcdjFi",
       "decimals_a": 9,
       "decimals_b": 6,
-      "fee_bps": 100,
-      "spacing": 128,
-      "current_tick_or_bin": 1766779201,
       "_comment": "Orca JTO/USDC Whirlpool"
     },
     {
@@ -3461,9 +2726,6 @@
       "token_vault_b": "DSRmTZbSBx4tzgkzz4Cwr7THCXDqT2CDeGHBqFoswmi4",
       "decimals_a": 9,
       "decimals_b": 6,
-      "fee_bps": 30,
-      "spacing": 64,
-      "current_tick_or_bin": 1766787462,
       "_comment": "Orca JTO/USDC Whirlpool"
     },
     {
@@ -3475,9 +2737,6 @@
       "token_vault_b": "7MMMzMm6qWvieGnXqr7GyAdww2P7ZCWPqF5efWhyJian",
       "decimals_a": 6,
       "decimals_b": 9,
-      "fee_bps": 200,
-      "spacing": 256,
-      "current_tick_or_bin": 1766760445,
       "_comment": "Orca JUP/JTO Whirlpool"
     },
     {
@@ -3489,9 +2748,6 @@
       "token_vault_b": "9pkU5LPNjeSrT9iEwa3TeAg5GDXv8Gpy2R1B2iUevuAw",
       "decimals_a": 6,
       "decimals_b": 6,
-      "fee_bps": 100,
-      "spacing": 128,
-      "current_tick_or_bin": 1766764160,
       "_comment": "Orca JUP/PYTH Whirlpool"
     },
     {
@@ -3503,9 +2759,6 @@
       "token_vault_b": "EsU4fjzg2JSSgqbh3jx95qaDSpRe4gLqPWQLbmLjYaLF",
       "decimals_a": 6,
       "decimals_b": 9,
-      "fee_bps": 1,
-      "spacing": 1,
-      "current_tick_or_bin": 1766786720,
       "_comment": "Orca JUP/SOL Whirlpool"
     },
     {
@@ -3517,9 +2770,6 @@
       "token_vault_b": "3KqpKfbXT7WUrERQrDnA7SrtQ6oYyUuKiShUoHCAcJuz",
       "decimals_a": 6,
       "decimals_b": 9,
-      "fee_bps": 4,
-      "spacing": 4,
-      "current_tick_or_bin": 1763677944,
       "_comment": "Orca JUP/SOL Whirlpool"
     },
     {
@@ -3531,9 +2781,6 @@
       "token_vault_b": "7gUmKWAo2jw9W1Acx6otp7bHxLsCy2JzAqicDwXG5aHW",
       "decimals_a": 6,
       "decimals_b": 9,
-      "fee_bps": 200,
-      "spacing": 256,
-      "current_tick_or_bin": 1766649703,
       "_comment": "Orca JUP/SOL Whirlpool"
     },
     {
@@ -3545,9 +2792,6 @@
       "token_vault_b": "7fibbSXkUuc4HqPWnyszmtgwUnPzZJUQFBhZJTHUS5cL",
       "decimals_a": 6,
       "decimals_b": 9,
-      "fee_bps": 100,
-      "spacing": 128,
-      "current_tick_or_bin": 1766764560,
       "_comment": "Orca JUP/SOL Whirlpool"
     },
     {
@@ -3559,9 +2803,6 @@
       "token_vault_b": "8MFbZEaXp8Ky8ufhZRgphgMgKVwsjhDhZtNqmEPcxvQK",
       "decimals_a": 6,
       "decimals_b": 9,
-      "fee_bps": 5,
-      "spacing": 8,
-      "current_tick_or_bin": 1766789367,
       "_comment": "Orca JUP/SOL Whirlpool"
     },
     {
@@ -3573,9 +2814,6 @@
       "token_vault_b": "5zPsMFQUdtCc28Lb9yXQGfizRGRik584nTjeEcE4ZAWr",
       "decimals_a": 6,
       "decimals_b": 9,
-      "fee_bps": 30,
-      "spacing": 64,
-      "current_tick_or_bin": 1766786808,
       "_comment": "Orca JUP/SOL Whirlpool"
     },
     {
@@ -3587,9 +2825,6 @@
       "token_vault_b": "4Y75Z1dNRL4Sbdbsuv8W4Uc41Gw5dsAZUq5K6xuASFpX",
       "decimals_a": 6,
       "decimals_b": 9,
-      "fee_bps": 16,
-      "spacing": 16,
-      "current_tick_or_bin": 1766788936,
       "_comment": "Orca JUP/SOL Whirlpool"
     },
     {
@@ -3601,9 +2836,6 @@
       "token_vault_b": "4H42jx1We3u5m3brvhhP5snrVMK33buPNQyLT7SBbJwv",
       "decimals_a": 6,
       "decimals_b": 6,
-      "fee_bps": 200,
-      "spacing": 256,
-      "current_tick_or_bin": 1766646915,
       "_comment": "Orca JUP/USDC Whirlpool"
     },
     {
@@ -3615,9 +2847,6 @@
       "token_vault_b": "6tbZ6eV1r3YSvsABSz55c1FZDwX2h4f4XLykB8saKK6a",
       "decimals_a": 6,
       "decimals_b": 6,
-      "fee_bps": 100,
-      "spacing": 128,
-      "current_tick_or_bin": 1766773579,
       "_comment": "Orca JUP/USDC Whirlpool"
     },
     {
@@ -3629,9 +2858,6 @@
       "token_vault_b": "J4gvj34WtjvBJ7VYReCeySnjjQA9E9zaM13Vf8jRx2pR",
       "decimals_a": 6,
       "decimals_b": 6,
-      "fee_bps": 30,
-      "spacing": 64,
-      "current_tick_or_bin": 1766787897,
       "_comment": "Orca JUP/USDC Whirlpool"
     },
     {
@@ -3643,9 +2869,6 @@
       "token_vault_b": "yLqBzBiLSMpc2LBBTJVMCjSsSdkb5K9NvHWDbZ6RtwQ",
       "decimals_a": 6,
       "decimals_b": 6,
-      "fee_bps": 200,
-      "spacing": 256,
-      "current_tick_or_bin": 1766556650,
       "_comment": "Orca JUP/USDC Whirlpool"
     },
     {
@@ -3657,9 +2880,6 @@
       "token_vault_b": "CYcxSC2vmbScHFcTtEM6346uqMN8b9zeSGnP9qZu1E6U",
       "decimals_a": 6,
       "decimals_b": 6,
-      "fee_bps": 4,
-      "spacing": 4,
-      "current_tick_or_bin": 1766789316,
       "_comment": "Orca JUP/USDC Whirlpool"
     },
     {
@@ -3671,9 +2891,6 @@
       "token_vault_b": "3eiMaeCXVKHgkJTABZeKTQg5w7GJ3PPh8gEQSj36FbG5",
       "decimals_a": 6,
       "decimals_b": 6,
-      "fee_bps": 5,
-      "spacing": 8,
-      "current_tick_or_bin": 1766788727,
       "_comment": "Orca JUP/USDC Whirlpool"
     },
     {
@@ -3685,9 +2902,6 @@
       "token_vault_b": "6NnRwLpJg27euEkyRyvAHGxc4kZxsjjnicskay1kqvTA",
       "decimals_a": 6,
       "decimals_b": 6,
-      "fee_bps": 30,
-      "spacing": 64,
-      "current_tick_or_bin": 1766788138,
       "_comment": "Orca JUP/USDT Whirlpool"
     },
     {
@@ -3699,9 +2913,6 @@
       "token_vault_b": "DLDozCcFv4rvWvtZdyDVBZj1EhSiGCso7PTDtDpky1Qr",
       "decimals_a": 6,
       "decimals_b": 6,
-      "fee_bps": 2,
-      "spacing": 2,
-      "current_tick_or_bin": 1764820430,
       "_comment": "Orca JUP/USDT Whirlpool"
     },
     {
@@ -3713,9 +2924,6 @@
       "token_vault_b": "8TAjg5195VfLEDTWjfRbjtvszSopzZ2Pm6fhW689PGxx",
       "decimals_a": 6,
       "decimals_b": 6,
-      "fee_bps": 100,
-      "spacing": 128,
-      "current_tick_or_bin": 1766769764,
       "_comment": "Orca JUP/USDT Whirlpool"
     },
     {
@@ -3727,9 +2935,6 @@
       "token_vault_b": "95pCBcDjxf7Dgrik1B9a9U72i1w7AmKByzXxvKQ4VNss",
       "decimals_a": 6,
       "decimals_b": 5,
-      "fee_bps": 100,
-      "spacing": 128,
-      "current_tick_or_bin": 1766777258,
       "_comment": "Orca JUP/WEN Whirlpool"
     },
     {
@@ -3741,9 +2946,6 @@
       "token_vault_b": "5koanViks85Rf3SUTdgedrM1hjnWg1gAdYwT6pozUUgN",
       "decimals_a": 6,
       "decimals_b": 9,
-      "fee_bps": 30,
-      "spacing": 64,
-      "current_tick_or_bin": 1766786599,
       "_comment": "Orca JUP/bSOL Whirlpool"
     },
     {
@@ -3755,9 +2957,6 @@
       "token_vault_b": "2duCNYBybNp24FmLwtvFENnxXSjn9V9bMaf7UndPZviY",
       "decimals_a": 9,
       "decimals_b": 6,
-      "fee_bps": 30,
-      "spacing": 64,
-      "current_tick_or_bin": 1766787870,
       "_comment": "Orca POPCAT/USDC Whirlpool"
     },
     {
@@ -3769,9 +2968,6 @@
       "token_vault_b": "AipuCvovfgYCtsuVubYoyxoWuaKvvecczv3iUS1rZh7N",
       "decimals_a": 9,
       "decimals_b": 5,
-      "fee_bps": 16,
-      "spacing": 16,
-      "current_tick_or_bin": 1766786301,
       "_comment": "Orca SOL/BONK Whirlpool"
     },
     {
@@ -3783,9 +2979,6 @@
       "token_vault_b": "4F8pHMXgQ61red9GMG2wmZRSzybyKjrmKTJW1KUTBSTQ",
       "decimals_a": 9,
       "decimals_b": 5,
-      "fee_bps": 100,
-      "spacing": 32896,
-      "current_tick_or_bin": 1766769196,
       "_comment": "Orca SOL/BONK Whirlpool"
     },
     {
@@ -3797,9 +2990,6 @@
       "token_vault_b": "9MSyH6ptUM1a885FUhawyYLd6YfVjDRUhqib4Apqjm3Z",
       "decimals_a": 9,
       "decimals_b": 5,
-      "fee_bps": 30,
-      "spacing": 64,
-      "current_tick_or_bin": 1766787613,
       "_comment": "Orca SOL/BONK Whirlpool"
     },
     {
@@ -3811,9 +3001,6 @@
       "token_vault_b": "HTsaYAZ5yhpk98Dm3fDKrTueieEDX34ZkUjeacQYoVSV",
       "decimals_a": 9,
       "decimals_b": 5,
-      "fee_bps": 100,
-      "spacing": 128,
-      "current_tick_or_bin": 1766769632,
       "_comment": "Orca SOL/BONK Whirlpool"
     },
     {
@@ -3825,9 +3012,6 @@
       "token_vault_b": "4dmvFGeQH2eqa3ktNHMgm4wZ8vuTukBiK9M7gxW5oR9F",
       "decimals_a": 9,
       "decimals_b": 5,
-      "fee_bps": 5,
-      "spacing": 8,
-      "current_tick_or_bin": 1766789369,
       "_comment": "Orca SOL/BONK Whirlpool"
     },
     {
@@ -3839,9 +3023,6 @@
       "token_vault_b": "6atxpbtDMAp3GWeub2GK61hbPXW7HYgw3AFV6G5Pmy7u",
       "decimals_a": 9,
       "decimals_b": 8,
-      "fee_bps": 16,
-      "spacing": 16,
-      "current_tick_or_bin": 1764943425,
       "_comment": "Orca SOL/ETH Whirlpool"
     },
     {
@@ -3853,9 +3034,6 @@
       "token_vault_b": "A99HYkvGeE5Btn5Mi2246oV4DSUAcG7CxFMuJ6vUARDy",
       "decimals_a": 9,
       "decimals_b": 8,
-      "fee_bps": 5,
-      "spacing": 8,
-      "current_tick_or_bin": 1766789335,
       "_comment": "Orca SOL/ETH Whirlpool"
     },
     {
@@ -3867,9 +3045,6 @@
       "token_vault_b": "24bjVvmb3bRriomRCWgoKJvJ7psNLCDbycQNmWcUyiug",
       "decimals_a": 9,
       "decimals_b": 9,
-      "fee_bps": 100,
-      "spacing": 128,
-      "current_tick_or_bin": 1766776124,
       "_comment": "Orca SOL/JTO Whirlpool"
     },
     {
@@ -3881,9 +3056,6 @@
       "token_vault_b": "7ZyCpCGBRwcqwfVkuNdksrcHT2q94xevXw1qFdVRTaJn",
       "decimals_a": 9,
       "decimals_b": 9,
-      "fee_bps": 30,
-      "spacing": 64,
-      "current_tick_or_bin": 1766788592,
       "_comment": "Orca SOL/JTO Whirlpool"
     },
     {
@@ -3895,9 +3067,6 @@
       "token_vault_b": "D3Yw378zQi6X8kXFpRwJwXdsf2sSSZk2SLAdn93k6GwD",
       "decimals_a": 9,
       "decimals_b": 9,
-      "fee_bps": 100,
-      "spacing": 32896,
-      "current_tick_or_bin": 1766771465,
       "_comment": "Orca SOL/JTO Whirlpool"
     },
     {
@@ -3909,9 +3078,6 @@
       "token_vault_b": "8tfJVFdcogGMmvW1RA1kDZey2BjwdCznF3MD4Pcxi9xn",
       "decimals_a": 9,
       "decimals_b": 9,
-      "fee_bps": 1,
-      "spacing": 1,
-      "current_tick_or_bin": 1766789215,
       "_comment": "Orca SOL/JitoSOL Whirlpool"
     },
     {
@@ -3923,9 +3089,6 @@
       "token_vault_b": "E9u1KhSFKYjARKgXgAvdXpUKq9JRmKiS8tZfXabxmQgo",
       "decimals_a": 9,
       "decimals_b": 9,
-      "fee_bps": 30,
-      "spacing": 64,
-      "current_tick_or_bin": 1766786816,
       "_comment": "Orca SOL/JitoSOL Whirlpool"
     },
     {
@@ -3937,9 +3100,6 @@
       "token_vault_b": "HVKQ1n61rRHM9VyPwyeeFbhUAu3Scxjm54yS9gXzhSgP",
       "decimals_a": 9,
       "decimals_b": 9,
-      "fee_bps": 16,
-      "spacing": 16,
-      "current_tick_or_bin": 1759954675,
       "_comment": "Orca SOL/POPCAT Whirlpool"
     },
     {
@@ -3951,9 +3111,6 @@
       "token_vault_b": "ChcWkmUbWDbBspDjPX6ZXi7Hb9kZ7VTbNUf6nMtWF1YH",
       "decimals_a": 9,
       "decimals_b": 9,
-      "fee_bps": 5,
-      "spacing": 8,
-      "current_tick_or_bin": 1766789327,
       "_comment": "Orca SOL/POPCAT Whirlpool"
     },
     {
@@ -3965,9 +3122,6 @@
       "token_vault_b": "3asYy4VKFbjmyjR6g488aHA8wcJigkjaarMTX6eLZE64",
       "decimals_a": 9,
       "decimals_b": 9,
-      "fee_bps": 30,
-      "spacing": 64,
-      "current_tick_or_bin": 1766788224,
       "_comment": "Orca SOL/POPCAT Whirlpool"
     },
     {
@@ -3979,9 +3133,6 @@
       "token_vault_b": "CwUgADyX4PGVgtWsGXYgL9dMeb2caWcdqbduwiCjeXoE",
       "decimals_a": 9,
       "decimals_b": 9,
-      "fee_bps": 100,
-      "spacing": 128,
-      "current_tick_or_bin": 1766769741,
       "_comment": "Orca SOL/POPCAT Whirlpool"
     },
     {
@@ -3993,9 +3144,6 @@
       "token_vault_b": "9xE5nckYaxJ2Bq8gt7xcGRKcUMvHWpxUEAWh8ZU3bppQ",
       "decimals_a": 9,
       "decimals_b": 6,
-      "fee_bps": 5,
-      "spacing": 8,
-      "current_tick_or_bin": 1766788812,
       "_comment": "Orca SOL/PYTH Whirlpool"
     },
     {
@@ -4007,9 +3155,6 @@
       "token_vault_b": "Ehf4P2iABLvLv6cnVjF9LycP8n8oDCp5P4L8oCpT7pd6",
       "decimals_a": 9,
       "decimals_b": 6,
-      "fee_bps": 30,
-      "spacing": 64,
-      "current_tick_or_bin": 1766787149,
       "_comment": "Orca SOL/PYTH Whirlpool"
     },
     {
@@ -4021,9 +3166,6 @@
       "token_vault_b": "3hMgLdd6bK8pDTHfByb1NrztDY8s9SXs7gu5qEq5xUkV",
       "decimals_a": 9,
       "decimals_b": 6,
-      "fee_bps": 100,
-      "spacing": 128,
-      "current_tick_or_bin": 1766780371,
       "_comment": "Orca SOL/PYTH Whirlpool"
     },
     {
@@ -4035,9 +3177,6 @@
       "token_vault_b": "6H8vMZe7MZHctra6YaWE7Fy6DuefhNHp7envXTZXSX9K",
       "decimals_a": 9,
       "decimals_b": 6,
-      "fee_bps": 16,
-      "spacing": 16,
-      "current_tick_or_bin": 1766787149,
       "_comment": "Orca SOL/PYTH Whirlpool"
     },
     {
@@ -4049,9 +3188,6 @@
       "token_vault_b": "57MetL7MvERfT51Ze2ML67ntJV6VtcjwRXSpTgGU3Jtu",
       "decimals_a": 9,
       "decimals_b": 6,
-      "fee_bps": 200,
-      "spacing": 256,
-      "current_tick_or_bin": 1766479698,
       "_comment": "Orca SOL/TRUMP Whirlpool"
     },
     {
@@ -4063,9 +3199,6 @@
       "token_vault_b": "79mhWQ3ppuBeVNikPoazsCorSiUZEAg3H7dgkdqzVU8x",
       "decimals_a": 9,
       "decimals_b": 6,
-      "fee_bps": 16,
-      "spacing": 16,
-      "current_tick_or_bin": 1766787757,
       "_comment": "Orca SOL/TRUMP Whirlpool"
     },
     {
@@ -4077,9 +3210,6 @@
       "token_vault_b": "9BZe1rq5q5Tpb86t1mzoGHp2u73oNMP8FpNNtdsinf4t",
       "decimals_a": 9,
       "decimals_b": 6,
-      "fee_bps": 100,
-      "spacing": 128,
-      "current_tick_or_bin": 1766762108,
       "_comment": "Orca SOL/TRUMP Whirlpool"
     },
     {
@@ -4091,9 +3221,6 @@
       "token_vault_b": "AQ36QRk3HAe6PHqBCtKTQnYKpt2kAagq9YoeTqUPMGHx",
       "decimals_a": 9,
       "decimals_b": 6,
-      "fee_bps": 2,
-      "spacing": 2,
-      "current_tick_or_bin": 1766789352,
       "_comment": "Orca SOL/USDC Whirlpool"
     },
     {
@@ -4105,9 +3232,6 @@
       "token_vault_b": "5qCGEJ3711m5HDzdS82AcC7xnKNW293agPtYX8de7ERt",
       "decimals_a": 9,
       "decimals_b": 6,
-      "fee_bps": 25,
-      "spacing": 8,
-      "current_tick_or_bin": 1762194530,
       "_comment": "Orca SOL/USDC Whirlpool"
     },
     {
@@ -4119,9 +3243,6 @@
       "token_vault_b": "8di8JTvQH7dUPaXYVgCX3SFcQkuZCAL9xz3XCpDaoYeF",
       "decimals_a": 9,
       "decimals_b": 6,
-      "fee_bps": 200,
-      "spacing": 256,
-      "current_tick_or_bin": 1766757011,
       "_comment": "Orca SOL/USDC Whirlpool"
     },
     {
@@ -4133,9 +3254,6 @@
       "token_vault_b": "5SLdQQUuikd55gkyu82xpiknfqEVH6SyNLABipGgMAbA",
       "decimals_a": 9,
       "decimals_b": 6,
-      "fee_bps": 16,
-      "spacing": 16,
-      "current_tick_or_bin": 1766787800,
       "_comment": "Orca SOL/USDC Whirlpool"
     },
     {
@@ -4147,9 +3265,6 @@
       "token_vault_b": "BVABXM3DZz4M2mGfPtmk8dGUqyWiwiVd2MU5vme4WLe5",
       "decimals_a": 9,
       "decimals_b": 6,
-      "fee_bps": 25,
-      "spacing": 128,
-      "current_tick_or_bin": 1757947359,
       "_comment": "Orca SOL/USDC Whirlpool"
     },
     {
@@ -4161,9 +3276,6 @@
       "token_vault_b": "dwxR9YF7WwnJJu7bPC4UNcWFpcSsooH6fxbpoa3fTbJ",
       "decimals_a": 9,
       "decimals_b": 6,
-      "fee_bps": 1,
-      "spacing": 1,
-      "current_tick_or_bin": 1766789371,
       "_comment": "Orca SOL/USDC Whirlpool"
     },
     {
@@ -4175,9 +3287,6 @@
       "token_vault_b": "2JTw1fE2wz1SymWUQ7UqpVtrTuKjcd6mWwYwUJUCh2rq",
       "decimals_a": 9,
       "decimals_b": 6,
-      "fee_bps": 30,
-      "spacing": 64,
-      "current_tick_or_bin": 1766787896,
       "_comment": "Orca SOL/USDC Whirlpool"
     },
     {
@@ -4189,9 +3298,6 @@
       "token_vault_b": "iMH9YW3kAgk4kkB74ZHPHESHAQQWPeGWn6Rmty3WJnq",
       "decimals_a": 9,
       "decimals_b": 6,
-      "fee_bps": 2,
-      "spacing": 2,
-      "current_tick_or_bin": 1766789373,
       "_comment": "Orca SOL/USDC Whirlpool"
     },
     {
@@ -4203,9 +3309,6 @@
       "token_vault_b": "9ma53jxdWJ3RmumpJBJGSSmDJB9ENNEey6frh8iTGvM4",
       "decimals_a": 9,
       "decimals_b": 6,
-      "fee_bps": 4,
-      "spacing": 4,
-      "current_tick_or_bin": 1766789333,
       "_comment": "Orca SOL/USDC Whirlpool"
     },
     {
@@ -4217,9 +3320,6 @@
       "token_vault_b": "2WLWEuKDgkDUccTpbwYp1GToYktiSB1cXvreHUwiSUVP",
       "decimals_a": 9,
       "decimals_b": 6,
-      "fee_bps": 4,
-      "spacing": 4,
-      "current_tick_or_bin": 1766789358,
       "_comment": "Orca SOL/USDC Whirlpool"
     },
     {
@@ -4231,9 +3331,6 @@
       "token_vault_b": "GTBtGvhXQun18GAeJnoSuyXEcUMw2xyhfHjQEodH7tjF",
       "decimals_a": 9,
       "decimals_b": 6,
-      "fee_bps": 30,
-      "spacing": 64,
-      "current_tick_or_bin": 1766788693,
       "_comment": "Orca SOL/USDC Whirlpool"
     },
     {
@@ -4245,9 +3342,6 @@
       "token_vault_b": "EGdM3e8ThMFvLr7qVQBJ5UiGngzzok2S7xsc3Paiyp39",
       "decimals_a": 9,
       "decimals_b": 6,
-      "fee_bps": 65,
-      "spacing": 96,
-      "current_tick_or_bin": 1766781978,
       "_comment": "Orca SOL/USDC Whirlpool"
     },
     {
@@ -4259,9 +3353,6 @@
       "token_vault_b": "BVNo8ftg2LkkssnWT4ZWdtoFaevnfD6ExYeramwM27pe",
       "decimals_a": 9,
       "decimals_b": 6,
-      "fee_bps": 5,
-      "spacing": 8,
-      "current_tick_or_bin": 1766789331,
       "_comment": "Orca SOL/USDC Whirlpool"
     },
     {
@@ -4273,9 +3364,6 @@
       "token_vault_b": "AFvbujAMu8uExMRnvVnVwsB69YyVqY8HHct6jDsmeeEZ",
       "decimals_a": 9,
       "decimals_b": 6,
-      "fee_bps": 100,
-      "spacing": 128,
-      "current_tick_or_bin": 1766787275,
       "_comment": "Orca SOL/USDC Whirlpool"
     },
     {
@@ -4287,9 +3375,6 @@
       "token_vault_b": "EyPrWMbpBQKY3Fp4VVRpsP5e5KojqrYJnngJtQ1TT2GX",
       "decimals_a": 9,
       "decimals_b": 6,
-      "fee_bps": 16,
-      "spacing": 16,
-      "current_tick_or_bin": 1766787957,
       "_comment": "Orca SOL/USDC Whirlpool"
     },
     {
@@ -4301,9 +3386,6 @@
       "token_vault_b": "B1qD7GDsKN4kz2ehks71eEpVhUzqaTVXaWfCxXykRAA9",
       "decimals_a": 9,
       "decimals_b": 6,
-      "fee_bps": 2,
-      "spacing": 2,
-      "current_tick_or_bin": 1766789368,
       "_comment": "Orca SOL/USDT Whirlpool"
     },
     {
@@ -4315,9 +3397,6 @@
       "token_vault_b": "2szbZL7evrm2tmuGoqajBnvbwBUfqjmiHVmVJ8YdzrVQ",
       "decimals_a": 9,
       "decimals_b": 6,
-      "fee_bps": 1,
-      "spacing": 64,
-      "current_tick_or_bin": 1766789373,
       "_comment": "Orca SOL/USDT Whirlpool"
     },
     {
@@ -4329,9 +3408,6 @@
       "token_vault_b": "3AWWaBmwZjDFaTUoFv7R2cuU2i78vy1vJpQXeRr3naod",
       "decimals_a": 9,
       "decimals_b": 6,
-      "fee_bps": 100,
-      "spacing": 128,
-      "current_tick_or_bin": 1766762164,
       "_comment": "Orca SOL/USDT Whirlpool"
     },
     {
@@ -4343,9 +3419,6 @@
       "token_vault_b": "vZ7uh4khfcUHKyc1dyaDhg21jDH5p5q4Pugr3R4v4Mp",
       "decimals_a": 9,
       "decimals_b": 6,
-      "fee_bps": 5,
-      "spacing": 8,
-      "current_tick_or_bin": 1766789347,
       "_comment": "Orca SOL/USDT Whirlpool"
     },
     {
@@ -4357,9 +3430,6 @@
       "token_vault_b": "BECUuCha8GM2WEDfeCUBtyVq5UWPf9zseZSjnpaViPAW",
       "decimals_a": 9,
       "decimals_b": 6,
-      "fee_bps": 30,
-      "spacing": 64,
-      "current_tick_or_bin": 1766787802,
       "_comment": "Orca SOL/USDT Whirlpool"
     },
     {
@@ -4371,9 +3441,6 @@
       "token_vault_b": "2eE2Ju3WjzwrCtpiip2GGjC8maxR34JVJEhabB9VQsFA",
       "decimals_a": 9,
       "decimals_b": 6,
-      "fee_bps": 2,
-      "spacing": 2,
-      "current_tick_or_bin": 1766789298,
       "_comment": "Orca SOL/USDT Whirlpool"
     },
     {
@@ -4385,9 +3452,6 @@
       "token_vault_b": "CqCQMgLuALF2s4gzEP5cjXXNny8n4sg4Yd3VfYiRrd9p",
       "decimals_a": 9,
       "decimals_b": 6,
-      "fee_bps": 200,
-      "spacing": 256,
-      "current_tick_or_bin": 1766757006,
       "_comment": "Orca SOL/USDT Whirlpool"
     },
     {
@@ -4399,9 +3463,6 @@
       "token_vault_b": "Cgk5KMmsTEdTw2HqzH1uQA4oF1YpNzDtc5GowAvUKATf",
       "decimals_a": 9,
       "decimals_b": 6,
-      "fee_bps": 4,
-      "spacing": 4,
-      "current_tick_or_bin": 1766789339,
       "_comment": "Orca SOL/USDT Whirlpool"
     },
     {
@@ -4413,9 +3474,6 @@
       "token_vault_b": "RsiHLfQkDfN7kx6oQZPYDjpA5J1PnozD46RuAMDsCJ3",
       "decimals_a": 9,
       "decimals_b": 5,
-      "fee_bps": 100,
-      "spacing": 128,
-      "current_tick_or_bin": 1766782483,
       "_comment": "Orca SOL/WEN Whirlpool"
     },
     {
@@ -4427,9 +3485,6 @@
       "token_vault_b": "ApvXp4Rv4ZEPraeEHKgokDhZ2FBRm7Dd3kWjZWVcYq34",
       "decimals_a": 9,
       "decimals_b": 5,
-      "fee_bps": 16,
-      "spacing": 16,
-      "current_tick_or_bin": 1766789259,
       "_comment": "Orca SOL/WEN Whirlpool"
     },
     {
@@ -4441,9 +3496,6 @@
       "token_vault_b": "GfuG7RRSLYnRAnjh2nBwubLRinoTAemDx5ip4unv1YWb",
       "decimals_a": 9,
       "decimals_b": 5,
-      "fee_bps": 100,
-      "spacing": 32896,
-      "current_tick_or_bin": 1766774771,
       "_comment": "Orca SOL/WEN Whirlpool"
     },
     {
@@ -4455,9 +3507,6 @@
       "token_vault_b": "5ij79LE2eDadwuLPTTDx6bmsrSaQ7Cmvbk3TizBHAjJM",
       "decimals_a": 9,
       "decimals_b": 5,
-      "fee_bps": 30,
-      "spacing": 64,
-      "current_tick_or_bin": 1766787726,
       "_comment": "Orca SOL/WEN Whirlpool"
     },
     {
@@ -4469,9 +3518,6 @@
       "token_vault_b": "BCYuCRzBh2Rdqa8wxnypW9YoFMjmkS8F2VQmMLwB5BaL",
       "decimals_a": 9,
       "decimals_b": 9,
-      "fee_bps": 1,
-      "spacing": 1,
-      "current_tick_or_bin": 1766787757,
       "_comment": "Orca SOL/bSOL Whirlpool"
     },
     {
@@ -4483,9 +3529,6 @@
       "token_vault_b": "CdRr1RX5uFdJes33NiFiiG5TZNd6gvXWts9u9xjiCVRq",
       "decimals_a": 9,
       "decimals_b": 9,
-      "fee_bps": 1,
-      "spacing": 1,
-      "current_tick_or_bin": 1766788452,
       "_comment": "Orca SOL/jupSOL Whirlpool"
     },
     {
@@ -4497,9 +3540,6 @@
       "token_vault_b": "BPNNjaq7uyZrMyBh4rseRPrLa4FPGUoSpLxZLGsL3TWe",
       "decimals_a": 9,
       "decimals_b": 9,
-      "fee_bps": 100,
-      "spacing": 32896,
-      "current_tick_or_bin": 1766502482,
       "_comment": "Orca SOL/jupSOL Whirlpool"
     },
     {
@@ -4511,9 +3551,6 @@
       "token_vault_b": "GUmeH2s5ZKUFrLxUpmurekH6UzarshxidpfGCoKaut26",
       "decimals_a": 9,
       "decimals_b": 9,
-      "fee_bps": 30,
-      "spacing": 64,
-      "current_tick_or_bin": 1766749814,
       "_comment": "Orca SOL/mSOL Whirlpool"
     },
     {
@@ -4525,9 +3562,6 @@
       "token_vault_b": "EWWSKcyMy2cF1RBmcQMPyN8SafyxoUFzmzWsAqReNmQc",
       "decimals_a": 9,
       "decimals_b": 9,
-      "fee_bps": 1,
-      "spacing": 1,
-      "current_tick_or_bin": 1766789050,
       "_comment": "Orca SOL/mSOL Whirlpool"
     },
     {
@@ -4539,9 +3573,6 @@
       "token_vault_b": "71SPVh1eUFC6bZgS6dMxRVsN2h1Y77p9kgb1E3DuWSv4",
       "decimals_a": 9,
       "decimals_b": 9,
-      "fee_bps": 1,
-      "spacing": 1,
-      "current_tick_or_bin": 1766788413,
       "_comment": "Orca SOL/stSOL Whirlpool"
     },
     {
@@ -4553,9 +3584,6 @@
       "token_vault_b": "DnjwFMvwiLBABws6JpVpAUTyBV9wmucjAMxdnxAVFH92",
       "decimals_a": 6,
       "decimals_b": 6,
-      "fee_bps": 16,
-      "spacing": 16,
-      "current_tick_or_bin": 1766786884,
       "_comment": "Orca TRUMP/USDC Whirlpool"
     },
     {
@@ -4567,9 +3595,6 @@
       "token_vault_b": "6bZmtvGGJgAEcJEQekt94AUSt68ZLyaWprPm7q8X5Qxh",
       "decimals_a": 6,
       "decimals_b": 9,
-      "fee_bps": 10,
-      "spacing": 64,
-      "current_tick_or_bin": 1766789334,
       "_comment": "Orca USDC/JitoSOL Whirlpool"
     },
     {
@@ -4581,9 +3606,6 @@
       "token_vault_b": "AGh3h45rBUxDaTTebRfmFnkXLw7mdzhK3zyz3ZJbaQa",
       "decimals_a": 6,
       "decimals_b": 9,
-      "fee_bps": 5,
-      "spacing": 8,
-      "current_tick_or_bin": 1766789331,
       "_comment": "Orca USDC/JitoSOL Whirlpool"
     },
     {
@@ -4595,9 +3617,6 @@
       "token_vault_b": "HtDDmn33fYZpYcHWbqjSWWzFn2agTCU4exyoqcucSugP",
       "decimals_a": 6,
       "decimals_b": 9,
-      "fee_bps": 30,
-      "spacing": 64,
-      "current_tick_or_bin": 1766781939,
       "_comment": "Orca USDC/JitoSOL Whirlpool"
     },
     {
@@ -4609,9 +3628,6 @@
       "token_vault_b": "5FkVmA5gzzaQew4NfRcws23xf6QqzRUiLujzeZs3yCc",
       "decimals_a": 6,
       "decimals_b": 6,
-      "fee_bps": 30,
-      "spacing": 64,
-      "current_tick_or_bin": 1766788053,
       "_comment": "Orca USDC/PYTH Whirlpool"
     },
     {
@@ -4623,9 +3639,6 @@
       "token_vault_b": "B9PbXQSioiftSwaSNQyYwTjpqf4nQNTE9TRDpwPmKZii",
       "decimals_a": 6,
       "decimals_b": 6,
-      "fee_bps": 16,
-      "spacing": 16,
-      "current_tick_or_bin": 1766785032,
       "_comment": "Orca USDC/PYTH Whirlpool"
     },
     {
@@ -4637,9 +3650,6 @@
       "token_vault_b": "8NFroAuwKG5i8AJsAkWYUCNBoPj4w6tDRbARoLfoD2i4",
       "decimals_a": 6,
       "decimals_b": 6,
-      "fee_bps": 100,
-      "spacing": 128,
-      "current_tick_or_bin": 1766761381,
       "_comment": "Orca USDC/PYTH Whirlpool"
     },
     {
@@ -4651,9 +3661,6 @@
       "token_vault_b": "4dSG9tKHZR4CAictyEnH9XuGZyKapodWXq5xyg7uFwE9",
       "decimals_a": 6,
       "decimals_b": 6,
-      "fee_bps": 1,
-      "spacing": 1,
-      "current_tick_or_bin": 1766789092,
       "_comment": "Orca USDC/USDT Whirlpool"
     },
     {
@@ -4665,9 +3672,6 @@
       "token_vault_b": "EsqRSpHkSrXh7mGWovXAm44nvaw8xZYrE7W2pw7cwJTK",
       "decimals_a": 6,
       "decimals_b": 6,
-      "fee_bps": 2,
-      "spacing": 2,
-      "current_tick_or_bin": 1766789194,
       "_comment": "Orca USDC/USDT Whirlpool"
     },
     {
@@ -4679,9 +3683,6 @@
       "token_vault_b": "JDxc75Pfm5WVN2pKDZ6eL2S76Jfyh79UZCPvrMnWzmpN",
       "decimals_a": 5,
       "decimals_b": 9,
-      "fee_bps": 200,
-      "spacing": 256,
-      "current_tick_or_bin": 1766684650,
       "_comment": "Orca WEN/POPCAT Whirlpool"
     },
     {
@@ -4693,9 +3694,6 @@
       "token_vault_b": "1YBapRwKrEBHfFJgahZEo9AaiTczBpKBVD6Cazs1dpu",
       "decimals_a": 5,
       "decimals_b": 6,
-      "fee_bps": 100,
-      "spacing": 32896,
-      "current_tick_or_bin": 1766774772,
       "_comment": "Orca WEN/USDC Whirlpool"
     },
     {
@@ -4707,9 +3705,6 @@
       "token_vault_b": "A7CSkqoDemkyLnBCN8zhdpscFDntEqsv3jw4LDHEHs9T",
       "decimals_a": 5,
       "decimals_b": 6,
-      "fee_bps": 16,
-      "spacing": 16,
-      "current_tick_or_bin": 1766789186,
       "_comment": "Orca WEN/USDC Whirlpool"
     },
     {
@@ -4721,9 +3716,6 @@
       "token_vault_b": "ziHyn4aefVaAPhdNNeWwG3tZKVYzs2tV5BR6yzLEKgj",
       "decimals_a": 5,
       "decimals_b": 6,
-      "fee_bps": 100,
-      "spacing": 32896,
-      "current_tick_or_bin": 1766789186,
       "_comment": "Orca WEN/USDT Whirlpool"
     },
     {
@@ -4735,9 +3727,6 @@
       "token_vault_b": "CrdayJSVi7YV4pt9zmY2nyb3i28pQmUE7DS4NKQrfF2W",
       "decimals_a": 5,
       "decimals_b": 9,
-      "fee_bps": 30,
-      "spacing": 64,
-      "current_tick_or_bin": 1766781022,
       "_comment": "Orca WEN/bSOL Whirlpool"
     },
     {
@@ -4749,9 +3738,6 @@
       "token_vault_b": "3jjoLvpt9VyamLdGgr8EvLZsizDXe1TriMLLsoWysBe4",
       "decimals_a": 9,
       "decimals_b": 9,
-      "fee_bps": 1,
-      "spacing": 1,
-      "current_tick_or_bin": 1766787876,
       "_comment": "Orca bSOL/JitoSOL Whirlpool"
     },
     {
@@ -4763,9 +3749,6 @@
       "token_vault_b": "7WRUNNw4yawb87F5XbBHpzGRfNX7hudTDdAHTWYyskYb",
       "decimals_a": 9,
       "decimals_b": 6,
-      "fee_bps": 30,
-      "spacing": 64,
-      "current_tick_or_bin": 1766787757,
       "_comment": "Orca bSOL/PYTH Whirlpool"
     },
     {
@@ -4777,9 +3760,6 @@
       "token_vault_b": "FAehFHnQqqP6Mq9yY6ofFKPFDdz1K5dK2FsrTTf3o4Gq",
       "decimals_a": 9,
       "decimals_b": 6,
-      "fee_bps": 30,
-      "spacing": 64,
-      "current_tick_or_bin": 1766788724,
       "_comment": "Orca bSOL/USDC Whirlpool"
     },
     {
@@ -4791,9 +3771,6 @@
       "token_vault_b": "4eXzAtWvA3XsXJxJ1GDi3zGc2ihsUCyJGDD5fxP7vABV",
       "decimals_a": 9,
       "decimals_b": 9,
-      "fee_bps": 1,
-      "spacing": 1,
-      "current_tick_or_bin": 1766778366,
       "_comment": "Orca bSOL/mSOL Whirlpool"
     },
     {
@@ -4805,9 +3782,6 @@
       "token_vault_b": "7HfCE4okLqnwW6ZGMEifzp2Nqy1k7oxF5r3oCzYQSWjf",
       "decimals_a": 9,
       "decimals_b": 9,
-      "fee_bps": 1,
-      "spacing": 1,
-      "current_tick_or_bin": 1766788553,
       "_comment": "Orca jupSOL/JitoSOL Whirlpool"
     },
     {
@@ -4819,9 +3793,6 @@
       "token_vault_b": "qmGFs2GHAHPQceKBjPDGTZLcPKsyyDQordxWoRjSZri",
       "decimals_a": 9,
       "decimals_b": 6,
-      "fee_bps": 30,
-      "spacing": 64,
-      "current_tick_or_bin": 1766782277,
       "_comment": "Orca jupSOL/USDC Whirlpool"
     },
     {
@@ -4833,9 +3804,6 @@
       "token_vault_b": "2yEBnETVxo6y4yqSP67vNzVtTxu5mvXbJUdrX23RvPYo",
       "decimals_a": 9,
       "decimals_b": 9,
-      "fee_bps": 1,
-      "spacing": 1,
-      "current_tick_or_bin": 1766789373,
       "_comment": "Orca jupSOL/mSOL Whirlpool"
     },
     {
@@ -4847,9 +3815,6 @@
       "token_vault_b": "F8fXkh6paToXYshvVKaNJkBm5cSYNayzke3GiW8WLu1L",
       "decimals_a": 9,
       "decimals_b": 8,
-      "fee_bps": 30,
-      "spacing": 64,
-      "current_tick_or_bin": 1766771336,
       "_comment": "Orca mSOL/ETH Whirlpool"
     },
     {
@@ -4861,9 +3826,6 @@
       "token_vault_b": "Db1pmSpTjpTrrBX9UuXhkmnveGNDivQrfLpU4JoqjrJo",
       "decimals_a": 9,
       "decimals_b": 9,
-      "fee_bps": 1,
-      "spacing": 1,
-      "current_tick_or_bin": 1766777290,
       "_comment": "Orca mSOL/JitoSOL Whirlpool"
     },
     {
@@ -4875,9 +3837,6 @@
       "token_vault_b": "EZMpPquuP15YAGxrr6M3BsUFDky5cyxPMeQVPTTVJrmi",
       "decimals_a": 9,
       "decimals_b": 9,
-      "fee_bps": 0,
-      "spacing": 2,
-      "current_tick_or_bin": 1766789373,
       "_comment": "Orca mSOL/JitoSOL Whirlpool"
     },
     {
@@ -4889,9 +3848,6 @@
       "token_vault_b": "4SQpni7PKCQgi2Eo1uCEr6cmfhZwatuVuum7rYFnS558",
       "decimals_a": 9,
       "decimals_b": 6,
-      "fee_bps": 100,
-      "spacing": 128,
-      "current_tick_or_bin": 1761306399,
       "_comment": "Orca mSOL/PYTH Whirlpool"
     },
     {
@@ -4903,9 +3859,6 @@
       "token_vault_b": "42mjJXBiccoctt7oDv3RhXqP8Y7mLZ9SNjv6f4ywCi7p",
       "decimals_a": 9,
       "decimals_b": 6,
-      "fee_bps": 30,
-      "spacing": 64,
-      "current_tick_or_bin": 1766787895,
       "_comment": "Orca mSOL/USDC Whirlpool"
     },
     {
@@ -4917,9 +3870,6 @@
       "token_vault_b": "jBYQjFg2MEhTK9d9w8j9gcPAM5YRc8cXZvin4FZV346",
       "decimals_a": 9,
       "decimals_b": 6,
-      "fee_bps": 30,
-      "spacing": 64,
-      "current_tick_or_bin": 1766774745,
       "_comment": "Orca mSOL/USDC Whirlpool"
     },
     {
@@ -4931,9 +3881,6 @@
       "token_vault_b": "7hrd2dQFkkT6WpXiRx22SCsB7RZmgCxDu8dKVi3XMrCP",
       "decimals_a": 9,
       "decimals_b": 6,
-      "fee_bps": 25,
-      "spacing": 128,
-      "current_tick_or_bin": 1732383634,
       "_comment": "Orca mSOL/USDC Whirlpool"
     },
     {
@@ -4945,9 +3892,6 @@
       "token_vault_b": "3uBAzjhC81GUiWQyrfWkLAFv3M1szswdCfwExM14wNMf",
       "decimals_a": 9,
       "decimals_b": 6,
-      "fee_bps": 5,
-      "spacing": 8,
-      "current_tick_or_bin": 1766789332,
       "_comment": "Orca mSOL/USDC Whirlpool"
     },
     {
@@ -4959,9 +3903,6 @@
       "token_vault_b": "Gn9ZRtqrrxbpLwHi9RVMNEbsBV9UFS7g4LmY3oTNZtoi",
       "decimals_a": 9,
       "decimals_b": 6,
-      "fee_bps": 30,
-      "spacing": 64,
-      "current_tick_or_bin": 1766787883,
       "_comment": "Orca mSOL/USDT Whirlpool"
     },
     {
@@ -4973,9 +3914,6 @@
       "token_vault_b": "7HxXmF3PE6oQeoxofLidBKMjvig2L8WFAGbHWLqEYcP1",
       "decimals_a": 9,
       "decimals_b": 6,
-      "fee_bps": 30,
-      "spacing": 64,
-      "current_tick_or_bin": 1766787895,
       "_comment": "Orca stSOL/USDC Whirlpool"
     },
     {
@@ -4987,9 +3925,6 @@
       "token_vault_b": "745CoUW7nqnkC4ZSmC48otoW5A5VF9swEkpNdmtfd38S",
       "decimals_a": 9,
       "decimals_b": 6,
-      "fee_bps": 30,
-      "spacing": 64,
-      "current_tick_or_bin": 1766762825,
       "_comment": "Orca stSOL/USDT Whirlpool"
     },
     {
@@ -5001,9 +3936,6 @@
       "token_vault_b": "GRaDnpfSjrqorPMUubr2wq6tgyfNnrTnjSwrM3z38G1v",
       "decimals_a": 5,
       "decimals_b": 6,
-      "fee_bps": 25,
-      "spacing": 44952,
-      "current_tick_or_bin": 0,
       "amm_config": "JDvGyR6gKqdbqggFLdfyUiCQ3MfhbeKof1NHN8b2oBnX",
       "_comment": "PancakeSwap BONK/USDC CLMM"
     },
@@ -5016,9 +3948,6 @@
       "token_vault_b": "87qAXzwnpywQt7wd87BXvMnqVu3NSQs9nrZ48QaJezgq",
       "decimals_a": 8,
       "decimals_b": 6,
-      "fee_bps": 25,
-      "spacing": 36948,
-      "current_tick_or_bin": 0,
       "amm_config": "J7b3Vdke96rXQ3fw6FvDwQaeaNmVezMWgHBdPL2Ksbag",
       "_comment": "PancakeSwap ETH/USDC CLMM"
     },
@@ -5031,9 +3960,6 @@
       "token_vault_b": "AECrUusTmHqKfNePqPvczkrMYVikRC8svLNRP6jSCtBf",
       "decimals_a": 9,
       "decimals_b": 6,
-      "fee_bps": 25,
-      "spacing": 41536,
-      "current_tick_or_bin": 0,
       "amm_config": "JEGTPwPjCfi2juurxRbLZp9gauvf35ERPtikZXaoSpRw",
       "_comment": "PancakeSwap JTO/USDC CLMM"
     },
@@ -5046,9 +3972,6 @@
       "token_vault_b": "34ogNm11hWHddXHqZ2uxuTeHUXPPAemgBn3ijmgibADt",
       "decimals_a": 6,
       "decimals_b": 9,
-      "fee_bps": 25,
-      "spacing": 6813,
-      "current_tick_or_bin": 0,
       "amm_config": "J3gdr92ZFGMozMYxaken3UqRKNCix3Fc6Qsjt8iL9nvL",
       "_comment": "PancakeSwap JUP/SOL CLMM"
     },
@@ -5061,9 +3984,6 @@
       "token_vault_b": "3tqDSYEiENUJwnqrAW2z85tNTEpaDaR4s1JmxkvZgrWg",
       "decimals_a": 6,
       "decimals_b": 9,
-      "fee_bps": 25,
-      "spacing": 40437,
-      "current_tick_or_bin": 0,
       "amm_config": "J6MsfFHsXY8KBcjsKDzc5zxqXWqrdLbrZddJtXmE8N1G",
       "_comment": "PancakeSwap JUP/SOL CLMM"
     },
@@ -5076,9 +3996,6 @@
       "token_vault_b": "5Go29NheuncPLgyKeFdtb4LVu6gkxojrSupUS4HX9V8W",
       "decimals_a": 6,
       "decimals_b": 6,
-      "fee_bps": 25,
-      "spacing": 42232,
-      "current_tick_or_bin": 0,
       "amm_config": "JAHCiu8XvVe54LK8hVBYHH5gDr2H7sj9erhVGioFSMZH",
       "_comment": "PancakeSwap JUP/USDC CLMM"
     },
@@ -5091,9 +4008,6 @@
       "token_vault_b": "3iKECpVAAusjadujcdgN5yXth7tGkF7VqeHeVyh97E79",
       "decimals_a": 9,
       "decimals_b": 5,
-      "fee_bps": 25,
-      "spacing": 28276,
-      "current_tick_or_bin": 0,
       "amm_config": "JAsC9JwKc8C1ce39J48AvrFmTt1rJKQ4nYQxL1tfkgwm",
       "_comment": "PancakeSwap SOL/BONK CLMM"
     },
@@ -5106,9 +4020,6 @@
       "token_vault_b": "EbdBU7hKL2og2rckCm7ED2jLuKHcZ7DeVQQQuD4mVDMj",
       "decimals_a": 9,
       "decimals_b": 8,
-      "fee_bps": 25,
-      "spacing": 3942,
-      "current_tick_or_bin": 0,
       "amm_config": "JA3fS8x4LdCnqvbxqXRywzrd7MHbVVYZMmHRGFoZtvdV",
       "_comment": "PancakeSwap SOL/ETH CLMM"
     },
@@ -5121,9 +4032,6 @@
       "token_vault_b": "ECgAtrvnqL91EfGxrvEQnPpNhgWZFGSgEbYUYTLLwJP4",
       "decimals_a": 9,
       "decimals_b": 6,
-      "fee_bps": 25,
-      "spacing": 10958,
-      "current_tick_or_bin": 0,
       "amm_config": "JAHCiu8XvVe54LK8hVBYHH5gDr2H7sj9erhVGioFSMZH",
       "_comment": "PancakeSwap SOL/USDC CLMM"
     },
@@ -5136,9 +4044,6 @@
       "token_vault_b": "CRKZr6Y9t2hzVNWY4gJk5eig8uznyykB4RTuGSqJDw7n",
       "decimals_a": 9,
       "decimals_b": 6,
-      "fee_bps": 25,
-      "spacing": 3117,
-      "current_tick_or_bin": 0,
       "amm_config": "JEAgxEk3KD7jzzypLEXVsrTJ3XyQ3EofjNF5tvPDZyKx",
       "_comment": "PancakeSwap SOL/USDC CLMM"
     },
@@ -5151,9 +4056,6 @@
       "token_vault_b": "FVDSv2aymcXu5ubgFePqPmp24nrKiwpUFc21b2Kqh6gC",
       "decimals_a": 9,
       "decimals_b": 6,
-      "fee_bps": 25,
-      "spacing": 30122,
-      "current_tick_or_bin": 0,
       "amm_config": "JAsC9JwKc8C1ce39J48AvrFmTt1rJKQ4nYQxL1tfkgwm",
       "_comment": "PancakeSwap SOL/USDC CLMM"
     },
@@ -5166,9 +4068,6 @@
       "token_vault_b": "FgAiDJcYG6rHBUxzPKZ3TNwviJdbYLoMejbJ1X4khhFG",
       "decimals_a": 9,
       "decimals_b": 6,
-      "fee_bps": 25,
-      "spacing": 8265,
-      "current_tick_or_bin": 0,
       "amm_config": "JA1sKvNbS18tRzZGq8QXanTAnM6vthDu594PrwH35P8B",
       "_comment": "PancakeSwap SOL/USDT CLMM"
     },
@@ -5181,9 +4080,6 @@
       "token_vault_b": "FCBauqNLbEBUci1v3NT4gWyFZXS4YUGnX7ZsPmWVzrvV",
       "decimals_a": 9,
       "decimals_b": 6,
-      "fee_bps": 25,
-      "spacing": 43046,
-      "current_tick_or_bin": 0,
       "amm_config": "HxZ4NFqhjs8tNEVvJDTiJ9UP1ViKDSQ3Pu1Xt99Egkga",
       "_comment": "PancakeSwap SOL/USDT CLMM"
     },
@@ -5196,9 +4092,6 @@
       "token_vault_b": "8vgemZYugV4EPmAvEvwWGrjvKDZrPaFzJFdu6PA8xe2",
       "decimals_a": 6,
       "decimals_b": 6,
-      "fee_bps": 25,
-      "spacing": 44489,
-      "current_tick_or_bin": 0,
       "amm_config": "JAHCiu8XvVe54LK8hVBYHH5gDr2H7sj9erhVGioFSMZH",
       "_comment": "PancakeSwap TRUMP/USDT CLMM"
     },
@@ -5211,9 +4104,6 @@
       "token_vault_b": "C6boreystyantZEbCdUeXdQm21YdKpEffiH1yfs7hLbq",
       "decimals_a": 6,
       "decimals_b": 6,
-      "fee_bps": 25,
-      "spacing": 1754,
-      "current_tick_or_bin": 0,
       "amm_config": "JAGHJk1xRNd2bJrqpjG3yvi4nXQdLHhm9VwCPj5DrAfc",
       "_comment": "PancakeSwap USDC/USDT CLMM"
     },
@@ -5226,9 +4116,6 @@
       "token_vault_b": "EL21PdfZXaXvWF3JCjo9RnekEyTzBc6xCGGw3pUq9E2U",
       "decimals_a": 6,
       "decimals_b": 6,
-      "fee_bps": 25,
-      "spacing": 42077,
-      "current_tick_or_bin": 0,
       "amm_config": "JDvGyR6gKqdbqggFLdfyUiCQ3MfhbeKof1NHN8b2oBnX",
       "_comment": "PancakeSwap USDC/USDT CLMM"
     },
@@ -5241,8 +4128,6 @@
       "token_vault_b": "GehmCo7EgzkB4xxyviW6xdUhm1Ed2nN98QcfcRWQCfA9",
       "decimals_a": 5,
       "decimals_b": 9,
-      "fee_bps": 25,
-      "spacing": 0,
       "_comment": "Raydium BONK/SOL AMM"
     },
     {
@@ -5254,8 +4139,6 @@
       "token_vault_b": "5BsukuACaQcjVu9XSZ8PP3BN9pBxxtZjQELxosC4Ucyx",
       "decimals_a": 5,
       "decimals_b": 6,
-      "fee_bps": 25,
-      "spacing": 0,
       "_comment": "Raydium BONK/USDC AMM"
     },
     {
@@ -5267,8 +4150,6 @@
       "token_vault_b": "CWGyCCMC7xmWJZgAynhfAG7vSdYoJcmh27FMwVPsGuq5",
       "decimals_a": 8,
       "decimals_b": 9,
-      "fee_bps": 25,
-      "spacing": 0,
       "_comment": "Raydium ETH/SOL AMM"
     },
     {
@@ -5280,8 +4161,6 @@
       "token_vault_b": "HftKFJJcUTu6xYcS75cDkm3y8HEkGgutcbGsdREDWdMr",
       "decimals_a": 8,
       "decimals_b": 6,
-      "fee_bps": 25,
-      "spacing": 0,
       "_comment": "Raydium ETH/USDC AMM"
     },
     {
@@ -5293,8 +4172,6 @@
       "token_vault_b": "4nR7HAVv7TDh8mzg7XLbsBnVfgMEGyL7EBq7WuR6ZB16",
       "decimals_a": 6,
       "decimals_b": 9,
-      "fee_bps": 25,
-      "spacing": 0,
       "_comment": "Raydium JUP/SOL AMM"
     },
     {
@@ -5306,8 +4183,6 @@
       "token_vault_b": "n6CwMY77wdEftf2VF6uPvbusYoraYUci3nYBPqH1DJ5",
       "decimals_a": 9,
       "decimals_b": 9,
-      "fee_bps": 25,
-      "spacing": 0,
       "_comment": "Raydium POPCAT/SOL AMM"
     },
     {
@@ -5319,8 +4194,6 @@
       "token_vault_b": "pTJo5c4ynoxxRAgDyWgQKasR8dgqQHP3CSeoXzDgZvZ",
       "decimals_a": 9,
       "decimals_b": 6,
-      "fee_bps": 25,
-      "spacing": 0,
       "_comment": "Raydium POPCAT/USDC AMM"
     },
     {
@@ -5332,8 +4205,6 @@
       "token_vault_b": "BegAFgvdVAkdvZv6G8tTjpuGxd1m6TagyBR26APSt5su",
       "decimals_a": 9,
       "decimals_b": 6,
-      "fee_bps": 25,
-      "spacing": 0,
       "_comment": "Raydium SOL/JUP AMM"
     },
     {
@@ -5345,8 +4216,6 @@
       "token_vault_b": "5vqxzbPytvVm58vPkA2WYWvoAYfa8AoxD9i1UXCdqzCN",
       "decimals_a": 9,
       "decimals_b": 6,
-      "fee_bps": 25,
-      "spacing": 0,
       "_comment": "Raydium SOL/PYTH AMM"
     },
     {
@@ -5358,8 +4227,6 @@
       "token_vault_b": "A2vVsZiUbScMVSYUvKV6iXDw5vsWYzpAxWzBKcGFZVwz",
       "decimals_a": 9,
       "decimals_b": 6,
-      "fee_bps": 25,
-      "spacing": 0,
       "_comment": "Raydium SOL/TRUMP AMM"
     },
     {
@@ -5371,8 +4238,6 @@
       "token_vault_b": "tAoQ7jLRJdtrw1vhZzoCHxHfsWp3cdn9SqnPvP1LVMT",
       "decimals_a": 9,
       "decimals_b": 6,
-      "fee_bps": 25,
-      "spacing": 0,
       "_comment": "Raydium SOL/USDC AMM"
     },
     {
@@ -5384,8 +4249,6 @@
       "token_vault_b": "HLmqeL62xR1QoZ1HKKbXRrdN1p3phKpxRMb2VVopvBBz",
       "decimals_a": 9,
       "decimals_b": 6,
-      "fee_bps": 25,
-      "spacing": 0,
       "_comment": "Raydium SOL/USDC AMM"
     },
     {
@@ -5397,8 +4260,6 @@
       "token_vault_b": "ND3X3UpMaB1nze61QjS7LvDk1K3syFtkWMNY5nUc7kB",
       "decimals_a": 9,
       "decimals_b": 6,
-      "fee_bps": 25,
-      "spacing": 0,
       "_comment": "Raydium SOL/USDC AMM"
     },
     {
@@ -5410,8 +4271,6 @@
       "token_vault_b": "CB86HtaqpXbNWbq67L18y5x2RhqoJ6smb7xHUcyWdQAQ",
       "decimals_a": 9,
       "decimals_b": 6,
-      "fee_bps": 25,
-      "spacing": 0,
       "_comment": "Raydium SOL/USDT AMM"
     },
     {
@@ -5423,8 +4282,6 @@
       "token_vault_b": "mo7V3zB8pRqrTVnSk9xG2vNTnwPq2ZFTv1DBsg7YGCv",
       "decimals_a": 6,
       "decimals_b": 9,
-      "fee_bps": 25,
-      "spacing": 0,
       "_comment": "Raydium TRUMP/SOL AMM"
     },
     {
@@ -5436,8 +4293,6 @@
       "token_vault_b": "HyyZpz1JUZjsfyiVSt3qz6E9PkwnBcyhUg4zKGthMNeH",
       "decimals_a": 6,
       "decimals_b": 6,
-      "fee_bps": 25,
-      "spacing": 0,
       "_comment": "Raydium USDT/USDC AMM"
     },
     {
@@ -5449,8 +4304,6 @@
       "token_vault_b": "G86oqnqDH4NxsnhJEtMBPURwUfuJ8yd43ecsgg3kgRW4",
       "decimals_a": 5,
       "decimals_b": 9,
-      "fee_bps": 25,
-      "spacing": 0,
       "_comment": "Raydium WEN/SOL AMM"
     },
     {
@@ -5462,8 +4315,6 @@
       "token_vault_b": "26RMnLdbV2koYcDDPnpNtd1niV8nBx2EQkDF4HqBLxtG",
       "decimals_a": 5,
       "decimals_b": 6,
-      "fee_bps": 25,
-      "spacing": 0,
       "_comment": "Raydium WEN/USDC AMM"
     },
     {
@@ -5475,8 +4326,6 @@
       "token_vault_b": "A5g3G98GoTgR9omhYNrsEswbPKkFatHnebbMNHCYKGsE",
       "decimals_a": 9,
       "decimals_b": 6,
-      "fee_bps": 25,
-      "spacing": 0,
       "_comment": "Raydium mSOL/JUP AMM"
     },
     {
@@ -5488,8 +4337,6 @@
       "token_vault_b": "BtGUR6y7uwJ6UGXNMcY3gCLm7dM3WaBdmgtKVgGnE1TJ",
       "decimals_a": 9,
       "decimals_b": 9,
-      "fee_bps": 25,
-      "spacing": 0,
       "_comment": "Raydium mSOL/SOL AMM"
     },
     {
@@ -5501,8 +4348,6 @@
       "token_vault_b": "DaXyxj42ZDrp3mjrL9pYjPNyBp5P8A2f37am4Kd4EyrK",
       "decimals_a": 9,
       "decimals_b": 6,
-      "fee_bps": 25,
-      "spacing": 0,
       "_comment": "Raydium mSOL/USDC AMM"
     },
     {
@@ -5514,8 +4359,6 @@
       "token_vault_b": "GE8m3rHHejrNf4jE96n5gzMmLbxTfPPcmv9Ppaw24FZa",
       "decimals_a": 9,
       "decimals_b": 6,
-      "fee_bps": 25,
-      "spacing": 0,
       "_comment": "Raydium mSOL/USDT AMM"
     },
     {
@@ -5527,8 +4370,6 @@
       "token_vault_b": "6KR4qkJN91LGko2gdizheri8LMtCwsJrhtsQt6QPwCi5",
       "decimals_a": 9,
       "decimals_b": 6,
-      "fee_bps": 25,
-      "spacing": 0,
       "_comment": "Raydium stSOL/USDC AMM"
     },
     {
@@ -5540,8 +4381,6 @@
       "token_vault_b": "6kZ4zcNxPzKAt33Hiq1GKPrSmdw1M28mzyKKmwHWUqPJ",
       "decimals_a": 9,
       "decimals_b": 6,
-      "fee_bps": 25,
-      "spacing": 0,
       "_comment": "Raydium stSOL/USDT AMM"
     },
     {
@@ -5553,13 +4392,9 @@
       "token_vault_b": "49vmSE4UFeUyp9u2zUCs2wmi47tMqdjDiNTURJt8iVt3",
       "decimals_a": 5,
       "decimals_b": 6,
-      "fee_bps": 25,
-      "spacing": 33897,
-      "current_tick_or_bin": -90240,
       "amm_config": "JDNwM8TG2JxCrxHJCB3uuYQRDbFT6bKUyiB8fUS8HAw6",
       "_comment": "Raydium BONK/USDC CLMM",
-      "observation_state": "DvDycoxZMwBvqs6862sLm3RYnnpTqAE5LrnvuaMZ6qUZ",
-      "sqrt_price": "202526095698013626"
+      "observation_state": "DvDycoxZMwBvqs6862sLm3RYnnpTqAE5LrnvuaMZ6qUZ"
     },
     {
       "address": "CVW96A5BGmdhmdQSU2tTwciJwyTJVJ1HxaKuAEAXXDVb",
@@ -5570,13 +4405,9 @@
       "token_vault_b": "EQ7zZbZffpesP5i63DF7eyGZAGC2yKm5MXvovbVsWZR9",
       "decimals_a": 5,
       "decimals_b": 6,
-      "fee_bps": 25,
-      "spacing": 48848,
-      "current_tick_or_bin": -91086,
       "amm_config": "Hzk3dF6tK4AQiqzeiYCBMr5SVfhcB2b42QRjQJgvQG9s",
       "_comment": "Raydium BONK/USDC CLMM",
-      "observation_state": "4Vwj2B4wBN62oBbbK9h3UcJK5NB1Zox1WxeeUUNhTpf6",
-      "sqrt_price": "194146062990901732"
+      "observation_state": "4Vwj2B4wBN62oBbbK9h3UcJK5NB1Zox1WxeeUUNhTpf6"
     },
     {
       "address": "3v2am7LrJD3Vc3XN6b6gH8whQqXbR3u2La3N4BdCzxu3",
@@ -5587,13 +4418,9 @@
       "token_vault_b": "3ScMRoFWtT2AfyXyV9DpwQTGQQmbLAdMv93nHUK1Lgcc",
       "decimals_a": 6,
       "decimals_b": 6,
-      "fee_bps": 122,
-      "spacing": 30266,
-      "current_tick_or_bin": 12134,
       "amm_config": "J8YrvEZ46j9qYEEbjYj59hZu1gq9avnsC93WQhJuqsUZ",
       "_comment": "Raydium JUP/PYTH CLMM",
-      "observation_state": "5XUF1bnJ9DCxnrLLUV3uUpQD5ry7XETffPDFm6JyjK4n",
-      "sqrt_price": "33838548908009148065"
+      "observation_state": "5XUF1bnJ9DCxnrLLUV3uUpQD5ry7XETffPDFm6JyjK4n"
     },
     {
       "address": "7WMCUyZXrDxNjAWjuh2r7g8CdT2guqvrmdUPAnGdLsfG",
@@ -5604,13 +4431,9 @@
       "token_vault_b": "69GEhVf3368Pru4BBA51yRLUkCT3c7oqkmW7MJfY5YZi",
       "decimals_a": 6,
       "decimals_b": 9,
-      "fee_bps": 49,
-      "spacing": 22372,
-      "current_tick_or_bin": 4917,
       "amm_config": "JDNwM8TG2JxCrxHJCB3uuYQRDbFT6bKUyiB8fUS8HAw6",
       "_comment": "Raydium JUP/SOL CLMM",
-      "observation_state": "Dji39ioziqZfwyVwf6fq2u44uE3jCJbnjjoKYuocvR7Z",
-      "sqrt_price": "23588731238230887118"
+      "observation_state": "Dji39ioziqZfwyVwf6fq2u44uE3jCJbnjjoKYuocvR7Z"
     },
     {
       "address": "EZVkeboWeXygtq8LMyENHyXdF5wpYrtExRNH9UwB1qYw",
@@ -5621,13 +4444,9 @@
       "token_vault_b": "6pkA4kTvKqgiWDrcTVVcJ3N6GszDdK6QC1fxT6GcmEvc",
       "decimals_a": 6,
       "decimals_b": 9,
-      "fee_bps": 49,
-      "spacing": 236,
-      "current_tick_or_bin": 4949,
       "amm_config": "JAHU65iTsKA9hJY4A9CYQESW4DwGBty3ob7NcRUPU9qj",
       "_comment": "Raydium JUP/SOL CLMM",
-      "observation_state": "72uc9nXozQS2SKXzdbT115mMxjNeWwUjMoJgwbkN7VMU",
-      "sqrt_price": "23625536345623951829"
+      "observation_state": "72uc9nXozQS2SKXzdbT115mMxjNeWwUjMoJgwbkN7VMU"
     },
     {
       "address": "Fu5uXjR17rGbUur294Ke3UxCH8JF5nWYYCe9wqNjDuFr",
@@ -5638,13 +4457,9 @@
       "token_vault_b": "5Tt78VMy6ncVdSUpLVdGhDw57de9JY4BSkZSGqYKGu3o",
       "decimals_a": 6,
       "decimals_b": 6,
-      "fee_bps": 25,
-      "spacing": 21794,
-      "current_tick_or_bin": -16094,
       "amm_config": "J9UXhdjB8UTVTGAKgfnU1cfBxaggPeDaPqsFAH88ZNGk",
       "_comment": "Raydium JUP/USDC CLMM",
-      "observation_state": "BzRwC5EDuzNGimhHyFU21gNoYrmsCQbnMoLAj8Z64g7e",
-      "sqrt_price": "8250406646923909044"
+      "observation_state": "BzRwC5EDuzNGimhHyFU21gNoYrmsCQbnMoLAj8Z64g7e"
     },
     {
       "address": "5Z2YAbbCeagp8kMTAD61fvbT5bcw45Qjubz8t8YobtZR",
@@ -5655,13 +4470,9 @@
       "token_vault_b": "7yQAqy72xzSdatLsWtphgpfrTBCmgdRefs9BKbPLvRyA",
       "decimals_a": 6,
       "decimals_b": 6,
-      "fee_bps": 25,
-      "spacing": 16765,
-      "current_tick_or_bin": -8280,
       "amm_config": "HvqdykNoRDfhK9sgD2vjTvLDEf8qU5V9SY7qu7NvgTVX",
       "_comment": "Raydium JUP/USDC CLMM",
-      "observation_state": "Enigy92aUYyLpzE7Ja7s6LpEz3JoDgYEp83iyBwcHJEr",
-      "sqrt_price": "12193567996800379392"
+      "observation_state": "Enigy92aUYyLpzE7Ja7s6LpEz3JoDgYEp83iyBwcHJEr"
     },
     {
       "address": "DcM51yhj5e7AdMFV2xuejmpnMwWmSQVps7FVnMbcikiZ",
@@ -5672,13 +4483,9 @@
       "token_vault_b": "E1E9rULZpWvQySZdqbdAasU2rvX4EPqdCueJWhHMZpd5",
       "decimals_a": 6,
       "decimals_b": 6,
-      "fee_bps": 25,
-      "spacing": 8174,
-      "current_tick_or_bin": -8400,
       "amm_config": "JCTGZjH8zZeYwvMaF3zX3dK8GhPvHstmn1MPutcuZg8u",
       "_comment": "Raydium JUP/USDT CLMM",
-      "observation_state": "3WYyMuW41oYYqeMrJJj9yDoPEVWrHgXg2onfF6Z645Y1",
-      "sqrt_price": "12120629082084344553"
+      "observation_state": "3WYyMuW41oYYqeMrJJj9yDoPEVWrHgXg2onfF6Z645Y1"
     },
     {
       "address": "2dCj7aEkW15fib8PieEf6qatR2FpmQco2TA7ZLKkUjb5",
@@ -5689,13 +4496,9 @@
       "token_vault_b": "XgU6cs2TVXAYRae2n3qDY7ZAHG57NcEimTGVTneKKnu",
       "decimals_a": 9,
       "decimals_b": 6,
-      "fee_bps": 25,
-      "spacing": 29584,
-      "current_tick_or_bin": -78901,
       "amm_config": "J5a84916Edxn3a3MBAX27guxha7ugh7foyZMf5p8qZcQ",
       "_comment": "Raydium POPCAT/USDC CLMM",
-      "observation_state": "7gL2JkErSmBtgY1gn2KAzkuAG8N6Zg5CLY2exHNip29a",
-      "sqrt_price": "357037336086330554"
+      "observation_state": "7gL2JkErSmBtgY1gn2KAzkuAG8N6Zg5CLY2exHNip29a"
     },
     {
       "address": "GtKKKs3yaPdHbQd2aZS4SfWhy8zQ988BJGnKNndLxYsN",
@@ -5706,13 +4509,9 @@
       "token_vault_b": "2wzaFLYb4JcDrVs8TfU3TfkVwq1Pdp3rRgWdNJzFGXud",
       "decimals_a": 9,
       "decimals_b": 5,
-      "fee_bps": 734,
-      "spacing": 33424,
-      "current_tick_or_bin": 73565,
       "amm_config": "J5a84916Edxn3a3MBAX27guxha7ugh7foyZMf5p8qZcQ",
       "_comment": "Raydium SOL/BONK CLMM",
-      "observation_state": "Gj8gzDNKmf5y3p1LorKHTvMZ8eCLhbCDnhGiN5xVW8Jq",
-      "sqrt_price": "729950271131854849860"
+      "observation_state": "Gj8gzDNKmf5y3p1LorKHTvMZ8eCLhbCDnhGiN5xVW8Jq"
     },
     {
       "address": "ysq96dVZrrMVRassYB2Vr5cHFWoSQDRzQRGNmRRtr1L",
@@ -5723,13 +4522,9 @@
       "token_vault_b": "B7b8YgV8rJXdeuMyfP5mhZL3SU46si9owrKT5a8Ss8Nr",
       "decimals_a": 9,
       "decimals_b": 5,
-      "fee_bps": 734,
-      "spacing": 35182,
-      "current_tick_or_bin": 73567,
       "amm_config": "JB2KACppn93mBpbP5W1nXGpBKa5TWBS41ndhyxgZAi5S",
       "_comment": "Raydium SOL/BONK CLMM",
-      "observation_state": "Gajn4cvFPSFNFCUrvLbTwjkgShvTTS4TGPxYqc1HcG6a",
-      "sqrt_price": "730040294810367818790"
+      "observation_state": "Gajn4cvFPSFNFCUrvLbTwjkgShvTTS4TGPxYqc1HcG6a"
     },
     {
       "address": "BjZKz1z4UMjJPvPfKwTwjPErVBWnewnJFvcZB6minymy",
@@ -5740,13 +4535,9 @@
       "token_vault_b": "2LUJugRCHHo8gcJkQtGivx4LbRZKPRDZua5BoMUz1Z5B",
       "decimals_a": 9,
       "decimals_b": 5,
-      "fee_bps": 734,
-      "spacing": 2416,
-      "current_tick_or_bin": 73548,
       "amm_config": "J6P4SazNyUfSHcR5edw6WJhGoDNVUws9DioV7EAPkMBP",
       "_comment": "Raydium SOL/BONK CLMM",
-      "observation_state": "7MZbMKTV5srt6BqctdfDi7eSzgvZBnuh9zgtKqfYcoKU",
-      "sqrt_price": "729315964014244918196"
+      "observation_state": "7MZbMKTV5srt6BqctdfDi7eSzgvZBnuh9zgtKqfYcoKU"
     },
     {
       "address": "ALYy1HRt3fsn1S9McLWsXCoq6Ke7bwMiwZ6QYr6HvsYS",
@@ -5757,13 +4548,9 @@
       "token_vault_b": "7FeHMmgf46nDQn4zqi1dDEGZFkeCENpQqnD11FK1GqF4",
       "decimals_a": 9,
       "decimals_b": 5,
-      "fee_bps": 734,
-      "spacing": 23719,
-      "current_tick_or_bin": 73490,
       "amm_config": "J8YrvEZ46j9qYEEbjYj59hZu1gq9avnsC93WQhJuqsUZ",
       "_comment": "Raydium SOL/BONK CLMM",
-      "observation_state": "29FycfAbV5mQg4gvU72GnbRJux5jPsi2iQeH9aacTtFm",
-      "sqrt_price": "727232744342395591058"
+      "observation_state": "29FycfAbV5mQg4gvU72GnbRJux5jPsi2iQeH9aacTtFm"
     },
     {
       "address": "z5UnzBcUnzQPoeHe5eVPoYczaTQ2BhwwDD9PN7Fq16v",
@@ -5774,13 +4561,9 @@
       "token_vault_b": "7x5iTzavPP5Q81Q9ZJhhPcGaL2vHJfU5dqwNmZG5uk13",
       "decimals_a": 9,
       "decimals_b": 8,
-      "fee_bps": 25,
-      "spacing": 28696,
-      "current_tick_or_bin": -54731,
       "amm_config": "Hsru7epqZ8UdpVgReeigRugGvYRbZqox4Ndh9Vt9g9dN",
       "_comment": "Raydium SOL/ETH CLMM",
-      "observation_state": "5F5ADAvA5u3PiLG8krhVw31KFtnzuh6CKDykxxoW4x3e",
-      "sqrt_price": "1195414454806689859"
+      "observation_state": "5F5ADAvA5u3PiLG8krhVw31KFtnzuh6CKDykxxoW4x3e"
     },
     {
       "address": "296QdpvTmcnmNwzXu3VRuFV13UMaj2LsV65sGRrUnjBv",
@@ -5791,13 +4574,9 @@
       "token_vault_b": "Dw7N33p8Fsae94RxToUhy6gXtAdnJvmBz4faq6bgfNmX",
       "decimals_a": 9,
       "decimals_b": 9,
-      "fee_bps": 536,
-      "spacing": 61384,
-      "current_tick_or_bin": 53699,
       "amm_config": "JDNwM8TG2JxCrxHJCB3uuYQRDbFT6bKUyiB8fUS8HAw6",
       "_comment": "Raydium SOL/JTO CLMM",
-      "observation_state": "2vahQ27C4jvpGGjAvFD7wXBJMAUbX3gQFTEVrQoRf6H2",
-      "sqrt_price": "270359793525292482930"
+      "observation_state": "2vahQ27C4jvpGGjAvFD7wXBJMAUbX3gQFTEVrQoRf6H2"
     },
     {
       "address": "JVoPtWWDsRcLvQosu5fWc2CaNF6jEtJzbxdPtcEuvZo",
@@ -5808,13 +4587,9 @@
       "token_vault_b": "GtDzTPATXEuGHrAb4seoW7HR9PkJMDxkPXwLWoqEkGNf",
       "decimals_a": 9,
       "decimals_b": 9,
-      "fee_bps": 577,
-      "spacing": 15368,
-      "current_tick_or_bin": 57684,
       "amm_config": "J8YrvEZ46j9qYEEbjYj59hZu1gq9avnsC93WQhJuqsUZ",
       "_comment": "Raydium SOL/JTO CLMM",
-      "observation_state": "J56JoCEHyCG3P5fCKdB9S78NLBXY6T4UfxiCwRNh8gGP",
-      "sqrt_price": "329960439016997783184"
+      "observation_state": "J56JoCEHyCG3P5fCKdB9S78NLBXY6T4UfxiCwRNh8gGP"
     },
     {
       "address": "4Kty4cBWvf8fvTbwhDXVE7Yer6eqFmHQoeDm5v2PGuD4",
@@ -5825,13 +4600,9 @@
       "token_vault_b": "4GPbhE4tBQijmkZNGSHNRWuDfTe15WiULPV7Pw7Ujvg2",
       "decimals_a": 9,
       "decimals_b": 9,
-      "fee_bps": 25,
-      "spacing": 9759,
-      "current_tick_or_bin": -641,
       "amm_config": "JB8j7YGuFQamgdE5rJ316aG5YeadCifd5HbeT7ZJwhBn",
       "_comment": "Raydium SOL/JitoSOL CLMM",
-      "observation_state": "EYstuXRXLP7JY4mML4wPQ7NiSixD7t4qj86HkwZHBgvN",
-      "sqrt_price": "17865821636704525308"
+      "observation_state": "EYstuXRXLP7JY4mML4wPQ7NiSixD7t4qj86HkwZHBgvN"
     },
     {
       "address": "2uoKbPEidR7KAMYtY4x7xdkHXWqYib5k4CutJauSL3Mc",
@@ -5842,13 +4613,9 @@
       "token_vault_b": "6HrrQEWJ6atWo1dYV7zvSock7amZ1HC8M64RW1nB55XY",
       "decimals_a": 9,
       "decimals_b": 9,
-      "fee_bps": 25,
-      "spacing": 297,
-      "current_tick_or_bin": -2238,
       "amm_config": "JCPS6D41dkCnqv8Dtut9ALn1H6MPx3EdThKScmj6t7SL",
       "_comment": "Raydium SOL/JitoSOL CLMM",
-      "observation_state": "CPbJctJNpDpV1BVDSq9jwjzz3hjUGSxq2B33g4ciC927",
-      "sqrt_price": "16494450622238069101"
+      "observation_state": "CPbJctJNpDpV1BVDSq9jwjzz3hjUGSxq2B33g4ciC927"
     },
     {
       "address": "ZT6NM6DzTqLZytKFVGXM2q4PiB8cwGzJXe3FtheB6GB",
@@ -5859,13 +4626,9 @@
       "token_vault_b": "Eh74FQccDAarZDCuTM24BninCWfBBYEW3RFCN1LZfPpt",
       "decimals_a": 9,
       "decimals_b": 9,
-      "fee_bps": 630,
-      "spacing": 50063,
-      "current_tick_or_bin": 63029,
       "amm_config": "J5X5dHxtc2hn9q18Vri9Ba6pw74XUErTnMnADM6dEPRQ",
       "_comment": "Raydium SOL/POPCAT CLMM",
-      "observation_state": "DhZBzu9FcKQgsufJ1JVLs3jUwDzbTYy1Wk8R1pKZDnEq",
-      "sqrt_price": "431052683204100305017"
+      "observation_state": "DhZBzu9FcKQgsufJ1JVLs3jUwDzbTYy1Wk8R1pKZDnEq"
     },
     {
       "address": "43xBeK8mZtssDjFLdrpr2muH5AYQJRVFb22y5rHvfo9C",
@@ -5876,13 +4639,9 @@
       "token_vault_b": "93Xh5nkYx92LSKu6E7tJFmp8KbHNoQH4PYzD14vd1JmY",
       "decimals_a": 9,
       "decimals_b": 9,
-      "fee_bps": 733,
-      "spacing": 37864,
-      "current_tick_or_bin": 73456,
       "amm_config": "J9UXhdjB8UTVTGAKgfnU1cfBxaggPeDaPqsFAH88ZNGk",
       "_comment": "Raydium SOL/POPCAT CLMM",
-      "observation_state": "HytFPw3VwLeLZXgBU6e4voCuDtVMukCbPYphbFDwfvyL",
-      "sqrt_price": "725977251137905355333"
+      "observation_state": "HytFPw3VwLeLZXgBU6e4voCuDtVMukCbPYphbFDwfvyL"
     },
     {
       "address": "7bLEFh4c4mBMPnmnLbCd2KS7ifH6XFSsw8qQLpaFfQTN",
@@ -5893,13 +4652,9 @@
       "token_vault_b": "9gbfyxJvZQRnWBqs8JqiPfgA8TZAipec3a4NqfADtk3t",
       "decimals_a": 9,
       "decimals_b": 9,
-      "fee_bps": 579,
-      "spacing": 25826,
-      "current_tick_or_bin": 57993,
       "amm_config": "JB2KACppn93mBpbP5W1nXGpBKa5TWBS41ndhyxgZAi5S",
       "_comment": "Raydium SOL/POPCAT CLMM",
-      "observation_state": "GSKwiHdY6uJHs4g5zB56TzQdfFX5BSC3jsshV3bEdADe",
-      "sqrt_price": "335087907921640407219"
+      "observation_state": "GSKwiHdY6uJHs4g5zB56TzQdfFX5BSC3jsshV3bEdADe"
     },
     {
       "address": "dgfJKacfubDGfX3mhEk1JKaK9qx38SpLzM2wNdgX2fD",
@@ -5910,13 +4665,9 @@
       "token_vault_b": "9LtUjniH5C2ZQudCzi5eiSym4XGXgaVkDJTfDYbu6y9x",
       "decimals_a": 9,
       "decimals_b": 9,
-      "fee_bps": 733,
-      "spacing": 17053,
-      "current_tick_or_bin": 73365,
       "amm_config": "JCTGZjH8zZeYwvMaF3zX3dK8GhPvHstmn1MPutcuZg8u",
       "_comment": "Raydium SOL/POPCAT CLMM",
-      "observation_state": "J3sJsFTBFU1RKGtpmpG1Th2D2oLv9vNyv6uQVQFK8A65",
-      "sqrt_price": "722694112821953940547"
+      "observation_state": "J3sJsFTBFU1RKGtpmpG1Th2D2oLv9vNyv6uQVQFK8A65"
     },
     {
       "address": "bWpDAyJ8UidQoYU2rDemfoLE8pWP1p8GYKrxFrCtPbN",
@@ -5927,13 +4678,9 @@
       "token_vault_b": "6TQhisKzUNCMzg5E5MMh6d4o2QEPYAGawqMDnAMUwMXS",
       "decimals_a": 9,
       "decimals_b": 6,
-      "fee_bps": 67,
-      "spacing": 35504,
-      "current_tick_or_bin": 6719,
       "amm_config": "J9Kbn8UXfXnxApNAykLF7MT23wz9ARPjAoeRap68yNSA",
       "_comment": "Raydium SOL/PYTH CLMM",
-      "observation_state": "4sdBbRqjGAAgksAWLQNWJv2ig4pBG2JCNHHmSxWX7nsZ",
-      "sqrt_price": "25812815231330637753"
+      "observation_state": "4sdBbRqjGAAgksAWLQNWJv2ig4pBG2JCNHHmSxWX7nsZ"
     },
     {
       "address": "D2P4D7xtUAwzd8WRDaNQRcojoKKVyoWVG2PUPYscMT7p",
@@ -5944,13 +4691,9 @@
       "token_vault_b": "ATFqg5nWW8pjdtbhftyVfi718v6nr3mmwPEv5pGRWEHN",
       "decimals_a": 9,
       "decimals_b": 6,
-      "fee_bps": 69,
-      "spacing": 38132,
-      "current_tick_or_bin": 6959,
       "amm_config": "HtvNt3RErsyVPdsVQ4AnXv5YRk5ihbZir2hQRWLc62NW",
       "_comment": "Raydium SOL/PYTH CLMM",
-      "observation_state": "43M3oQs1UgsjmSNNKjw63R4wqnnGHiJfSWc39EHxQT9q",
-      "sqrt_price": "26124419318112164137"
+      "observation_state": "43M3oQs1UgsjmSNNKjw63R4wqnnGHiJfSWc39EHxQT9q"
     },
     {
       "address": "9n3dSLrERZQp95dHXywft7xV8D8xnGFLaUHtEhQVaXaC",
@@ -5961,13 +4704,9 @@
       "token_vault_b": "CKzYCVH5opbXrC9Zt2g4o8Pee1oaKGPbEDozhWdJqRdg",
       "decimals_a": 9,
       "decimals_b": 6,
-      "fee_bps": 72,
-      "spacing": 41569,
-      "current_tick_or_bin": 7307,
       "amm_config": "JDNwM8TG2JxCrxHJCB3uuYQRDbFT6bKUyiB8fUS8HAw6",
       "_comment": "Raydium SOL/PYTH CLMM",
-      "observation_state": "B34gh57xbQHfGjAdEoy9s6L1eivCpGJcrg18DjoozEE6",
-      "sqrt_price": "26582641760999610749"
+      "observation_state": "B34gh57xbQHfGjAdEoy9s6L1eivCpGJcrg18DjoozEE6"
     },
     {
       "address": "CP3J4WkKwDyDxm7uSucQfPgrKBwFe5wM4UsURscdytsX",
@@ -5978,13 +4717,9 @@
       "token_vault_b": "GHTMXHNDuvoE8zcJF1f54Uz6Ans2dRMx6fKj14XT3iqa",
       "decimals_a": 9,
       "decimals_b": 6,
-      "fee_bps": 72,
-      "spacing": 61516,
-      "current_tick_or_bin": 7258,
       "amm_config": "JDxfs4GtJ74k7XyFceqQ32fgkBVXJTX5xo6GVYsmrFcF",
       "_comment": "Raydium SOL/PYTH CLMM",
-      "observation_state": "DULGhHJhNfKFcoXT5dko5YACasnC2UPs8FurDyXQFoHE",
-      "sqrt_price": "26516614392914793325"
+      "observation_state": "DULGhHJhNfKFcoXT5dko5YACasnC2UPs8FurDyXQFoHE"
     },
     {
       "address": "CsVe97sDiaXkVfVjiwyYp4zKZXD7TckaRcLVgqbFuUay",
@@ -5995,13 +4730,9 @@
       "token_vault_b": "H8WuqhShpVg7ebhFcabvKKG5vCi5HJ9rWd76fcEuvyiR",
       "decimals_a": 9,
       "decimals_b": 6,
-      "fee_bps": 25,
-      "spacing": 7401,
-      "current_tick_or_bin": -36864,
       "amm_config": "JDxfs4GtJ74k7XyFceqQ32fgkBVXJTX5xo6GVYsmrFcF",
       "_comment": "Raydium SOL/TRUMP CLMM",
-      "observation_state": "EWcRqKuf9tTAbpnYq33Sxvd7oKTz9KngFhGn6S9SxGNE",
-      "sqrt_price": "2920616147816627636"
+      "observation_state": "EWcRqKuf9tTAbpnYq33Sxvd7oKTz9KngFhGn6S9SxGNE"
     },
     {
       "address": "EKmcEiMEExCBEg9Aw7HethY8UGm5KjPgSdhJeK9bQh6j",
@@ -6012,13 +4743,9 @@
       "token_vault_b": "C8HcTdv1uRBgvgcQSqdRnetdkWkLpEu47gJ3KxzsUs9G",
       "decimals_a": 9,
       "decimals_b": 6,
-      "fee_bps": 25,
-      "spacing": 59197,
-      "current_tick_or_bin": -36878,
       "amm_config": "J8YrvEZ46j9qYEEbjYj59hZu1gq9avnsC93WQhJuqsUZ",
       "_comment": "Raydium SOL/TRUMP CLMM",
-      "observation_state": "5bPnxrLfbyr9cgkjhNfpiCuofd95UGo3qt2pRbfxHasA",
-      "sqrt_price": "2918586809264552526"
+      "observation_state": "5bPnxrLfbyr9cgkjhNfpiCuofd95UGo3qt2pRbfxHasA"
     },
     {
       "address": "GQsPr4RJk9AZkkfWHud7v4MtotcxhaYzZHdsPCg9vNvW",
@@ -6029,13 +4756,9 @@
       "token_vault_b": "3DZg4BbkBj8GKEXXXRtu6wUunpCAth6n8gZur9Dronvt",
       "decimals_a": 9,
       "decimals_b": 6,
-      "fee_bps": 25,
-      "spacing": 21134,
-      "current_tick_or_bin": -36875,
       "amm_config": "JDNwM8TG2JxCrxHJCB3uuYQRDbFT6bKUyiB8fUS8HAw6",
       "_comment": "Raydium SOL/TRUMP CLMM",
-      "observation_state": "B39UjYJDygUfufZfwGa2BVbSnLLw9qredg3wDWarMAUx",
-      "sqrt_price": "2919064858155680764"
+      "observation_state": "B39UjYJDygUfufZfwGa2BVbSnLLw9qredg3wDWarMAUx"
     },
     {
       "address": "2SjLv6XwViJ17rq21N1y98LbMee1J4DXinP61rk9v2aK",
@@ -6046,13 +4769,9 @@
       "token_vault_b": "GgRf74jDwe9mFKcXSnjcL6iPZGHw2Ddf5tWQxAWPGWKC",
       "decimals_a": 9,
       "decimals_b": 6,
-      "fee_bps": 25,
-      "spacing": 54582,
-      "current_tick_or_bin": -17700,
       "amm_config": "J6dbpXbVYPTdciEQvZy8DhKECmn2pSsSbdd4w6GbFSMY",
       "_comment": "Raydium SOL/USDC CLMM",
-      "observation_state": "CqY713Ms9mF3LRbyGzWJmoEVNE837pqS5saYgfHcSQXu",
-      "sqrt_price": "7613569601240257576"
+      "observation_state": "CqY713Ms9mF3LRbyGzWJmoEVNE837pqS5saYgfHcSQXu"
     },
     {
       "address": "3ucNos4NbumPLZNWztqGHNFFgkHeRMBQAVemeeomsUxv",
@@ -6063,13 +4782,9 @@
       "token_vault_b": "5it83u57VRrVgc51oNV19TTmAJuffPx5GtGwQr7gQNUo",
       "decimals_a": 9,
       "decimals_b": 6,
-      "fee_bps": 25,
-      "spacing": 57594,
-      "current_tick_or_bin": -20969,
       "amm_config": "JB2KACppn93mBpbP5W1nXGpBKa5TWBS41ndhyxgZAi5S",
       "_comment": "Raydium SOL/USDC CLMM",
-      "observation_state": "3Y695CuQ8AP4anbwAqiEBeQF9KxqHFr8piEwvw3UePnQ",
-      "sqrt_price": "6465736524328548455"
+      "observation_state": "3Y695CuQ8AP4anbwAqiEBeQF9KxqHFr8piEwvw3UePnQ"
     },
     {
       "address": "8sLbNZoA1cfnvMJLPfp98ZLAnFSYCFApfJKMbiXNLwxj",
@@ -6080,13 +4795,9 @@
       "token_vault_b": "6mK4Pxs6GhwnessH7CvPivqDYauiHZmAdbEFDpXFk9zt",
       "decimals_a": 9,
       "decimals_b": 6,
-      "fee_bps": 25,
-      "spacing": 14335,
-      "current_tick_or_bin": -20968,
       "amm_config": "HvmoWE9g4QDwD9eKrtpMado6F46K8Eq18E5tbzV7ztnx",
       "_comment": "Raydium SOL/USDC CLMM",
-      "observation_state": "3MsJXVvievxAbsMsaT6TS4i6oMitD9jazucuq3X234tC",
-      "sqrt_price": "6466120428891975568"
+      "observation_state": "3MsJXVvievxAbsMsaT6TS4i6oMitD9jazucuq3X234tC"
     },
     {
       "address": "CztrCcLhgfazkBchMW7wXQL37AWQdBP1tQWHBR249neh",
@@ -6097,13 +4808,9 @@
       "token_vault_b": "4mnSgkLCmJWn5igniQRMHLntwpNjN3k54QsvKZujk1wJ",
       "decimals_a": 9,
       "decimals_b": 6,
-      "fee_bps": 25,
-      "spacing": 33277,
-      "current_tick_or_bin": -20957,
       "amm_config": "J3K1pHEJpm78VVcCWBLmGvK89nJWmXmii9zkCu6otB3T",
       "_comment": "Raydium SOL/USDC CLMM",
-      "observation_state": "Bc2y3udGsGEENH9wBMgywGEPnPdR5Dkjns81pEtZ3pU",
-      "sqrt_price": "6469465563958146267"
+      "observation_state": "Bc2y3udGsGEENH9wBMgywGEPnPdR5Dkjns81pEtZ3pU"
     },
     {
       "address": "2QdhepnKRTLjjSqPL1PtKNwqrUkoLee5Gqs8bvZhRdMv",
@@ -6114,13 +4821,9 @@
       "token_vault_b": "4d35yC7C8zhCDec7JbPptL9SEb4NUddKHxURgmvD8hfo",
       "decimals_a": 9,
       "decimals_b": 6,
-      "fee_bps": 25,
-      "spacing": 36157,
-      "current_tick_or_bin": -20964,
       "amm_config": "JEBsjaSYm9es6zf2feTzJABjKEW2tr4xPTRG7cnPBxW5",
       "_comment": "Raydium SOL/USDC CLMM",
-      "observation_state": "4fEjbMXTet3w8qhScPmT6X79ypagRydKLHPqcGsrhcmP",
-      "sqrt_price": "6467476579836298594"
+      "observation_state": "4fEjbMXTet3w8qhScPmT6X79ypagRydKLHPqcGsrhcmP"
     },
     {
       "address": "6MUjnGffYaqcHeqv4nNemUQVNMpJab3W2NV9bfPj576c",
@@ -6131,13 +4834,9 @@
       "token_vault_b": "1i3HWdz8Yphfy9jWizbSK2f6cX1em8ANU6xhHLfuzsE",
       "decimals_a": 9,
       "decimals_b": 6,
-      "fee_bps": 25,
-      "spacing": 43784,
-      "current_tick_or_bin": -21001,
       "amm_config": "J2FSva6dcbabtTcL6934MFRzy9oDBcDNDCAbyxwngqdD",
       "_comment": "Raydium SOL/USDC CLMM",
-      "observation_state": "6As3k6r8ruuuBT6ueci5ta9UrgjyT8W59qGeN43n6iao",
-      "sqrt_price": "6455253691834570015"
+      "observation_state": "6As3k6r8ruuuBT6ueci5ta9UrgjyT8W59qGeN43n6iao"
     },
     {
       "address": "2JtkunkYCRbe5YZuGU6kLFmNwN22Ba1pCicHoqW5Eqja",
@@ -6148,13 +4847,9 @@
       "token_vault_b": "D3v9aj4zqWtLD16Kyp6BpXDDRpZxtDwR95JjLQjQb2k4",
       "decimals_a": 9,
       "decimals_b": 6,
-      "fee_bps": 25,
-      "spacing": 24094,
-      "current_tick_or_bin": -20715,
       "amm_config": "J7qrZRb1cd9Kx9MB1D5CDWZEBZWAchJfrYHhGWJt6BPT",
       "_comment": "Raydium SOL/USDC CLMM",
-      "observation_state": "EsGEeBn6T4cpRwQyzkZzjRHHeaiZUsjB9b5iwUVB1Zgp",
-      "sqrt_price": "6548337344708557216"
+      "observation_state": "EsGEeBn6T4cpRwQyzkZzjRHHeaiZUsjB9b5iwUVB1Zgp"
     },
     {
       "address": "4i1h1Uz8SFWVa2erTtD4rvbxmWgPLjQZEvZj9yZULce1",
@@ -6165,13 +4860,9 @@
       "token_vault_b": "8Zcem185UTnoBpy6eJbqpxqDSfAaCSS4JiSLeuXqSbkE",
       "decimals_a": 9,
       "decimals_b": 6,
-      "fee_bps": 25,
-      "spacing": 11992,
-      "current_tick_or_bin": -19921,
       "amm_config": "J59bmykaQA28ZE6EeYRUggMu6jLp4DwJ9Si6i8KnopVT",
       "_comment": "Raydium SOL/USDC CLMM",
-      "observation_state": "FQK1gQfBBLSiz96T9KP6QkniaBEWW6T8NqZ561PRmwHy",
-      "sqrt_price": "6813716266760046567"
+      "observation_state": "FQK1gQfBBLSiz96T9KP6QkniaBEWW6T8NqZ561PRmwHy"
     },
     {
       "address": "CiSQxEhiS1j7PVHy57LqmjFWL1N7ciYD45Enq5tSyfaN",
@@ -6182,13 +4873,9 @@
       "token_vault_b": "AZvtizXQku7wDfC8QyxcFLeX1vyRVSjnurMFfi8HoVen",
       "decimals_a": 9,
       "decimals_b": 6,
-      "fee_bps": 25,
-      "spacing": 54582,
-      "current_tick_or_bin": -17701,
       "amm_config": "JDE1RdCcZNHfaWV9VFbh1HCFJxYusNVdkfxK61Q8hB6W",
       "_comment": "Raydium SOL/USDC CLMM",
-      "observation_state": "Ahc4tS1eHmub427i7P6wkNRmRtD8UoLiuHkQXEz6F8q6",
-      "sqrt_price": "7613569600617062738"
+      "observation_state": "Ahc4tS1eHmub427i7P6wkNRmRtD8UoLiuHkQXEz6F8q6"
     },
     {
       "address": "5s7njN2X6k3trkibTKX6LJFu4PnybYhCuADP9LD2fhuP",
@@ -6199,13 +4886,9 @@
       "token_vault_b": "WWR1qBiszNxvMKxWFXg3HB9ymsy86z5gYktcsnZdFGu",
       "decimals_a": 9,
       "decimals_b": 6,
-      "fee_bps": 25,
-      "spacing": 65175,
-      "current_tick_or_bin": -20965,
       "amm_config": "J9mFQrXxsbDErwE2ZMr5uuWvj4WrPv9Fh5xyVseK2z7w",
       "_comment": "Raydium SOL/USDC CLMM",
-      "observation_state": "CZ7yfxEfoLvn5MqnPJMLJnA2bwyzMrkYHbD5Ebr4qfPQ",
-      "sqrt_price": "6466878881711299986"
+      "observation_state": "CZ7yfxEfoLvn5MqnPJMLJnA2bwyzMrkYHbD5Ebr4qfPQ"
     },
     {
       "address": "GqxUEcFw8GbfDPoWU6UG2ypvsM3aw3vZmiN4e1Nbv94G",
@@ -6216,13 +4899,9 @@
       "token_vault_b": "3akY6KEFaDVDowFBkxS2iC7U8bgpUtpmAK1J2DgYNJw6",
       "decimals_a": 9,
       "decimals_b": 6,
-      "fee_bps": 25,
-      "spacing": 18675,
-      "current_tick_or_bin": -18480,
       "amm_config": "JCTGZjH8zZeYwvMaF3zX3dK8GhPvHstmn1MPutcuZg8u",
       "_comment": "Raydium SOL/USDC CLMM",
-      "observation_state": "EeVXzDotby848gkusN8qZykJ4NiKFRopCanXkMTJeF2K",
-      "sqrt_price": "7322370256581809715"
+      "observation_state": "EeVXzDotby848gkusN8qZykJ4NiKFRopCanXkMTJeF2K"
     },
     {
       "address": "87Dia7JixTXFrXs7i5YHT1Z3dJFkd9KdaWquNcPsGPyT",
@@ -6233,13 +4912,9 @@
       "token_vault_b": "9zA4Sg1z4Jm6M6CLmL9xeghQpJkC1E79KFy46oRJEhGN",
       "decimals_a": 9,
       "decimals_b": 6,
-      "fee_bps": 25,
-      "spacing": 58580,
-      "current_tick_or_bin": -17681,
       "amm_config": "JDKtvHR4PhhCyDF5WsF2yRbHT8C4t94Gx6PwDjicfzk6",
       "_comment": "Raydium SOL/USDC CLMM",
-      "observation_state": "6JKrD2JYLxak4LUnQZKnuBfj2UNsgug4iqAN973PqxBM",
-      "sqrt_price": "7621186597237784982"
+      "observation_state": "6JKrD2JYLxak4LUnQZKnuBfj2UNsgug4iqAN973PqxBM"
     },
     {
       "address": "CYbD9RaToYMtWKA7QZyoLahnHdWq553Vm62Lh6qWtuxq",
@@ -6250,13 +4925,9 @@
       "token_vault_b": "3bWPj5eepJm8CxUzk5MMFMN2CFJkntxKvbmy4zwwtpJd",
       "decimals_a": 9,
       "decimals_b": 6,
-      "fee_bps": 25,
-      "spacing": 56920,
-      "current_tick_or_bin": -20967,
       "amm_config": "J5hDrSzEDoVKe6z5q2X4eSiSoiUuRU4WK755BrYomq1W",
       "_comment": "Raydium SOL/USDC CLMM",
-      "observation_state": "AA5RaVvyGyZgtmAsJJHT5ZVBxVPtAXuYaMwfgeFJW4Mk",
-      "sqrt_price": "6466368459466181273"
+      "observation_state": "AA5RaVvyGyZgtmAsJJHT5ZVBxVPtAXuYaMwfgeFJW4Mk"
     },
     {
       "address": "EXHyQxMSttcvLPwjENnXCPZ8GmLjJYHtNBnAkcFeFKMn",
@@ -6267,13 +4938,9 @@
       "token_vault_b": "9PeQs7co3NtYnkV2CuWCSC6MXxwrMgHBX1E2qNEUj7MY",
       "decimals_a": 9,
       "decimals_b": 6,
-      "fee_bps": 25,
-      "spacing": 59381,
-      "current_tick_or_bin": -20969,
       "amm_config": "J3KupYpjTjbLsEz8qHW7Jimd2dT5npTouYysSiwKW5s6",
       "_comment": "Raydium SOL/USDC CLMM",
-      "observation_state": "BidNmgznWp3ERbuemvdPANYmF2ePMHzGvbqjhMpRZYrn",
-      "sqrt_price": "6465594525482760426"
+      "observation_state": "BidNmgznWp3ERbuemvdPANYmF2ePMHzGvbqjhMpRZYrn"
     },
     {
       "address": "3tD34VtprDSkYCnATtQLCiVgTkECU3d12KtjupeR6N2X",
@@ -6284,13 +4951,9 @@
       "token_vault_b": "CCTepNPop1uVYUyrqS2yk7qdHELPWUoNtbibkfxycDSk",
       "decimals_a": 9,
       "decimals_b": 6,
-      "fee_bps": 25,
-      "spacing": 31778,
-      "current_tick_or_bin": -16293,
       "amm_config": "J9UXhdjB8UTVTGAKgfnU1cfBxaggPeDaPqsFAH88ZNGk",
       "_comment": "Raydium SOL/USDC CLMM",
-      "observation_state": "5jioL9CDJUpqGG9X9MYXwNz5McnXNPm2VJ61JTvUbRkZ",
-      "sqrt_price": "8168540310819703009"
+      "observation_state": "5jioL9CDJUpqGG9X9MYXwNz5McnXNPm2VJ61JTvUbRkZ"
     },
     {
       "address": "ExcBWu8fGPdJiaF1b1z3iEef38sjQJks8xvj6M85pPY6",
@@ -6301,13 +4964,9 @@
       "token_vault_b": "2w6WUGXVeUPeGpJTUSNu4btbpMkFtmjrQgpKi149it7K",
       "decimals_a": 9,
       "decimals_b": 6,
-      "fee_bps": 25,
-      "spacing": 13733,
-      "current_tick_or_bin": -20964,
       "amm_config": "JDW39SSQ1UUkTVE2r33xSJCuKjcSqNGKUqgrCFAoDSLC",
       "_comment": "Raydium SOL/USDT CLMM",
-      "observation_state": "3AsJZQY3jtZwqBfbTUQ4xKDVwmdz2ufdKMsnxN9K5L3S",
-      "sqrt_price": "6467375232545029448"
+      "observation_state": "3AsJZQY3jtZwqBfbTUQ4xKDVwmdz2ufdKMsnxN9K5L3S"
     },
     {
       "address": "6kT4MhDqKrkWikaGpFCvYsk45BUKXEe2gTpNGAR1YcjS",
@@ -6318,13 +4977,9 @@
       "token_vault_b": "F4BVkqLm4c6kMUGTxLdVXqRpmbxTdzzfoTMQR4XV68mt",
       "decimals_a": 9,
       "decimals_b": 6,
-      "fee_bps": 25,
-      "spacing": 45124,
-      "current_tick_or_bin": -20966,
       "amm_config": "JAHU65iTsKA9hJY4A9CYQESW4DwGBty3ob7NcRUPU9qj",
       "_comment": "Raydium SOL/USDT CLMM",
-      "observation_state": "AWAcFgo1fooVejmPn5FujmUc2iv2iUUNBDsGZzLwdy3Y",
-      "sqrt_price": "6466790907082536454"
+      "observation_state": "AWAcFgo1fooVejmPn5FujmUc2iv2iUUNBDsGZzLwdy3Y"
     },
     {
       "address": "3nMFwZXwY1s1M5s8vYAHqd4wGs4iSxXE4LRoUMMYqEgF",
@@ -6335,13 +4990,9 @@
       "token_vault_b": "2n6fxuD6PA5NYgEnXXYMh2iWD1JBJ1LGf76kFJAayZmX",
       "decimals_a": 9,
       "decimals_b": 6,
-      "fee_bps": 25,
-      "spacing": 55408,
-      "current_tick_or_bin": -20965,
       "amm_config": "HvmoWE9g4QDwD9eKrtpMado6F46K8Eq18E5tbzV7ztnx",
       "_comment": "Raydium SOL/USDT CLMM",
-      "observation_state": "Cqb16WaM7dDDP8koxYASDJLWgan4STDB1R3LiSH8r3GR",
-      "sqrt_price": "6467119002013393016"
+      "observation_state": "Cqb16WaM7dDDP8koxYASDJLWgan4STDB1R3LiSH8r3GR"
     },
     {
       "address": "7npqExgYmktC6S9YxdxFzsh7LEzokgQfxeAAZHxQwM6Z",
@@ -6352,13 +5003,9 @@
       "token_vault_b": "3uXhfzhAZjRdFmr62r7ooKyGHkJqQMMkBZvKZsfCKPVo",
       "decimals_a": 9,
       "decimals_b": 5,
-      "fee_bps": 619,
-      "spacing": 15164,
-      "current_tick_or_bin": 61919,
       "amm_config": "JCTGZjH8zZeYwvMaF3zX3dK8GhPvHstmn1MPutcuZg8u",
       "_comment": "Raydium SOL/WEN CLMM",
-      "observation_state": "EVuYZVqpeua88TKEkAuiuPsVbazgoxxVo8EoisDYwLzQ",
-      "sqrt_price": "407782152565380847855"
+      "observation_state": "EVuYZVqpeua88TKEkAuiuPsVbazgoxxVo8EoisDYwLzQ"
     },
     {
       "address": "FVahRzeovtD5Zbm8vcL65yAVxKMWzPQYdsz5u811qcGi",
@@ -6369,13 +5016,9 @@
       "token_vault_b": "2Jm1qeUWUX8c4pGBTqqEzbBJXTZ8m49c6HTfSswjJRtV",
       "decimals_a": 9,
       "decimals_b": 9,
-      "fee_bps": 25,
-      "spacing": 35521,
-      "current_tick_or_bin": -2131,
       "amm_config": "J3KupYpjTjbLsEz8qHW7Jimd2dT5npTouYysSiwKW5s6",
       "_comment": "Raydium SOL/bSOL CLMM",
-      "observation_state": "FZsvspgE5np54CgFrqarUHJsWWDYghoADp5nXQHVZpYp",
-      "sqrt_price": "16583250816832053198"
+      "observation_state": "FZsvspgE5np54CgFrqarUHJsWWDYghoADp5nXQHVZpYp"
     },
     {
       "address": "HZf7wppva3wk4dCnrUe2GE1c8aUEXsUNk5asMFQ5sYch",
@@ -6386,13 +5029,9 @@
       "token_vault_b": "HrVfprMaWiP19TFXdCyMjxKKK5xYWCXeEzW6TP373Rae",
       "decimals_a": 9,
       "decimals_b": 9,
-      "fee_bps": 25,
-      "spacing": 34887,
-      "current_tick_or_bin": -2991,
       "amm_config": "JB8j7YGuFQamgdE5rJ316aG5YeadCifd5HbeT7ZJwhBn",
       "_comment": "Raydium SOL/mSOL CLMM",
-      "observation_state": "4darN1x7dPYBRP5UkgF8VN53vm5CPf1q2aAmvM4MiSLe",
-      "sqrt_price": "15885168642066138457"
+      "observation_state": "4darN1x7dPYBRP5UkgF8VN53vm5CPf1q2aAmvM4MiSLe"
     },
     {
       "address": "8EzbUfvcRT1Q6RL462ekGkgqbxsPmwC5FMLQZhSPMjJ3",
@@ -6403,13 +5042,9 @@
       "token_vault_b": "E9Yi56MiTCwRdRXvjNcmq4Ba33p83vv6HvfirnbVcdq5",
       "decimals_a": 9,
       "decimals_b": 9,
-      "fee_bps": 25,
-      "spacing": 3851,
-      "current_tick_or_bin": -2990,
       "amm_config": "JCPS6D41dkCnqv8Dtut9ALn1H6MPx3EdThKScmj6t7SL",
       "_comment": "Raydium SOL/mSOL CLMM",
-      "observation_state": "C29RA4TYnMjmVRSNnuodVowQXn8L1a1FSwMHWZjWWNFz",
-      "sqrt_price": "15885812315216378540"
+      "observation_state": "C29RA4TYnMjmVRSNnuodVowQXn8L1a1FSwMHWZjWWNFz"
     },
     {
       "address": "FvviNYdPiReHR2RjH7GUgML2KAG2iD7QYzJ85B5RCQ7p",
@@ -6420,13 +5055,9 @@
       "token_vault_b": "FtLbYww1KyvarXhzkcp8nrZUxNVfERU4Lb1TA8CDfhdh",
       "decimals_a": 9,
       "decimals_b": 9,
-      "fee_bps": 25,
-      "spacing": 16704,
-      "current_tick_or_bin": -1861,
       "amm_config": "Hsru7epqZ8UdpVgReeigRugGvYRbZqox4Ndh9Vt9g9dN",
       "_comment": "Raydium SOL/mSOL CLMM",
-      "observation_state": "ApDhqtz7jP41fM53Jx3b9dDZaNWXxGeLsA5fxD3bYGL6",
-      "sqrt_price": "16808631456335284239"
+      "observation_state": "ApDhqtz7jP41fM53Jx3b9dDZaNWXxGeLsA5fxD3bYGL6"
     },
     {
       "address": "Bev3s1WZtmvfSspWmkpfvaBz2vCB3ckqm5SLVtVJiDPF",
@@ -6437,13 +5068,9 @@
       "token_vault_b": "AFx5ng9ceCokYJvFHEUUJ1UQ7yzzdUk1WAz1zmGh7poy",
       "decimals_a": 9,
       "decimals_b": 9,
-      "fee_bps": 25,
-      "spacing": 10246,
-      "current_tick_or_bin": -1924,
       "amm_config": "J8V2SiKvjui5SE1FPQchGR2n25ndF68isq1Z7aR7AJmz",
       "_comment": "Raydium SOL/stSOL CLMM",
-      "observation_state": "78pbycHCuf2zFz5QgasujyT8CABRrqJYUVQ3AU3SWFMF",
-      "sqrt_price": "16755168477148740845"
+      "observation_state": "78pbycHCuf2zFz5QgasujyT8CABRrqJYUVQ3AU3SWFMF"
     },
     {
       "address": "DdigEybG2begUfkpSUP63o5CKF2Q9yGCWktZ6Hnb1RxN",
@@ -6454,13 +5081,9 @@
       "token_vault_b": "Bga4BYZEcpJMNNzeCxgALJ596MbZAPVPZM99PSyEzarB",
       "decimals_a": 9,
       "decimals_b": 9,
-      "fee_bps": 25,
-      "spacing": 55776,
-      "current_tick_or_bin": -1925,
       "amm_config": "JB8j7YGuFQamgdE5rJ316aG5YeadCifd5HbeT7ZJwhBn",
       "_comment": "Raydium SOL/stSOL CLMM",
-      "observation_state": "Es9znLCuLk2mKJapCadvqQXTtjT8u9nL4xE3GsGNzcsj",
-      "sqrt_price": "16754491683564664699"
+      "observation_state": "Es9znLCuLk2mKJapCadvqQXTtjT8u9nL4xE3GsGNzcsj"
     },
     {
       "address": "6uqNoghWR37pFYnWfSMwv1xEAhPGUJCJe2C8fsB96ro1",
@@ -6471,13 +5094,9 @@
       "token_vault_b": "6V12CqiBW7i9ZAg8uBcGN3tbeKGZWeQ6MCdJwpaAk67Y",
       "decimals_a": 6,
       "decimals_b": 6,
-      "fee_bps": 158,
-      "spacing": 9228,
-      "current_tick_or_bin": 15939,
       "amm_config": "J3BGfwbg96A1m1KeTgGwB13HjtZYGorVS2jR5eGGNDT6",
       "_comment": "Raydium TRUMP/USDC CLMM",
-      "observation_state": "735bbBHjLMCBcaY36RciPvikYoUNuLxTYW9AGCaEpzgL",
-      "sqrt_price": "40929341019723893727"
+      "observation_state": "735bbBHjLMCBcaY36RciPvikYoUNuLxTYW9AGCaEpzgL"
     },
     {
       "address": "7XzVsjqTebULfkUofTDH5gDdZDmxacPmPuTfHa1n9kuh",
@@ -6488,13 +5107,9 @@
       "token_vault_b": "GMeHiG3h9udQMwcHtE8GVNKi71nTEGL9m32HtRZn8JLR",
       "decimals_a": 6,
       "decimals_b": 6,
-      "fee_bps": 158,
-      "spacing": 62188,
-      "current_tick_or_bin": 15928,
       "amm_config": "JDNwM8TG2JxCrxHJCB3uuYQRDbFT6bKUyiB8fUS8HAw6",
       "_comment": "Raydium TRUMP/USDC CLMM",
-      "observation_state": "AziwKtNZrKGLW4qBHtTUgRTUx1toW635UKAS74BN6VX7",
-      "sqrt_price": "40904952305544729971"
+      "observation_state": "AziwKtNZrKGLW4qBHtTUgRTUx1toW635UKAS74BN6VX7"
     },
     {
       "address": "4LYn8u6CQr7UrUxycswwEAerxpHcCR4wJTfdJednY35Q",
@@ -6505,13 +5120,9 @@
       "token_vault_b": "8JM93tATksCFh7hkdwhpjHtCagBB8AHeX15NTqW8u5G6",
       "decimals_a": 6,
       "decimals_b": 6,
-      "fee_bps": 159,
-      "spacing": 18184,
-      "current_tick_or_bin": 15999,
       "amm_config": "JB7q7GgUcS6ZJsr9XBsf4moafoS4BRyXstcXDHioKnN9",
       "_comment": "Raydium TRUMP/USDT CLMM",
-      "observation_state": "GB36nWZVCibyov2Rm7gzq9rq6rMNCZ3fYw37HpKf42FH",
-      "sqrt_price": "41050388707310063595"
+      "observation_state": "GB36nWZVCibyov2Rm7gzq9rq6rMNCZ3fYw37HpKf42FH"
     },
     {
       "address": "FWGk2dvJizVnbU8wAZt7YwgmKsnDZRyHhxnaWHvg64gU",
@@ -6522,13 +5133,9 @@
       "token_vault_b": "EZQGfC6wPQFpFux7DnUR4FDHqtRHKhUZsHxwTqUvdXa5",
       "decimals_a": 6,
       "decimals_b": 6,
-      "fee_bps": 279,
-      "spacing": 52845,
-      "current_tick_or_bin": 27996,
       "amm_config": "HwmJm9YvSxyMEBoQA9z8KqRWBYzNGnureEwaehC9PxHi",
       "_comment": "Raydium USDC/PYTH CLMM",
-      "observation_state": "2V9CAwAnGCxdqCvUeMDquUqpxHnM3avyrmvZZHmdaHad",
-      "sqrt_price": "74787180800338174083"
+      "observation_state": "2V9CAwAnGCxdqCvUeMDquUqpxHnM3avyrmvZZHmdaHad"
     },
     {
       "address": "FPfbntAR84nyxfcmATEwYG55joLcPCxgYBC3BTPqB7yR",
@@ -6539,13 +5146,9 @@
       "token_vault_b": "2fUf5vRSzFdPZBaCo7LCjSqRgGt2fXXuhYuzS5NNM3if",
       "decimals_a": 6,
       "decimals_b": 6,
-      "fee_bps": 0,
-      "spacing": 17455,
-      "current_tick_or_bin": 3,
       "amm_config": "JAz5xw3qvm9SaPZbUgopxrXkFuh5gi4JbmMC62tFopmn",
       "_comment": "Raydium USDC/USDT CLMM",
-      "observation_state": "HsT8cEbroP6hU3yV5efiTTUNigb7dmBpXS8K2hrFVMGM",
-      "sqrt_price": "18449633795709724700"
+      "observation_state": "HsT8cEbroP6hU3yV5efiTTUNigb7dmBpXS8K2hrFVMGM"
     },
     {
       "address": "BZtgQEyS6eXUXicYPHecYQ7PybqodXQMvkjUbP4R8mUU",
@@ -6556,13 +5159,9 @@
       "token_vault_b": "7NQjToK5NenQZvhPRc1nC1URuKJ4nuLxGPdTbpTiz9EN",
       "decimals_a": 6,
       "decimals_b": 6,
-      "fee_bps": 0,
-      "spacing": 2260,
-      "current_tick_or_bin": 4,
       "amm_config": "JCPS6D41dkCnqv8Dtut9ALn1H6MPx3EdThKScmj6t7SL",
       "_comment": "Raydium USDC/USDT CLMM",
-      "observation_state": "3YZE41e4GKm9Uqvx6H4QA1FdyxT15nEjUP8LbvdiDF2t",
-      "sqrt_price": "18450671118354535028"
+      "observation_state": "3YZE41e4GKm9Uqvx6H4QA1FdyxT15nEjUP8LbvdiDF2t"
     },
     {
       "address": "3NeUgARDmFgnKtkJLqUcEUNCfknFCcGsFfMJCtx6bAgx",
@@ -6573,13 +5172,9 @@
       "token_vault_b": "2yPyVxqSjvJ6wBF9R1QR6bm8hTHrR12JCLEDMhnAhaxq",
       "decimals_a": 6,
       "decimals_b": 6,
-      "fee_bps": 0,
-      "spacing": 9655,
-      "current_tick_or_bin": 4,
       "amm_config": "J3KupYpjTjbLsEz8qHW7Jimd2dT5npTouYysSiwKW5s6",
       "_comment": "Raydium USDC/USDT CLMM",
-      "observation_state": "3biUefMSC3HikUHTc6PRszuhJmrLSr3cLj3r7kZgKyuh",
-      "sqrt_price": "18450737006293498955"
+      "observation_state": "3biUefMSC3HikUHTc6PRszuhJmrLSr3cLj3r7kZgKyuh"
     },
     {
       "address": "ANNsQrhxx16ajJRnnPPmruFHfDpbfKyHLWqTSCsHRn9g",
@@ -6590,13 +5185,9 @@
       "token_vault_b": "GpHzx877ZoGMJV6qtGTQdawNnHSM43Ya3rtwDrcuqiSB",
       "decimals_a": 5,
       "decimals_b": 5,
-      "fee_bps": 25,
-      "spacing": 35236,
-      "current_tick_or_bin": -3196,
       "amm_config": "J8YrvEZ46j9qYEEbjYj59hZu1gq9avnsC93WQhJuqsUZ",
       "_comment": "Raydium WEN/BONK CLMM",
-      "observation_state": "2hHfAoubEKmkgo6MfC2x7Uy4idYPpvc7kzY7t5yyXeXr",
-      "sqrt_price": "15722838372575713608"
+      "observation_state": "2hHfAoubEKmkgo6MfC2x7Uy4idYPpvc7kzY7t5yyXeXr"
     },
     {
       "address": "FBy1oPG2HTDgtdp783wh6f32tMgYS656w2MgAEvq2JVB",
@@ -6607,13 +5198,9 @@
       "token_vault_b": "3WjtrpJMC36LsoKKP82av8KDPxhjnSExifGf4jDHvWc5",
       "decimals_a": 9,
       "decimals_b": 9,
-      "fee_bps": 1,
-      "spacing": 54368,
-      "current_tick_or_bin": 127,
       "amm_config": "JCPS6D41dkCnqv8Dtut9ALn1H6MPx3EdThKScmj6t7SL",
       "_comment": "Raydium bSOL/JitoSOL CLMM",
-      "observation_state": "6EDAxKc2RFMgc6zrmQeRi1CRyLRae8XE3Lo86wF3nBkT",
-      "sqrt_price": "18564949506083370590"
+      "observation_state": "6EDAxKc2RFMgc6zrmQeRi1CRyLRae8XE3Lo86wF3nBkT"
     },
     {
       "address": "2XYeWV5FUQMjXJFCXNx6GXbmeKJ81TrUGyGWFrHmKyq2",
@@ -6624,13 +5211,9 @@
       "token_vault_b": "7hPu4Z7TqnL3SzPCj368iXy49yPvECY1pGMYqKkLpkkr",
       "decimals_a": 9,
       "decimals_b": 6,
-      "fee_bps": 25,
-      "spacing": 65524,
-      "current_tick_or_bin": -1,
       "amm_config": "HwmJm9YvSxyMEBoQA9z8KqRWBYzNGnureEwaehC9PxHi",
       "_comment": "Raydium bSOL/PYTH CLMM",
-      "observation_state": "AfNc7mmazzWyQzuMmB7QR4W6EfjVJsbJ7cmAC2hY6ovG",
-      "sqrt_price": "18446744026002802521"
+      "observation_state": "AfNc7mmazzWyQzuMmB7QR4W6EfjVJsbJ7cmAC2hY6ovG"
     },
     {
       "address": "7j4Bq7SkbKEDJ9LjoDVFLbjpDaDxQNZKs8x2CvgcZRAY",
@@ -6641,13 +5224,9 @@
       "token_vault_b": "AVs9GkaCmJQSu5NMFxM6RBPGzLjPfAGZaZhqj4bKuqEm",
       "decimals_a": 9,
       "decimals_b": 6,
-      "fee_bps": 25,
-      "spacing": 5947,
-      "current_tick_or_bin": -18585,
       "amm_config": "J5a84916Edxn3a3MBAX27guxha7ugh7foyZMf5p8qZcQ",
       "_comment": "Raydium bSOL/USDC CLMM",
-      "observation_state": "7RUm2YDuJzLMi5faW2SkziPV7kdcNQmnkfm5m1dWD6UV",
-      "sqrt_price": "7284261776275616504"
+      "observation_state": "7RUm2YDuJzLMi5faW2SkziPV7kdcNQmnkfm5m1dWD6UV"
     },
     {
       "address": "FJTS7LvcyDLCbFkSUB4P3MumRJrZNPWA3gvts9W9MEWh",
@@ -6658,13 +5237,9 @@
       "token_vault_b": "3FbBYnr9cwPxXeztfroM1o1iFbLQsSSsfVZWdRZqKaqZ",
       "decimals_a": 9,
       "decimals_b": 9,
-      "fee_bps": 25,
-      "spacing": 2741,
-      "current_tick_or_bin": -1515,
       "amm_config": "J8V2SiKvjui5SE1FPQchGR2n25ndF68isq1Z7aR7AJmz",
       "_comment": "Raydium jupSOL/mSOL CLMM",
-      "observation_state": "6Q6BYLzXBr9BxWMWyep1K4m3Eq5LELt1d37LGaa3Q8MJ",
-      "sqrt_price": "17101476951452432524"
+      "observation_state": "6Q6BYLzXBr9BxWMWyep1K4m3Eq5LELt1d37LGaa3Q8MJ"
     },
     {
       "address": "8xWHPtjzvcZjrGyMpWhfyRxNgVZyVvdtACavwbE7YjTx",
@@ -6675,13 +5250,9 @@
       "token_vault_b": "4djaUBZxMpVD8LQD9RU7hn1uz448ZTAwr5oKymh5c4jG",
       "decimals_a": 9,
       "decimals_b": 9,
-      "fee_bps": 25,
-      "spacing": 13496,
-      "current_tick_or_bin": -1502,
       "amm_config": "JDNwM8TG2JxCrxHJCB3uuYQRDbFT6bKUyiB8fUS8HAw6",
       "_comment": "Raydium jupSOL/mSOL CLMM",
-      "observation_state": "AGFyGLxCLMyyugEQo93yNHFCAq2gJZQi9ZVYyjFEUugV",
-      "sqrt_price": "17112329177719384511"
+      "observation_state": "AGFyGLxCLMyyugEQo93yNHFCAq2gJZQi9ZVYyjFEUugV"
     },
     {
       "address": "Dw6B81YMBFDFqEkstZWFsrRSQoUJjStQZmrWTK8fCw2R",
@@ -6692,13 +5263,9 @@
       "token_vault_b": "7RpJQnXB8U7CdrZh9om7QkqKVZ2FWVek26orLFDG59NH",
       "decimals_a": 9,
       "decimals_b": 9,
-      "fee_bps": 7,
-      "spacing": 35306,
-      "current_tick_or_bin": 725,
       "amm_config": "J8V2SiKvjui5SE1FPQchGR2n25ndF68isq1Z7aR7AJmz",
       "_comment": "Raydium mSOL/JitoSOL CLMM",
-      "observation_state": "24sRGUnKGaK2WjMv4JoVWKHMxWD93H3HLKmjdrapwXnr",
-      "sqrt_price": "19128628106776993725"
+      "observation_state": "24sRGUnKGaK2WjMv4JoVWKHMxWD93H3HLKmjdrapwXnr"
     },
     {
       "address": "CiHghAc3Fat5JgBB4L6vUcY6hud89YwgL1q4nKu1rsNQ",
@@ -6709,13 +5276,9 @@
       "token_vault_b": "7dzRBCnEpww4ebVNktbVbQbmX4VHF8YrvtbLtHVgRYUF",
       "decimals_a": 9,
       "decimals_b": 6,
-      "fee_bps": 25,
-      "spacing": 1274,
-      "current_tick_or_bin": -17961,
       "amm_config": "JDNwM8TG2JxCrxHJCB3uuYQRDbFT6bKUyiB8fUS8HAw6",
       "_comment": "Raydium mSOL/USDC CLMM",
-      "observation_state": "8uAC3mjTz2KHsFuuVM78zPXphcTHU5BNnMZSyT2vhpYK",
-      "sqrt_price": "7515012498122863929"
+      "observation_state": "8uAC3mjTz2KHsFuuVM78zPXphcTHU5BNnMZSyT2vhpYK"
     },
     {
       "address": "GNfeVT5vSWgLYtzveexZJ2Ki9NBtTTzoHAd9oGvoJKW8",
@@ -6726,13 +5289,9 @@
       "token_vault_b": "6XvtJ8wLAjQLUXoXDHztEJKnDspwJpKreRn3h5vbN97K",
       "decimals_a": 9,
       "decimals_b": 6,
-      "fee_bps": 25,
-      "spacing": 14163,
-      "current_tick_or_bin": -17980,
       "amm_config": "JEBsjaSYm9es6zf2feTzJABjKEW2tr4xPTRG7cnPBxW5",
       "_comment": "Raydium mSOL/USDC CLMM",
-      "observation_state": "CHawdSFGMh8f45VAKD3iyJ1Pf5TmJVnkbFFaJWQpaVbf",
-      "sqrt_price": "7507952719067569391"
+      "observation_state": "CHawdSFGMh8f45VAKD3iyJ1Pf5TmJVnkbFFaJWQpaVbf"
     },
     {
       "address": "41PGcyLdN1uuvoavo3snZbC14cntPpsS1TKWddbsbEDg",
@@ -6743,13 +5302,9 @@
       "token_vault_b": "GgkGxoTVSe7sXqQzdfXj3Wbn9qLkw4fnA4DJ5Xvt4akp",
       "decimals_a": 9,
       "decimals_b": 6,
-      "fee_bps": 25,
-      "spacing": 32516,
-      "current_tick_or_bin": -31701,
       "amm_config": "JEBsjaSYm9es6zf2feTzJABjKEW2tr4xPTRG7cnPBxW5",
       "_comment": "Raydium stSOL/USDC CLMM",
-      "observation_state": "2T5WN7jnQZwWPiQc6DgQ388Ze6wD2QjohSxg1r1oNmM3",
-      "sqrt_price": "3780911544218443013"
+      "observation_state": "2T5WN7jnQZwWPiQc6DgQ388Ze6wD2QjohSxg1r1oNmM3"
     }
   ]
 }
