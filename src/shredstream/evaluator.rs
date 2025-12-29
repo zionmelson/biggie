@@ -352,6 +352,12 @@ impl ArbEvaluator {
             return None;
         }
 
+        // SAFEGUARD: Skip if pool A vaults are not yet subscribed via Geyser
+        // (dynamic pools need subscription before their reserves are reliable)
+        if !pool_a_state.is_vault_subscribed {
+            return None;
+        }
+
         // Check against each alternate pool
         for alt_pool_addr in &alt_pools {
             if alt_pool_addr == updated_pool {
@@ -369,6 +375,11 @@ impl ArbEvaluator {
 
             // SAFEGUARD: Skip if pool B has zero reserves (data not yet populated)
             if pool_b_state.confirmed_base_reserve == 0 || pool_b_state.confirmed_quote_reserve == 0 {
+                continue;
+            }
+
+            // SAFEGUARD: Skip if pool B vaults are not yet subscribed via Geyser
+            if !pool_b_state.is_vault_subscribed {
                 continue;
             }
 

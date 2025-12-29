@@ -126,8 +126,9 @@ pub const DEFAULT_BASE_TIP_LAMPORTS: u64 = 10_000;
 pub const DEFAULT_TIP_PROFIT_SHARE_BPS: u64 = 5_000;
 /// Default max tip as percentage of profit (80% = 8000 bps)
 pub const DEFAULT_MAX_TIP_PROFIT_BPS: u64 = 8_000;
-/// Default slippage tolerance (1% = 100 bps)
-pub const DEFAULT_SLIPPAGE_BPS: u64 = 100;
+/// Default slippage tolerance (2% = 200 bps)
+/// Increased from 1% to handle price volatility between detection and execution
+pub const DEFAULT_SLIPPAGE_BPS: u64 = 200;
 /// Default multiplier over tip floor for competitive bidding
 pub const DEFAULT_TIP_FLOOR_MULTIPLIER: f64 = 2.0;
 /// Default bundle submission timeout in seconds

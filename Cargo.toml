@@ -99,6 +99,14 @@ incremental = true
 name = "build_array_map"
 path = "src/bin/build_array_map.rs"
 
+[[bin]]
+name = "test_critical_components"
+path = "src/bin/test_critical_components.rs"
+
+[[bin]]
+name = "test_jito_pipeline"
+path = "src/bin/test_jito_pipeline.rs"
+
 [dev-dependencies]
 tempfile = "3"
 spl-pod = "0.5"

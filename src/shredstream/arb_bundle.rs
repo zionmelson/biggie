@@ -153,6 +153,11 @@ impl ArbBundleBuilder {
         self.payer_balance.load(std::sync::atomic::Ordering::Relaxed)
     }
 
+    /// Get payer pubkey (for balance queries)
+    pub fn payer_pubkey(&self) -> Pubkey {
+        self.payer.pubkey()
+    }
+
     /// Check if payer has sufficient balance for a bundle
     pub fn has_sufficient_balance(&self, tip_lamports: u64) -> bool {
         let balance = self.payer_balance();
@@ -193,6 +198,9 @@ impl ArbBundleBuilder {
 
         let payer_pubkey = self.payer.pubkey();
         let borrow_ata = derive_ata(&payer_pubkey, &opportunity.borrow_mint);
+        
+        // Track detection-to-build latency
+        let detection_age_us = opportunity.detected_at.elapsed().as_micros();
 
         // LOG: Show what we're building
         tracing::info!(
@@ -207,6 +215,7 @@ impl ArbBundleBuilder {
             leg1_output = opportunity.leg1_output,
             leg2_output = opportunity.leg2_output,
             expected_profit = opportunity.expected_profit_lamports,
+            detection_age_us = detection_age_us,
             flash_reserve = %reserve.reserve,
             flash_supply = %reserve.borrow_liquidity_supply,
             "BUILDING ARB BUNDLE"

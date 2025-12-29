@@ -69,6 +69,11 @@ use solana_sdk::pubkey::Pubkey;
 use rustc_hash::FxHashMap as HashMap;
 use std::sync::Arc;
 use std::time::{Duration, Instant};
+use tokio::sync::mpsc;
+
+/// Channel type for notifying Geyser loop of new vaults to subscribe
+pub type NewVaultSender = mpsc::UnboundedSender<Vec<Pubkey>>;
+pub type NewVaultReceiver = mpsc::UnboundedReceiver<Vec<Pubkey>>;
 
 /// Route information for 3-hop arbitrage through an anchor mint
 #[derive(Clone, Debug)]
@@ -159,6 +164,12 @@ pub struct PoolState {
     pub transfer_fee_bps_a: u16,
     /// Transfer fee in bps for token B (Token-2022 only, 0 for regular SPL)  
     pub transfer_fee_bps_b: u16,
+    
+    // === DYNAMIC SUBSCRIPTION STATE ===
+    /// Whether the pool's vaults have active Geyser subscription
+    /// Pools from pools.json start as true; dynamically discovered pools start as false
+    /// until their vaults are subscribed via the dynamic subscription mechanism
+    pub is_vault_subscribed: bool,
 }
 
 impl PoolState {
@@ -209,6 +220,9 @@ impl PoolState {
             token_program_b: TOKEN_PROGRAM,
             transfer_fee_bps_a: 0,
             transfer_fee_bps_b: 0,
+            // Default to false - will be set to true for pools from pools.json at startup
+            // or when dynamic subscription is established
+            is_vault_subscribed: false,
         }
     }
 
@@ -409,6 +423,9 @@ pub struct PoolStateManager {
     tick_cache: Arc<TickArrayCache>,
     /// Bin array cache for accurate DLMM simulation
     bin_cache: Arc<BinArrayCache>,
+    /// Channel to notify Geyser loop of new vaults to subscribe
+    /// Wrapped in Option since it's set after construction
+    new_vault_sender: RwLock<Option<NewVaultSender>>,
 }
 
 #[derive(Debug, Default, Clone)]
@@ -436,7 +453,39 @@ impl PoolStateManager {
             stats: RwLock::new(PoolStateStats::default()),
             tick_cache: Arc::new(TickArrayCache::new()),
             bin_cache: Arc::new(BinArrayCache::new()),
+            new_vault_sender: RwLock::new(None),
         }
+    }
+    
+    /// Create a new vault subscription channel and return the receiver
+    /// Call this before starting the Geyser loop
+    pub fn create_vault_subscription_channel(&self) -> NewVaultReceiver {
+        let (tx, rx) = mpsc::unbounded_channel();
+        *self.new_vault_sender.write() = Some(tx);
+        rx
+    }
+    
+    /// Mark a pool's vaults as subscribed (called when subscription is established)
+    pub fn mark_vaults_subscribed(&self, pool: &Pubkey) {
+        let mut pools = self.pools.write();
+        if let Some(state) = pools.get_mut(pool) {
+            state.is_vault_subscribed = true;
+        }
+    }
+    
+    /// Mark multiple pools' vaults as subscribed
+    pub fn mark_vaults_subscribed_batch(&self, pool_addresses: &[Pubkey]) {
+        let mut pools = self.pools.write();
+        for pool in pool_addresses {
+            if let Some(state) = pools.get_mut(pool) {
+                state.is_vault_subscribed = true;
+            }
+        }
+    }
+    
+    /// Check if a pool has subscribed vaults
+    pub fn is_vault_subscribed(&self, pool: &Pubkey) -> bool {
+        self.pools.read().get(pool).map(|s| s.is_vault_subscribed).unwrap_or(false)
     }
 
     /// Get the tick array cache for external access (Geyser subscription)
@@ -550,6 +599,35 @@ impl PoolStateManager {
                 &quote_mint.to_string()[..8]
             );
         }
+        
+        // Notify Geyser loop about new vaults that need subscription
+        // (only for pools not already subscribed - i.e., dynamically discovered)
+        if vault_a != Pubkey::default() {
+            if let Some(sender) = self.new_vault_sender.read().as_ref() {
+                let vaults = vec![vault_a, vault_b];
+                if let Err(e) = sender.send(vaults) {
+                    tracing::warn!(
+                        "Failed to send new vaults to Geyser loop: {} (pool {})",
+                        e,
+                        &address.to_string()[..8]
+                    );
+                } else {
+                    tracing::debug!(
+                        "Notified Geyser loop of new vaults for pool {} (vault_a={}, vault_b={})",
+                        &address.to_string()[..8],
+                        &vault_a.to_string()[..8],
+                        &vault_b.to_string()[..8]
+                    );
+                }
+            }
+        }
+    }
+
+    /// Register a pool with pre-set vault subscription status
+    /// Used for pools loaded from pools.json at startup
+    pub fn register_pool_with_subscription(&self, mut state: PoolState, is_subscribed: bool) {
+        state.is_vault_subscribed = is_subscribed;
+        self.register_pool(state);
     }
 
     /// Update pool metadata and re-index vaults
@@ -821,8 +899,19 @@ impl PoolStateManager {
                     // DAMM v2 has all liquidity in one range, so tick cache will be empty
                     if !is_damm {
                         let cached_ticks = self.tick_cache.get_pool_ticks(pool);
+                        let tick_count = cached_ticks.len();
                         for tick_info in cached_ticks {
                             clmm.add_tick(tick_info.tick, tick_info.liquidity_net);
+                        }
+                        
+                        // Log tick data status for CLMM pools (critical for simulation accuracy)
+                        // Without tick data, simulation assumes all liquidity in one range
+                        if tick_count == 0 {
+                            tracing::trace!(
+                                pool = %pool,
+                                dex = ?state.dex,
+                                "CLMM simulation using 0 ticks - may be inaccurate"
+                            );
                         }
                     }
 

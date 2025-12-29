@@ -106,13 +106,16 @@ impl PoolsFile {
     }
 
     /// Register all pools with the PoolStateManager
+    /// Pools loaded from pools.json are marked as vault-subscribed since
+    /// they'll be included in the initial Geyser subscription
     pub fn register_with_psm(&self, psm: &PoolStateManager) -> Result<usize> {
         let mut registered = 0;
 
         for pool in &self.pools {
             match pool.to_pool_state() {
                 Ok(state) => {
-                    psm.register_pool(state);
+                    // Use register_pool_with_subscription to mark these as subscribed
+                    psm.register_pool_with_subscription(state, true);
                     registered += 1;
                 }
                 Err(e) => {
@@ -128,7 +131,7 @@ impl PoolsFile {
         // Log vault_index size to verify vaults are being indexed
         let vault_count = psm.all_vaults().len();
         tracing::info!(
-            "Registered {}/{} pools with PoolStateManager (vault_index has {} entries)",
+            "Registered {}/{} pools with PoolStateManager (vault_index has {} entries, all marked as subscribed)",
             registered,
             self.pools.len(),
             vault_count

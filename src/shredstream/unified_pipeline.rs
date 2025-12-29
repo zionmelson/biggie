@@ -335,6 +335,11 @@ pub struct UnifiedArbPipeline {
     /// Jito submission rate limiter (max 5/sec to avoid ResourceExhausted)
     last_submission_ns: AtomicU64,
     submissions_this_second: AtomicU64,
+    
+    // === Deduplication ===
+    /// Track recently submitted pool pairs to avoid spam (key: buy_pool XOR sell_pool for uniqueness)
+    /// Value: (last_submit_time, last_reserves_hash) to detect if opportunity is stale
+    recent_submissions: RwLock<HashMap<u64, (Instant, u64)>>,
 
     // === Statistics ===
     stats: Arc<UnifiedPipelineStats>,
@@ -414,6 +419,7 @@ impl UnifiedArbPipeline {
             pool_activity: RwLock::new(HashMap::default()),
             last_submission_ns: AtomicU64::new(0),
             submissions_this_second: AtomicU64::new(0),
+            recent_submissions: RwLock::new(HashMap::default()),
             stats: Arc::new(UnifiedPipelineStats::default()),
         }
     }
@@ -470,6 +476,19 @@ impl UnifiedArbPipeline {
     /// Get Jito client for bundle result subscription
     pub fn jito_client(&self) -> Arc<JitoClient> {
         Arc::clone(&self.jito_client)
+    }
+
+    /// Update the payer balance cache (call via RPC periodically)
+    pub async fn update_payer_balance(&self, balance: u64) {
+        let builder = self.bundle_builder.read().await;
+        builder.update_payer_balance(balance);
+        tracing::info!(balance_sol = balance as f64 / 1e9, "Payer balance updated");
+    }
+
+    /// Get payer pubkey for balance queries
+    pub async fn payer_pubkey(&self) -> Pubkey {
+        let builder = self.bundle_builder.read().await;
+        builder.payer_pubkey()
     }
 
     /// Update the blockhash
@@ -1110,6 +1129,15 @@ impl UnifiedArbPipeline {
             ps_stats.geyser_updates_received,
             ps_stats.vault_updates_received
         );
+        
+        // Log tick array cache stats (critical for CLMM simulation accuracy)
+        let (tick_updates, tick_arrays_cached, ticks_cached) = self.pool_state.tick_cache().stats();
+        tracing::info!(
+            "TICK CACHE: arrays={} ticks={} updates={}",
+            tick_arrays_cached,
+            ticks_cached,
+            tick_updates
+        );
 
         // Log pair index stats for arb route debugging
         tracing::debug!("PAIR INDEX: {}", self.pool_state.pair_index_stats());
@@ -1219,6 +1247,27 @@ pub async fn spawn_unified_pipeline(
         }
     });
 
+    // Spawn payer balance refresh task (every 30 seconds)
+    let pipeline_for_balance = Arc::clone(&pipeline);
+    let rpc_url_for_balance = config.rpc_url.clone();
+    tokio::spawn(async move {
+        use solana_client::nonblocking::rpc_client::RpcClient;
+        let rpc_client = RpcClient::new(rpc_url_for_balance);
+        let mut interval = tokio::time::interval(Duration::from_secs(30));
+        loop {
+            interval.tick().await;
+            let payer_pubkey = pipeline_for_balance.payer_pubkey().await;
+            match rpc_client.get_balance(&payer_pubkey).await {
+                Ok(balance) => {
+                    pipeline_for_balance.update_payer_balance(balance).await;
+                }
+                Err(e) => {
+                    tracing::warn!("Failed to refresh payer balance: {}", e);
+                }
+            }
+        }
+    });
+
     // Spawn bundle result subscriber to track actual bundle outcomes from Jito
     let jito_for_results = pipeline.jito_client();
     let stats_for_results = Arc::clone(&stats);
@@ -1300,23 +1349,86 @@ async fn run_bundle_result_subscriber(
     }
 }
 
-/// Bundle submission task - consumes opportunities and submits IMMEDIATELY
+/// Bundle submission task - consumes opportunities with rate limiting and deduplication
 ///
 /// This runs separately from entry processing to not block the ShredStream loop.
 ///
-/// COMPETITIVE EDGE: NO RATE LIMITING. In arb, every millisecond counts.
-/// Jito handles deduplication on their end. We submit as fast as possible.
+/// Rate limiting to stay under Jito's 5/sec limit and dedup to avoid submitting
+/// the same stale opportunity repeatedly.
 async fn run_bundle_submission_task(
     pipeline: Arc<UnifiedArbPipeline>,
     mut opportunity_rx: OpportunityRx,
     _config: UnifiedPipelineConfig,
 ) {
-    tracing::info!("Bundle submission task started (NO rate limiting - max speed)");
-
+    tracing::info!("Bundle submission task started (with rate limiting and dedup)");
+    
+    // Cooldown period for same pool pair (500ms)
+    const PAIR_COOLDOWN_MS: u64 = 500;
+    
     while let Some(opp) = opportunity_rx.recv().await {
-        // NO RATE LIMITING - submit immediately
-        // Speed is everything in arb. Jito dedupes on their end.
+        // === Deduplication check ===
+        // Hash the pool pair and reserves to detect duplicate opportunities
+        let pair_key = {
+            let buy_bytes = opp.buy_pool.to_bytes();
+            let sell_bytes = opp.sell_pool.to_bytes();
+            // XOR first 8 bytes of each for a fast hash
+            u64::from_le_bytes(buy_bytes[0..8].try_into().unwrap())
+                ^ u64::from_le_bytes(sell_bytes[0..8].try_into().unwrap())
+        };
+        
+        // Reserves hash to detect if state has changed
+        let reserves_hash = opp.trade_amount ^ opp.leg1_output ^ opp.leg2_output;
+        
+        {
+            let recent = pipeline.recent_submissions.read().await;
+            if let Some((last_time, last_hash)) = recent.get(&pair_key) {
+                // Skip if same reserves within cooldown
+                if *last_hash == reserves_hash && last_time.elapsed().as_millis() < PAIR_COOLDOWN_MS as u128 {
+                    tracing::debug!(
+                        buy_pool = %opp.buy_pool,
+                        sell_pool = %opp.sell_pool,
+                        elapsed_ms = last_time.elapsed().as_millis(),
+                        "Skipping duplicate opportunity (same reserves, in cooldown)"
+                    );
+                    continue;
+                }
+                // Skip if within shorter cooldown even with different reserves (avoid spam)
+                if last_time.elapsed().as_millis() < 100 {
+                    tracing::debug!(
+                        buy_pool = %opp.buy_pool,
+                        sell_pool = %opp.sell_pool,
+                        elapsed_ms = last_time.elapsed().as_millis(),
+                        "Skipping opportunity (pair cooldown)"
+                    );
+                    continue;
+                }
+            }
+        }
+        
+        // === Rate limiting check ===
+        if !pipeline.check_rate_limit() {
+            pipeline.stats.bundles_rate_limited.fetch_add(1, std::sync::atomic::Ordering::Relaxed);
+            tracing::debug!(
+                opp_id = %opp.id,
+                "Rate limited - skipping submission"
+            );
+            continue;
+        }
+        
+        // Record this submission for dedup
+        {
+            let mut recent = pipeline.recent_submissions.write().await;
+            recent.insert(pair_key, (Instant::now(), reserves_hash));
+            
+            // Prune old entries (> 5 seconds old)
+            let cutoff = Instant::now() - Duration::from_secs(5);
+            recent.retain(|_, (time, _)| *time > cutoff);
+        }
+        
         let start = Instant::now();
+        
+        // Calculate detection-to-submission latency
+        let detection_to_submit_us = opp.detected_at.elapsed().as_micros();
 
         match pipeline.process_opportunity(&opp).await {
             Ok(status) => {
@@ -1325,6 +1437,7 @@ async fn run_bundle_submission_task(
                     opp_id = %opp.id,
                     status = ?status,
                     profit_lamports = opp.expected_profit_lamports,
+                    detection_to_submit_us = detection_to_submit_us,
                     submit_time_us = submit_time_us,
                     "Bundle submitted"
                 );
@@ -1554,8 +1667,14 @@ async fn run_geyser_tasks(pipeline: Arc<UnifiedArbPipeline>, config: UnifiedPipe
     // Bootstrap runs once at startup, synchronously before Geyser processing
     let mut bootstrap_done = false;
     
+    // Create channel for dynamic vault subscription
+    // The receiver is shared via Arc<tokio::sync::Mutex> so it survives reconnects
+    let new_vault_rx = Arc::new(tokio::sync::Mutex::new(
+        pipeline.pool_state.create_vault_subscription_channel()
+    ));
+    
     loop {
-        match run_geyser_loop(&pipeline, &config, &mut bootstrap_done).await {
+        match run_geyser_loop(&pipeline, &config, &mut bootstrap_done, Arc::clone(&new_vault_rx)).await {
             Ok(()) => {
                 tracing::info!("Geyser tasks ended normally");
                 break;
@@ -1576,6 +1695,7 @@ async fn run_geyser_loop(
     pipeline: &Arc<UnifiedArbPipeline>,
     config: &UnifiedPipelineConfig,
     bootstrap_done: &mut bool,
+    new_vault_rx: Arc<tokio::sync::Mutex<crate::pool_state::NewVaultReceiver>>,
 ) -> Result<()> {
     let geyser_config = GeyserConfig {
         endpoint: config.geyser_endpoint.clone(),
@@ -1583,7 +1703,7 @@ async fn run_geyser_loop(
         request_timeout: config.request_timeout,
     };
 
-    let client = GeyserClient::new(geyser_config).await?;
+    let client = GeyserClient::new(geyser_config.clone()).await?;
 
     // Subscribe to transactions (for confirming pending swaps)
     let mut tx_stream = client.subscribe_transactions().await?;
@@ -1601,6 +1721,12 @@ async fn run_geyser_loop(
     let clmm_pool_addresses: Vec<Pubkey> = pipeline.pool_state.all_clmm_pool_addresses();
     let clmm_pool_set: std::collections::HashSet<Pubkey> = clmm_pool_addresses.iter().cloned().collect();
 
+    // Get tick array addresses for real-time CLMM tick updates
+    // This is CRITICAL for accurate swap simulation - without tick updates,
+    // simulations use stale tick data leading to slippage failures
+    let tick_array_addresses: Vec<Pubkey> = pipeline.pool_state.tick_cache().get_all_tick_array_addresses();
+    let num_tick_arrays = tick_array_addresses.len();
+    
     // Debug: Check if target pool vaults are in subscription
     let target_vault_a = "DQyrAcCrDXQ7NeoqGgDCZwBvWDcYmFCjSb9JtteuvPpz";
     let target_vault_b = "HLmqeL62xR1QoZ1HKKbXRrdN1p3phKpxRMb2VVopvBBz";
@@ -1620,23 +1746,25 @@ async fn run_geyser_loop(
         tracing::warn!("TARGET POOL 58oQChx4 vaults NOT in subscription list!");
     }
 
-    // Combine vault and CLMM pool addresses for single subscription
+    // Combine vault, CLMM pool, and tick array addresses for single subscription
     let mut all_account_addresses: Vec<Pubkey> = vault_addresses;
     all_account_addresses.extend(clmm_pool_addresses.iter().cloned());
+    all_account_addresses.extend(tick_array_addresses.iter().cloned());
 
     let has_account_subscription = !all_account_addresses.is_empty();
-    let num_vaults = all_account_addresses.len() - clmm_pool_addresses.len();
+    let num_vaults = all_account_addresses.len() - clmm_pool_addresses.len() - num_tick_arrays;
     let num_clmm_pools = clmm_pool_addresses.len();
 
     let mut account_stream = if has_account_subscription {
         tracing::info!(
-            "Subscribing to {} accounts ({} vaults + {} CLMM/DLMM pools) for real-time updates",
+            "Subscribing to {} accounts ({} vaults + {} CLMM pools + {} tick arrays) for real-time updates",
             all_account_addresses.len(),
             num_vaults,
-            num_clmm_pools
+            num_clmm_pools,
+            num_tick_arrays
         );
         let stream = client.subscribe_accounts(all_account_addresses).await?;
-        tracing::info!("Account subscription stream created successfully (vaults + CLMM pools)");
+        tracing::info!("Account subscription stream created successfully (vaults + CLMM pools + tick arrays)");
         Some(stream)
     } else {
         None
@@ -1655,9 +1783,10 @@ async fn run_geyser_loop(
     let mut program_stream = client.subscribe_programs(dex_programs).await?;
 
     tracing::info!(
-        "Geyser subscriptions established (vaults={}, clmm_pools={}, dex_programs=6)",
+        "Geyser subscriptions established (vaults={}, clmm_pools={}, tick_arrays={}, dex_programs=6)",
         num_vaults,
-        num_clmm_pools
+        num_clmm_pools,
+        num_tick_arrays
     );
 
     // Bootstrap CLMM pool state via RPC BEFORE processing Geyser updates
@@ -1688,7 +1817,30 @@ async fn run_geyser_loop(
         
         *bootstrap_done = true;
         tracing::info!("Bootstrap state: {}", pipeline.pool_state.bootstrap_summary());
+        
+        // Fetch and cache payer balance for bundle building
+        let payer_pubkey = pipeline.payer_pubkey().await;
+        match rpc_client.get_balance(&payer_pubkey).await {
+            Ok(balance) => {
+                pipeline.update_payer_balance(balance).await;
+            }
+            Err(e) => {
+                tracing::error!("Failed to fetch payer balance: {} - bundle building may fail", e);
+            }
+        }
     }
+
+    // Dynamic vault subscription state
+    // Stores additional account streams for dynamically discovered vaults
+    let mut dynamic_account_streams: Vec<tonic::Streaming<crate::geyser::proto::geyser::TimestampedAccountUpdate>> = Vec::new();
+    // Vaults pending subscription (batched for efficiency)
+    let mut pending_vaults: Vec<Pubkey> = Vec::new();
+    // Last time we created a dynamic subscription
+    let mut last_dynamic_sub = Instant::now();
+    // Minimum interval between dynamic subscriptions (batch them up)
+    let dynamic_sub_interval = Duration::from_millis(500);
+    // RPC client for fetching initial vault balances
+    let rpc_url_for_vaults = config.rpc_url.clone();
 
     // Process all streams concurrently
     loop {
@@ -1910,6 +2062,154 @@ async fn run_geyser_loop(
                         break;
                     }
                     Err(e) => return Err(e.into()),
+                }
+            }
+            
+            // Dynamic vault subscription - receive new vaults from PSM
+            new_vaults = async {
+                let mut rx = new_vault_rx.lock().await;
+                rx.recv().await
+            } => {
+                if let Some(vaults) = new_vaults {
+                    // Add to pending vaults for batched subscription
+                    let vault_count = vaults.len();
+                    pending_vaults.extend(vaults);
+                    tracing::debug!(
+                        "Received {} new vaults for dynamic subscription (pending={})",
+                        vault_count,
+                        pending_vaults.len()
+                    );
+                }
+            }
+            
+            // Periodic task: create dynamic subscriptions for pending vaults
+            _ = tokio::time::sleep(Duration::from_millis(100)) => {
+                // Check if we have pending vaults and enough time has passed
+                if !pending_vaults.is_empty() && last_dynamic_sub.elapsed() >= dynamic_sub_interval {
+                    let vaults_to_subscribe: Vec<Pubkey> = pending_vaults.drain(..).collect();
+                    let num_vaults = vaults_to_subscribe.len();
+                    
+                    tracing::info!(
+                        "Creating dynamic Geyser subscription for {} new vaults",
+                        num_vaults
+                    );
+                    
+                    // First, fetch initial balances via RPC so we have data immediately
+                    // This prevents stale data while waiting for first Geyser update
+                    let rpc_client = solana_client::nonblocking::rpc_client::RpcClient::new(rpc_url_for_vaults.clone());
+                    for vault in &vaults_to_subscribe {
+                        match rpc_client.get_account(vault).await {
+                            Ok(account) => {
+                                // Parse balance from token account data
+                                if account.data.len() >= 72 {
+                                    let balance = u64::from_le_bytes(
+                                        account.data[64..72].try_into().unwrap_or_default()
+                                    );
+                                    // Update the reserve in PSM
+                                    // We don't have slot info here, so use 1 as placeholder
+                                    // (0 is rejected as genesis edge case)
+                                    // Geyser will override with accurate slot later
+                                    pipeline.pool_state.on_geyser_vault_address_update(vault, balance, 1);
+                                    tracing::debug!(
+                                        "Fetched initial balance for vault {}: {}",
+                                        &vault.to_string()[..8],
+                                        balance
+                                    );
+                                }
+                            }
+                            Err(e) => {
+                                tracing::warn!(
+                                    "Failed to fetch initial balance for vault {}: {}",
+                                    &vault.to_string()[..8],
+                                    e
+                                );
+                            }
+                        }
+                    }
+                    
+                    // Create new Geyser subscription for these vaults
+                    match GeyserClient::new(geyser_config.clone()).await {
+                        Ok(new_client) => {
+                            match new_client.subscribe_accounts(vaults_to_subscribe.clone()).await {
+                                Ok(stream) => {
+                                    dynamic_account_streams.push(stream);
+                                    
+                                    // Mark pools as subscribed
+                                    let vault_index = pipeline.pool_state.vault_index_snapshot();
+                                    let pool_addresses: Vec<Pubkey> = vaults_to_subscribe.iter()
+                                        .filter_map(|v| vault_index.get(v).map(|(pool, _)| *pool))
+                                        .collect();
+                                    pipeline.pool_state.mark_vaults_subscribed_batch(&pool_addresses);
+                                    
+                                    tracing::info!(
+                                        "Dynamic subscription created for {} vaults ({} pools now subscribed)",
+                                        num_vaults,
+                                        pool_addresses.len()
+                                    );
+                                }
+                                Err(e) => {
+                                    tracing::error!("Failed to create dynamic vault subscription: {}", e);
+                                    // Put vaults back for retry
+                                    pending_vaults.extend(vaults_to_subscribe);
+                                }
+                            }
+                        }
+                        Err(e) => {
+                            tracing::error!("Failed to create Geyser client for dynamic subscription: {}", e);
+                            pending_vaults.extend(vaults_to_subscribe);
+                        }
+                    }
+                    
+                    last_dynamic_sub = Instant::now();
+                }
+                
+                // Also poll dynamic streams for updates
+                for (idx, stream) in dynamic_account_streams.iter_mut().enumerate() {
+                    // Use try_recv pattern via tokio timeout with zero duration
+                    match tokio::time::timeout(Duration::from_nanos(1), stream.message()).await {
+                        Ok(Ok(Some(update))) => {
+                            if let Some(account_update) = update.account_update {
+                                if account_update.pubkey.len() == 32 {
+                                    let mut arr = [0u8; 32];
+                                    arr.copy_from_slice(&account_update.pubkey);
+                                    let account_address = Pubkey::new_from_array(arr);
+                                    
+                                    // Parse vault balance
+                                    if account_update.data.len() >= 72 {
+                                        let balance = u64::from_le_bytes(
+                                            account_update.data[64..72].try_into().unwrap_or_default()
+                                        );
+                                        
+                                        tracing::debug!(
+                                            vault = %account_address,
+                                            balance = balance,
+                                            stream_idx = idx,
+                                            "Dynamic vault update received"
+                                        );
+                                        
+                                        let pipeline_clone = Arc::clone(&pipeline);
+                                        let slot = account_update.slot;
+                                        tokio::spawn(async move {
+                                            pipeline_clone.handle_geyser_vault_update_with_arb(
+                                                &account_address,
+                                                balance,
+                                                slot,
+                                            ).await;
+                                        });
+                                    }
+                                }
+                            }
+                        }
+                        Ok(Ok(None)) => {
+                            tracing::warn!("Dynamic stream {} ended", idx);
+                        }
+                        Ok(Err(e)) => {
+                            tracing::warn!("Dynamic stream {} error: {}", idx, e);
+                        }
+                        Err(_) => {
+                            // Timeout - no message available, which is fine
+                        }
+                    }
                 }
             }
         }

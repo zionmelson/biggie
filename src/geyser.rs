@@ -146,6 +146,9 @@ pub struct GeyserClient {
     channel: Channel,
 }
 
+/// Maximum gRPC message size (200 MB) - needed for large account subscription batches
+const MAX_GRPC_MESSAGE_SIZE: usize = 200 * 1024 * 1024;
+
 impl GeyserClient {
     /// Create a new Geyser client and connect
     pub async fn new(config: GeyserConfig) -> Result<Self> {
@@ -169,7 +172,9 @@ impl GeyserClient {
 
     /// Get heartbeat interval from server
     pub async fn get_heartbeat_interval(&self) -> Result<u64> {
-        let mut client = GeyserGrpcClient::new(self.channel.clone());
+        let mut client = GeyserGrpcClient::new(self.channel.clone())
+            .max_decoding_message_size(MAX_GRPC_MESSAGE_SIZE)
+            .max_encoding_message_size(MAX_GRPC_MESSAGE_SIZE);
         let response = client
             .get_heartbeat_interval(EmptyRequest {})
             .await?
@@ -184,7 +189,9 @@ impl GeyserClient {
     pub async fn subscribe_transactions(
         &self,
     ) -> Result<tonic::Streaming<TimestampedTransactionUpdate>> {
-        let mut client = GeyserGrpcClient::new(self.channel.clone());
+        let mut client = GeyserGrpcClient::new(self.channel.clone())
+            .max_decoding_message_size(MAX_GRPC_MESSAGE_SIZE)
+            .max_encoding_message_size(MAX_GRPC_MESSAGE_SIZE);
         let request = tonic::Request::new(SubscribeTransactionUpdatesRequest {});
         let response = client.subscribe_transaction_updates(request).await?;
         Ok(response.into_inner())
@@ -194,7 +201,9 @@ impl GeyserClient {
     /// 
     /// Useful for tracking slot timing (FIRST_SHRED_RECEIVED is earliest signal)
     pub async fn subscribe_slots(&self) -> Result<tonic::Streaming<TimestampedSlotUpdate>> {
-        let mut client = GeyserGrpcClient::new(self.channel.clone());
+        let mut client = GeyserGrpcClient::new(self.channel.clone())
+            .max_decoding_message_size(MAX_GRPC_MESSAGE_SIZE)
+            .max_encoding_message_size(MAX_GRPC_MESSAGE_SIZE);
         let request = tonic::Request::new(SubscribeSlotUpdateRequest {});
         let response = client.subscribe_slot_updates(request).await?;
         Ok(response.into_inner())
@@ -204,7 +213,9 @@ impl GeyserClient {
     /// 
     /// Provides blockhash immediately when slot completes
     pub async fn subscribe_blocks(&self) -> Result<tonic::Streaming<TimestampedBlockUpdate>> {
-        let mut client = GeyserGrpcClient::new(self.channel.clone());
+        let mut client = GeyserGrpcClient::new(self.channel.clone())
+            .max_decoding_message_size(MAX_GRPC_MESSAGE_SIZE)
+            .max_encoding_message_size(MAX_GRPC_MESSAGE_SIZE);
         let request = tonic::Request::new(SubscribeBlockUpdatesRequest {});
         let response = client.subscribe_block_updates(request).await?;
         Ok(response.into_inner())
@@ -217,7 +228,9 @@ impl GeyserClient {
         &self,
         program_ids: Vec<Pubkey>,
     ) -> Result<tonic::Streaming<proto::geyser::TimestampedAccountUpdate>> {
-        let mut client = GeyserGrpcClient::new(self.channel.clone());
+        let mut client = GeyserGrpcClient::new(self.channel.clone())
+            .max_decoding_message_size(MAX_GRPC_MESSAGE_SIZE)
+            .max_encoding_message_size(MAX_GRPC_MESSAGE_SIZE);
         let programs: Vec<Vec<u8>> = program_ids.iter().map(|p| p.to_bytes().to_vec()).collect();
         let request = tonic::Request::new(SubscribeProgramsUpdatesRequest { programs });
         let response = client.subscribe_program_updates(request).await?;
@@ -231,7 +244,9 @@ impl GeyserClient {
         &self,
         accounts: Vec<Pubkey>,
     ) -> Result<tonic::Streaming<proto::geyser::TimestampedAccountUpdate>> {
-        let mut client = GeyserGrpcClient::new(self.channel.clone());
+        let mut client = GeyserGrpcClient::new(self.channel.clone())
+            .max_decoding_message_size(MAX_GRPC_MESSAGE_SIZE)
+            .max_encoding_message_size(MAX_GRPC_MESSAGE_SIZE);
         let account_bytes: Vec<Vec<u8>> = accounts.iter().map(|a| a.to_bytes().to_vec()).collect();
         let request = tonic::Request::new(SubscribeAccountUpdatesRequest { accounts: account_bytes });
         let response = client.subscribe_account_updates(request).await?;

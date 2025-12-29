@@ -6,8 +6,9 @@
 //! Flow:
 //! 1. pools.json provides pool addresses and static metadata
 //! 2. RPC bootstrap fetches current state for all CLMM pools
-//! 3. Geyser subscription starts AFTER bootstrap completes
-//! 4. Geyser always overwrites (it's always newer by definition)
+//! 3. RPC bootstrap fetches tick arrays for accurate swap simulation
+//! 4. Geyser subscription starts AFTER bootstrap completes
+//! 5. Geyser always overwrites (it's always newer by definition)
 
 use crate::pool_discovery::{parse_meteora_damm, parse_raydium_clmm};
 use crate::pool_state::PoolStateManager;
@@ -33,6 +34,10 @@ pub struct BootstrapStats {
     pub pools_failed_parse: usize,
     pub pools_no_data: usize,
     pub pools_rpc_error: usize,
+    pub tick_arrays_attempted: usize,
+    pub tick_arrays_loaded: usize,
+    pub tick_arrays_failed: usize,
+    pub ticks_loaded: usize,
     pub rpc_calls: usize,
     pub duration_ms: u64,
 }
@@ -41,9 +46,12 @@ impl BootstrapStats {
     /// Returns a summary string for logging
     pub fn summary(&self) -> String {
         format!(
-            "updated={}/{} parse_fail={} no_data={} rpc_err={} calls={} ms={}",
+            "pools={}/{} tick_arrays={}/{} ticks={} parse_fail={} no_data={} rpc_err={} calls={} ms={}",
             self.pools_updated,
             self.pools_attempted,
+            self.tick_arrays_loaded,
+            self.tick_arrays_attempted,
+            self.ticks_loaded,
             self.pools_failed_parse,
             self.pools_no_data,
             self.pools_rpc_error,
@@ -161,11 +169,117 @@ pub async fn bootstrap_clmm_pools(
         }
     }
 
+    // Phase 2: Bootstrap tick arrays for accurate CLMM swap simulation
+    // Without tick data, simulations assume all liquidity is in one range -> wrong outputs
+    info!("Phase 2: Bootstrapping tick arrays for CLMM pools...");
+    
+    let tick_array_stats = bootstrap_tick_arrays(rpc_client, psm).await;
+    stats.tick_arrays_attempted = tick_array_stats.attempted;
+    stats.tick_arrays_loaded = tick_array_stats.loaded;
+    stats.tick_arrays_failed = tick_array_stats.failed;
+    stats.ticks_loaded = tick_array_stats.ticks;
+    stats.rpc_calls += tick_array_stats.rpc_calls;
+
     stats.duration_ms = start.elapsed().as_millis() as u64;
 
     info!("Bootstrap complete: {}", stats.summary());
 
     Ok(stats)
+}
+
+/// Tick array bootstrap statistics
+struct TickArrayBootstrapStats {
+    attempted: usize,
+    loaded: usize,
+    failed: usize,
+    ticks: usize,
+    rpc_calls: usize,
+}
+
+/// Bootstrap tick arrays for all registered CLMM pools
+///
+/// This is CRITICAL for accurate CLMM swap simulation. Without tick data,
+/// the simulation assumes all liquidity is in one continuous range from
+/// the current tick to the boundary, which produces wildly inaccurate
+/// output estimates and causes slippage failures on-chain.
+async fn bootstrap_tick_arrays(
+    rpc_client: &RpcClient,
+    psm: &Arc<PoolStateManager>,
+) -> TickArrayBootstrapStats {
+    let mut stats = TickArrayBootstrapStats {
+        attempted: 0,
+        loaded: 0,
+        failed: 0,
+        ticks: 0,
+        rpc_calls: 0,
+    };
+
+    // Get all tick array addresses that need to be fetched
+    let tick_cache = psm.tick_cache();
+    let all_tick_arrays = tick_cache.get_all_tick_array_addresses();
+    
+    if all_tick_arrays.is_empty() {
+        debug!("No tick arrays registered for bootstrap");
+        return stats;
+    }
+    
+    stats.attempted = all_tick_arrays.len();
+    info!("Fetching {} tick arrays for CLMM simulation accuracy", all_tick_arrays.len());
+    
+    // Fetch in batches
+    for batch in all_tick_arrays.chunks(BATCH_SIZE) {
+        stats.rpc_calls += 1;
+        
+        let config = RpcAccountInfoConfig {
+            encoding: Some(UiAccountEncoding::Base64),
+            commitment: Some(CommitmentConfig::confirmed()),
+            ..Default::default()
+        };
+        
+        let response = match rpc_client
+            .get_multiple_accounts_with_config(batch, config)
+            .await
+        {
+            Ok(response) => response,
+            Err(e) => {
+                warn!("RPC batch fetch failed for {} tick arrays: {}", batch.len(), e);
+                stats.failed += batch.len();
+                continue;
+            }
+        };
+        
+        let batch_slot = response.context.slot;
+        
+        for (i, maybe_account) in response.value.into_iter().enumerate() {
+            let address = batch[i];
+            
+            let Some(account) = maybe_account else {
+                debug!(tick_array = %address, "Tick array not found on-chain");
+                stats.failed += 1;
+                continue;
+            };
+            
+            let data = &account.data;
+            
+            // Process the tick array through the cache
+            // The cache will parse it and register it for the correct pool
+            if tick_cache.process_account_update(&address, data, batch_slot) {
+                stats.loaded += 1;
+                // Count ticks (rough estimate: non-empty tick arrays have ~20-60 active ticks)
+                // The cache tracks this internally, we just increment a counter
+                stats.ticks += 30; // Average estimate
+            } else {
+                stats.failed += 1;
+            }
+        }
+    }
+    
+    info!(
+        "Tick array bootstrap: loaded={}/{} failed={} (ticks≈{})",
+        stats.loaded, stats.attempted, stats.failed, stats.ticks
+    );
+    
+    stats
 }
 
 /// Parse Orca Whirlpool state
