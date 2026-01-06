@@ -6,7 +6,7 @@
   "payer_keypair": "/home/ubuntu/id.json",
   "pools_file": "pools.json",
   "min_profit_lamports": 100000,
-  "slippage_bps": 150,
+  "slippage_bps": 151,
   "tip_bps": 7500,
   "compute_units": 400000,
   "compute_unit_price": 1000,

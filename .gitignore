@@ -4,3 +4,5 @@ target/
 tests/
 tmp/
 output.txt
+config.json
+config_old.json
