@@ -1,263 +1,260 @@
-//! tre Arb Bot - Turbine + Geyser unified architecture
+//! Biggie - Simplified Solana Arbitrage Bot
 //!
-//! Uses Turbine UDP for fast shred reception and Geyser for authoritative state.
-//! Both sources work together via PoolStateManager for cross-pool arbitrage.
-
-// Use jemalloc for better allocation performance in latency-sensitive code
-#[global_allocator]
-static GLOBAL: tikv_jemallocator::Jemalloc = tikv_jemallocator::Jemalloc;
+//! Two tasks:
+//! 1. Main loop: Helius WS → vault updates → check arb → submit
+//! 2. Blockhash refresh: poll RPC every 400ms
 
 use clap::Parser;
-use solana_client::nonblocking::rpc_client::RpcClient;
-use solana_sdk::pubkey::Pubkey;
-use solana_sdk::signature::Signer;
-// Use FxHashMap for faster lookups
-use rustc_hash::FxHashMap as HashMap;
+use solana_sdk::hash::Hash;
+use solana_sdk::signer::Signer;
 use std::path::PathBuf;
-use std::str::FromStr;
 use std::sync::Arc;
 use std::time::Duration;
-use tre_arb_bot::config::Config;
-use tre_arb_bot::executor::{load_lookup_tables, FlashLoanReserve};
-use tre_arb_bot::jito::{JitoClient, JitoConfig as JitoClientConfig};
-use tre_arb_bot::pools::PoolsFile;
-use tre_arb_bot::pool_state::PoolStateManager;
-use tre_arb_bot::shredstream::{
-    spawn_unified_pipeline, BundleBuilderConfig, UnifiedPipelineConfig,
-};
-use tre_arb_bot::tip_monitor::TipFloorMonitor;
+use tokio::sync::RwLock;
 
-#[derive(Parser, Debug)]
-#[command(
-    author,
-    version,
-    about = "tre arb bot - cross-pool arbitrage with Turbine + Geyser"
-)]
+mod arb;
+mod bootstrap;
+mod config;
+mod executor;
+mod helius;
+mod math;
+mod pools;
+
+use arb::ArbDetector;
+use config::Config;
+use executor::{JitoClient, TxBuilder};
+use helius::{parse_token_balance, Helius};
+use pools::PoolRegistry;
+
+#[derive(Parser)]
+#[command(name = "biggie", about = "Simplified Solana arb bot")]
 struct Args {
-    /// Path to the configuration file.
-    #[arg(long, short = 'c', default_value = "config.json")]
+    /// Config file path
+    #[arg(short, long, default_value = "config.json")]
     config: PathBuf,
 }
 
 #[tokio::main]
-async fn main() -> Result<(), Box<dyn std::error::Error>> {
-    // Initialize tracing to file
-    let log_file = std::fs::File::create("/tmp/tre-arb.log")?;
+async fn main() -> anyhow::Result<()> {
+    // Initialize logging
     tracing_subscriber::fmt()
-        .with_env_filter(
-            tracing_subscriber::EnvFilter::from_default_env()
-                .add_directive("tre_arb_bot=debug".parse().unwrap())
-                .add_directive("info".parse().unwrap()),
-        )
-        .with_writer(std::sync::Mutex::new(log_file))
-        .with_ansi(false)
+        .with_env_filter("biggie=debug,info")
         .init();
 
     let args = Args::parse();
     let config = Config::load(&args.config)?;
 
-    run_arb_pipeline(config).await
+    tracing::info!("Biggie starting...");
+    tracing::info!("Helius RPC: {}", config.helius_rpc);
+    tracing::info!("Jito endpoint: {}", config.jito_endpoint);
+
+    // Load keypair
+    let payer = Arc::new(config.payer()?);
+    tracing::info!("Payer: {}", payer.pubkey());
+
+    // Load pools
+    let mut registry = PoolRegistry::load(&config.pools_file)?;
+    tracing::info!("Loaded {} pools", registry.pools.len());
+
+    // Bootstrap CLMM pools (fetch tick arrays, amm_config, etc.)
+    tracing::info!("Bootstrapping CLMM pools...");
+    let rpc = solana_client::rpc_client::RpcClient::new(config.helius_rpc.clone());
+    bootstrap::bootstrap_clmm_pools(&rpc, &mut registry)?;
+
+    // Initialize clients
+    let mut helius = Helius::new(config.helius_rpc.clone(), config.helius_ws.clone());
+    let jito = JitoClient::new(config.jito_endpoint.clone());
+    let tx_builder = TxBuilder::new(&config, payer.clone());
+    let arb_detector = ArbDetector::new(config.min_profit_lamports, config.slippage_bps);
+
+    // Connect to Helius WebSocket
+    helius.connect().await?;
+
+    // Subscribe to all vault accounts
+    tracing::info!("Subscribing to {} vault accounts...", registry.all_vaults.len());
+    helius.subscribe_accounts_tracked(&registry.all_vaults).await?;
+
+    // Subscribe to CLMM pool state accounts (for tick tracking)
+    if !registry.clmm_pools.is_empty() {
+        tracing::info!("Subscribing to {} CLMM pool state accounts...", registry.clmm_pools.len());
+        helius.subscribe_accounts_tracked(&registry.clmm_pools).await?;
+    }
+
+    // Shared blockhash cache
+    let blockhash_cache = helius.blockhash_cache();
+
+    // Spawn blockhash refresh task
+    let blockhash_rpc = config.helius_rpc.clone();
+    let blockhash_cache_clone = blockhash_cache.clone();
+    tokio::spawn(async move {
+        blockhash_loop(blockhash_rpc, blockhash_cache_clone).await;
+    });
+
+    // Initial blockhash fetch
+    let initial_blockhash = helius.refresh_blockhash().await?;
+    tracing::info!("Initial blockhash: {}", initial_blockhash);
+
+    // Stats
+    let mut updates_received = 0u64;
+    let mut arbs_found = 0u64;
+    let mut arbs_submitted = 0u64;
+
+    tracing::info!("=== Listening for account updates ===");
+
+    // Main loop: process account updates (vaults + CLMM pool states)
+    loop {
+        match helius.recv_update().await {
+            Ok(update) => {
+                updates_received += 1;
+
+                // Check if this is a CLMM pool state update (for tick tracking)
+                if registry.is_clmm_pool(&update.pubkey) {
+                    if let Some(pair) = registry.update_clmm_tick(&update.pubkey, &update.data) {
+                        tracing::trace!(
+                            "CLMM tick update: pool={} slot={}",
+                            update.pubkey,
+                            update.slot
+                        );
+                        // Check for arb opportunity after tick update
+                        if let Some(opp) = arb_detector.check_pair(&registry, &pair) {
+                            arbs_found += 1;
+                            tracing::info!(
+                                "ARB FOUND (tick): buy={} sell={} profit={:.6} SOL ({} bps)",
+                                opp.buy_pool,
+                                opp.sell_pool,
+                                opp.profit_sol(),
+                                opp.spread_bps()
+                            );
+                            // TODO: Submit arb transaction
+                        }
+                    }
+                    continue;
+                }
+
+                // Parse token balance (vault update)
+                let balance = match parse_token_balance(&update.data) {
+                    Some(b) => b,
+                    None => continue,
+                };
+
+                // Update pool state
+                let (pool_addr, pair) = match registry.update_vault(&update.pubkey, balance) {
+                    Some(x) => x,
+                    None => continue,
+                };
+
+                tracing::debug!(
+                    "Vault update: {} balance={} pool={} slot={}",
+                    update.pubkey,
+                    balance,
+                    pool_addr,
+                    update.slot
+                );
+
+                // Check for arb opportunity
+                if let Some(opp) = arb_detector.check_pair(&registry, &pair) {
+                    arbs_found += 1;
+                    tracing::info!(
+                        "ARB FOUND: buy={} sell={} profit={:.6} SOL ({} bps)",
+                        opp.buy_pool,
+                        opp.sell_pool,
+                        opp.profit_sol(),
+                        opp.spread_bps()
+                    );
+
+                    // Get current blockhash
+                    let blockhash = blockhash_cache.read().await.0;
+                    if blockhash == Hash::default() {
+                        tracing::warn!("No blockhash available, skipping");
+                        continue;
+                    }
+
+                    // Build and submit transaction
+                    match tx_builder.build_arb_tx(&opp, &registry, blockhash) {
+                        Ok(tx) => {
+                            match jito.send_bundle(vec![tx]).await {
+                                Ok(bundle_id) => {
+                                    arbs_submitted += 1;
+                                    tracing::info!(
+                                        "Bundle submitted: {} (found={} submitted={})",
+                                        bundle_id,
+                                        arbs_found,
+                                        arbs_submitted
+                                    );
+                                }
+                                Err(e) => {
+                                    tracing::error!("Bundle submission failed: {}", e);
+                                }
+                            }
+                        }
+                        Err(e) => {
+                            tracing::error!("TX build failed: {}", e);
+                        }
+                    }
+                }
+
+                // Periodic stats
+                if updates_received % 1000 == 0 {
+                    tracing::info!(
+                        "Stats: updates={} arbs_found={} arbs_submitted={}",
+                        updates_received,
+                        arbs_found,
+                        arbs_submitted
+                    );
+                }
+            }
+            Err(e) => {
+                tracing::error!("WebSocket error: {}", e);
+                // Attempt reconnection
+                tracing::info!("Attempting reconnection in 5s...");
+                tokio::time::sleep(Duration::from_secs(5)).await;
+
+                if let Err(e) = helius.connect().await {
+                    tracing::error!("Reconnection failed: {}", e);
+                    continue;
+                }
+
+                if let Err(e) = helius.subscribe_accounts_tracked(&registry.all_vaults).await {
+                    tracing::error!("Resubscription failed: {}", e);
+                }
+            }
+        }
+    }
 }
 
-/// Run the unified Turbine + Geyser arb pipeline
-async fn run_arb_pipeline(config: Config) -> Result<(), Box<dyn std::error::Error>> {
-    tracing::info!("Starting tre arb bot (Turbine + Geyser unified pipeline)");
-    println!("tre arb bot started. Logs: /tmp/tre-arb.log. Press Ctrl+C to stop.");
+/// Background task to refresh blockhash
+async fn blockhash_loop(rpc_url: String, cache: Arc<RwLock<(Hash, u64)>>) {
+    let client = reqwest::Client::new();
 
-    if !config.geyser.enabled {
-        return Err("Geyser must be enabled. Set geyser.enabled=true in config".into());
+    loop {
+        tokio::time::sleep(Duration::from_millis(400)).await;
+
+        let request = serde_json::json!({
+            "jsonrpc": "2.0",
+            "id": 1,
+            "method": "getLatestBlockhash",
+            "params": [{"commitment": "confirmed"}]
+        });
+
+        match client.post(&rpc_url).json(&request).send().await {
+            Ok(resp) => {
+                if let Ok(json) = resp.json::<serde_json::Value>().await {
+                    if let Some(hash_str) = json
+                        .get("result")
+                        .and_then(|r| r.get("value"))
+                        .and_then(|v| v.get("blockhash"))
+                        .and_then(|b| b.as_str())
+                    {
+                        if let Ok(hash) = hash_str.parse::<Hash>() {
+                            let mut guard = cache.write().await;
+                            *guard = (hash, 0);
+                        }
+                    }
+                }
+            }
+            Err(e) => {
+                tracing::warn!("Blockhash refresh failed: {}", e);
+            }
+        }
     }
-
-    // Load keypairs
-    let auth_keypair = Arc::new(config.wallets.auth.load_keypair()?);
-    let payer_keypair = Arc::new(config.wallets.payer.load_keypair()?);
-    let payer_pubkey = payer_keypair.pubkey();
-
-    tracing::info!("Payer: {}", payer_pubkey);
-
-    // Initialize Jito client
-    let jito_config = JitoClientConfig {
-        endpoint: config.jito.primary_endpoint(),
-        ca_pem: config.jito.ca_pem.clone(),
-    };
-    let jito_client = Arc::new(JitoClient::new(jito_config, auth_keypair.clone()).await?);
-    tracing::info!(
-        "Connected to Jito block engine: {}",
-        config.jito.primary_endpoint()
-    );
-
-    // Build flash loan reserves
-    let flash_loan_reserves = build_flash_loan_reserves(&config)?;
-    tracing::info!("Loaded {} flash loan reserves", flash_loan_reserves.len());
-
-    // Start tip floor monitor for competitive tipping
-    let tip_monitor = TipFloorMonitor::new(config.jito.tip_floor_url.clone());
-    let (_tip_handle, tip_floor_cache) = tip_monitor.spawn();
-    tracing::info!("Tip floor monitor started (polling Jito tip floor API)");
-
-    // Load Address Lookup Tables using local RPC
-    let rpc_client = Arc::new(RpcClient::new(config.primary_rpc_url()));
-    tracing::info!("Using RPC: {}", config.primary_rpc_url());
-    let lookup_tables =
-        load_lookup_tables(&rpc_client, &config.lookup_tables, &payer_pubkey).await?;
-    tracing::info!("Loaded {} address lookup tables", lookup_tables.len());
-
-    // Build unified pipeline config from arb settings
-    let arb_config = &config.shredstream.arb;
-    let turbine_config = &config.shredstream.turbine;
-
-    // Log the TX source mode
-    if turbine_config.enabled {
-        tracing::info!("=== Turbine UDP + Geyser Unified Pipeline ===");
-        tracing::info!("TX Source: Direct Turbine UDP (only faster if co-located with high-stake validator)");
-        tracing::info!("Turbine bind address: {}", turbine_config.bind_addr);
-        tracing::info!("Turbine receiver threads: {}", turbine_config.receiver_threads);
-    } else {
-        tracing::info!("=== Jito ShredStream + Geyser Unified Pipeline ===");
-        tracing::info!("TX Source: Jito ShredStream proxy (stake-weighted, layer-1 access)");
-        tracing::info!("ShredStream endpoint: {}", config.shredstream.endpoint);
-    }
-    tracing::info!("Geyser endpoint: {}", config.geyser.endpoint);
-    tracing::info!(
-        "Arb config: enabled={} min_profit={} lamports",
-        arb_config.arb_enabled,
-        arb_config.min_profit_lamports
-    );
-
-    let pipeline_config = UnifiedPipelineConfig {
-        use_turbine_udp: turbine_config.enabled,
-        turbine_config: turbine_config.clone(),
-        shredstream_endpoint: config.shredstream.endpoint.clone(),
-        rpc_url: config.primary_rpc_url(),
-        geyser_endpoint: config.geyser.endpoint.clone(),
-        connect_timeout: Duration::from_millis(config.geyser.connect_timeout_ms),
-        request_timeout: Duration::from_millis(config.geyser.request_timeout_ms),
-        bundle_config: BundleBuilderConfig {
-            compute_units: arb_config.compute_units,
-            compute_unit_price: arb_config.compute_unit_price,
-            base_tip_lamports: arb_config.base_tip_lamports,
-            tip_profit_share_bps: arb_config.tip_profit_share_bps,
-            max_tip_profit_bps: arb_config.max_tip_profit_bps,
-            slippage_bps: arb_config.slippage_bps,
-            tip_floor_multiplier: arb_config.tip_floor_multiplier,
-        },
-        submission_timeout: Duration::from_secs(arb_config.submission_timeout_secs),
-        min_submission_interval: Duration::from_millis(arb_config.min_submission_interval_ms),
-    };
-
-    // Load static pools file if configured (enables zero-RPC runtime)
-    let existing_psm = if let Some(ref pools_path) = config.geyser.pools_file {
-        tracing::info!("Loading static pools from: {}", pools_path);
-        let pools_file = PoolsFile::load(pools_path)?;
-        
-        // Create and populate PSM with pre-loaded pools
-        let psm = Arc::new(PoolStateManager::new());
-        let registered = pools_file.register_with_psm(&psm)?;
-        
-        tracing::info!(
-            "Pre-loaded {} pools, {} vaults ready for Geyser subscription",
-            registered,
-            psm.all_vaults().len()
-        );
-        
-        Some(psm)
-    } else {
-        tracing::info!("No pools_file configured - pools will be discovered dynamically via Geyser");
-        tracing::warn!("NOTE: Vault subscriptions will be empty until pools are discovered");
-        None
-    };
-
-    // Spawn unified pipeline - ShredStream + Geyser running together
-    let (pipeline, stats) = spawn_unified_pipeline(
-        pipeline_config,
-        Some(tip_floor_cache),
-        payer_keypair,
-        flash_loan_reserves,
-        lookup_tables,
-        jito_client,
-        existing_psm,
-    )
-    .await?;
-
-    tracing::info!("Arbitrage pipeline started (turbine + geyser + pool_state)");
-
-    // Pool state updates (DEX program accounts, vault balances) are handled
-    // by the unified pipeline's Geyser connection.
-    tracing::info!("Pool state updates handled by unified pipeline Geyser connection");
-
-    // Wait for shutdown signal
-    tokio::signal::ctrl_c().await?;
-
-    // Log final stats - show Turbine stats when using Turbine mode
-    let s = stats.as_ref();
-    let turbine_pkts = s.turbine_packets_received.load(std::sync::atomic::Ordering::Relaxed);
-    let turbine_entries = s.turbine_entries_assembled.load(std::sync::atomic::Ordering::Relaxed);
-    let shred_entries = s.shredstream_entries_received.load(std::sync::atomic::Ordering::Relaxed);
-    
-    // Show whichever source is active
-    let (source_name, entries_count) = if turbine_pkts > 0 || turbine_entries > 0 {
-        ("turbine", turbine_entries)
-    } else {
-        ("shredstream", shred_entries)
-    };
-    
-    tracing::info!(
-        "FINAL STATS: source={} entries={} swaps={} geyser_accts={} opps={} sent={} accepted={} profit={:.6} SOL",
-        source_name,
-        entries_count,
-        s.shredstream_swaps_detected.load(std::sync::atomic::Ordering::Relaxed),
-        s.geyser_account_updates.load(std::sync::atomic::Ordering::Relaxed),
-        s.opportunities_found.load(std::sync::atomic::Ordering::Relaxed),
-        s.bundles_submitted.load(std::sync::atomic::Ordering::Relaxed),
-        s.bundles_accepted.load(std::sync::atomic::Ordering::Relaxed),
-        s.total_profit_lamports.load(std::sync::atomic::Ordering::Relaxed) as f64 / 1e9
-    );
-    
-    // Show detailed Turbine stats if active
-    if turbine_pkts > 0 {
-        tracing::info!(
-            "TURBINE: pkts={} data_shreds={} coding_shreds={} fec_complete={} entries={}",
-            turbine_pkts,
-            s.turbine_data_shreds.load(std::sync::atomic::Ordering::Relaxed),
-            s.turbine_coding_shreds.load(std::sync::atomic::Ordering::Relaxed),
-            s.turbine_fec_completed.load(std::sync::atomic::Ordering::Relaxed),
-            turbine_entries,
-        );
-    }
-
-    // Log pool state stats
-    tracing::info!("POOL STATE: {}", pipeline.pool_state_stats());
-
-    // Log evaluator stats (critical for debugging why no opps are found)
-    tracing::info!("EVALUATOR: {}", pipeline.evaluator_stats().await);
-
-    // Log pair index stats (critical for cross-pool arb routing)
-    tracing::info!("PAIR INDEX: {}", pipeline.pair_index_stats());
-
-    Ok(())
-}
-
-fn build_flash_loan_reserves(
-    config: &Config,
-) -> Result<HashMap<Pubkey, FlashLoanReserve>, Box<dyn std::error::Error>> {
-    let mut reserves = HashMap::default();
-    for loan in config.solend_flash_loans.values() {
-        let mint = Pubkey::from_str(&loan.reserve_liquidity_mint)?;
-        reserves.insert(
-            mint,
-            FlashLoanReserve {
-                program_id: Pubkey::from_str(&loan.program_id)?,
-                lending_market: Pubkey::from_str(&loan.lending_market)?,
-                reserve: Pubkey::from_str(&loan.reserve)?,
-                reserve_liquidity_mint: mint,
-                borrow_liquidity_supply: Pubkey::from_str(&loan.borrow.reserve_liquidity_supply)?,
-                repay_liquidity_supply: Pubkey::from_str(&loan.repay.reserve_liquidity_supply)?,
-                repay_fee_receiver: Pubkey::from_str(&loan.repay.reserve_liquidity_fee_receiver)?,
-                host_fee_receiver: Pubkey::from_str(&loan.repay.host_fee_receiver)?,
-                max_borrow: loan.max_borrow,
-                min_borrow: loan.min_borrow,
-            },
-        );
-    }
-    Ok(reserves)
 }

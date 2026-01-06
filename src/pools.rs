@@ -1,347 +1,328 @@
-//! Static pool loading for zero-RPC runtime
+//! Pool state management
 //!
-//! Loads pool data from a JSON file at startup, enabling Geyser subscriptions
-//! for vault accounts before dynamic discovery begins. This eliminates RPC
-//! calls during runtime by pre-populating the PoolStateManager.
-//!
-//! The pools file contains ONLY static/structural data:
-//! - Pool address and DEX type
-//! - Token mints and vault addresses (critical for Geyser reserve tracking)
-//! - Token decimals
-//! - Optional swap instruction accounts (can be derived if omitted)
-//!
-//! Dynamic state is ALWAYS fetched from Geyser/RPC bootstrap:
-//! - sqrt_price, liquidity, tick/bin (CLMM/DLMM state)
-//! - fee rates (including dynamic DLMM fees)
-//! - spacing/bin_step (immutable but read from chain)
+//! Simple struct, two indexes, no abstractions.
 
-use crate::amm_math::CurveType;
-use crate::pool_discovery::{derive_raydium_amm_authority, derive_whirlpool_oracle};
-use crate::pool_state::{PoolState, PoolStateManager};
-use crate::shredstream::programs::DexType;
-use anyhow::{Context, Result};
-use serde::{Deserialize, Serialize};
+use serde::Deserialize;
 use solana_sdk::pubkey::Pubkey;
-use std::path::Path;
+use std::collections::HashMap;
 use std::str::FromStr;
 
-/// A pool definition loaded from the static pools file.
-/// 
-/// Contains ONLY static/structural data. All dynamic state (sqrt_price, liquidity,
-/// fees, tick/bin) is populated at runtime from Geyser/RPC bootstrap.
-/// 
-/// Note: Extra fields like "_comment" in JSON are ignored (serde default behavior)
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct StaticPool {
-    /// Pool address (base58)
+/// DEX type for swap instruction building
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, Deserialize)]
+pub enum DexType {
+    RaydiumAmm,
+    RaydiumClmm,
+    OrcaWhirlpool,
+    MeteoraDlmm,
+    MeteoraDamm,
+}
+
+/// Pool with live state
+#[derive(Debug, Clone)]
+pub struct Pool {
+    pub address: Pubkey,
+    pub dex: DexType,
+    pub mint_a: Pubkey,
+    pub mint_b: Pubkey,
+    pub vault_a: Pubkey,
+    pub vault_b: Pubkey,
+    pub decimals_a: u8,
+    pub decimals_b: u8,
+    pub reserve_a: u64,
+    pub reserve_b: u64,
+    pub fee_bps: u16,
+    // CLMM specific
+    pub tick_spacing: Option<i32>,
+    pub current_tick: Option<i32>,
+    pub amm_config: Option<Pubkey>,
+    pub observation_state: Option<Pubkey>,
+    pub tick_arrays: Vec<TickArrayInfo>,
+    // DLMM specific
+    pub bin_step: Option<u16>,
+    pub active_bin_id: Option<i32>,
+}
+
+/// Tick array info for CLMM pools
+#[derive(Debug, Clone)]
+pub struct TickArrayInfo {
+    pub pubkey: Pubkey,
+    pub start_tick_index: i32,
+}
+
+/// JSON format for pools file
+#[derive(Debug, Deserialize)]
+pub struct PoolJson {
     pub address: String,
-    /// DEX type: "RaydiumAmm", "RaydiumClmm", "OrcaWhirlpool", "MeteoraDlmm", "MeteoraDamm", "PancakeSwapClmm"
-    pub dex: String,
-    /// Base/Token A mint address
+    pub dex: DexType,
     pub token_mint_a: String,
-    /// Quote/Token B mint address
     pub token_mint_b: String,
-    /// Token A vault address (for Geyser subscription)
     pub token_vault_a: String,
-    /// Token B vault address (for Geyser subscription)
     pub token_vault_b: String,
-    /// Token A decimals
     #[serde(default = "default_decimals")]
     pub decimals_a: u8,
-    /// Token B decimals
     #[serde(default = "default_decimals")]
     pub decimals_b: u8,
-
-    // === Optional swap instruction accounts (can be derived if omitted) ===
-    /// AMM config account (Raydium CLMM, PancakeSwap CLMM)
-    #[serde(default)]
-    pub amm_config: Option<String>,
-    /// Observation/Oracle state (CLMM pools)
-    #[serde(default)]
-    pub observation_state: Option<String>,
-    /// Bin array bitmap extension (DLMM, optional)
-    #[serde(default)]
-    pub bin_array_bitmap_extension: Option<String>,
+    #[serde(default = "default_fee")]
+    pub fee_bps: u16,
+    pub tick_spacing: Option<i32>,
+    pub bin_step: Option<u16>,
 }
 
-fn default_decimals() -> u8 {
-    9
-}
+fn default_decimals() -> u8 { 9 }
+fn default_fee() -> u16 { 25 } // 0.25%
 
-/// Pools file structure
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Deserialize)]
 pub struct PoolsFile {
-    /// List of pools to track
-    pub pools: Vec<StaticPool>,
+    pub pools: Vec<PoolJson>,
 }
 
-impl PoolsFile {
-    /// Load pools from a JSON file
-    pub fn load<P: AsRef<Path>>(path: P) -> Result<Self> {
-        let path = path.as_ref();
-        let contents = std::fs::read_to_string(path)
-            .with_context(|| format!("Failed to read pools file: {}", path.display()))?;
-        
-        let pools_file: PoolsFile = serde_json::from_str(&contents)
-            .with_context(|| format!("Failed to parse pools file: {}", path.display()))?;
-        
-        tracing::info!("Loaded {} pools from {}", pools_file.pools.len(), path.display());
-        Ok(pools_file)
+/// Token pair key (ordered)
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
+pub struct PairKey(pub Pubkey, pub Pubkey);
+
+impl PairKey {
+    pub fn new(a: Pubkey, b: Pubkey) -> Self {
+        // Always order consistently
+        if a < b { Self(a, b) } else { Self(b, a) }
     }
+}
 
-    /// Register all pools with the PoolStateManager
-    /// Pools loaded from pools.json are marked as vault-subscribed since
-    /// they'll be included in the initial Geyser subscription
-    pub fn register_with_psm(&self, psm: &PoolStateManager) -> Result<usize> {
-        let mut registered = 0;
+/// Which vault in a pool
+#[derive(Debug, Clone, Copy)]
+pub enum VaultSide {
+    A,
+    B,
+}
 
-        for pool in &self.pools {
-            match pool.to_pool_state() {
-                Ok(state) => {
-                    // Use register_pool_with_subscription to mark these as subscribed
-                    psm.register_pool_with_subscription(state, true);
-                    registered += 1;
-                }
-                Err(e) => {
-                    tracing::warn!(
-                        "Failed to parse pool {}: {}",
-                        pool.address,
-                        e
-                    );
-                }
+/// Pool registry with indexes
+pub struct PoolRegistry {
+    /// All pools by address
+    pub pools: HashMap<Pubkey, Pool>,
+    /// vault pubkey -> (pool address, side)
+    pub vault_index: HashMap<Pubkey, (Pubkey, VaultSide)>,
+    /// pair -> list of pool addresses
+    pub pair_index: HashMap<PairKey, Vec<Pubkey>>,
+    /// All vault pubkeys (for subscription)
+    pub all_vaults: Vec<Pubkey>,
+    /// CLMM pool addresses (for tick tracking subscription)
+    pub clmm_pools: Vec<Pubkey>,
+}
+
+impl PoolRegistry {
+    /// Load from pools JSON file
+    pub fn load(path: &str) -> anyhow::Result<Self> {
+        let contents = std::fs::read_to_string(path)?;
+        let file: PoolsFile = serde_json::from_str(&contents)?;
+        
+        let mut pools = HashMap::new();
+        let mut vault_index = HashMap::new();
+        let mut pair_index: HashMap<PairKey, Vec<Pubkey>> = HashMap::new();
+        let mut all_vaults = Vec::new();
+        let mut clmm_pools = Vec::new();
+
+        for pj in file.pools {
+            let address = Pubkey::from_str(&pj.address)?;
+            let mint_a = Pubkey::from_str(&pj.token_mint_a)?;
+            let mint_b = Pubkey::from_str(&pj.token_mint_b)?;
+            let vault_a = Pubkey::from_str(&pj.token_vault_a)?;
+            let vault_b = Pubkey::from_str(&pj.token_vault_b)?;
+
+            let pool = Pool {
+                address,
+                dex: pj.dex,
+                mint_a,
+                mint_b,
+                vault_a,
+                vault_b,
+                decimals_a: pj.decimals_a,
+                decimals_b: pj.decimals_b,
+                reserve_a: 0,
+                reserve_b: 0,
+                fee_bps: pj.fee_bps,
+                tick_spacing: pj.tick_spacing,
+                current_tick: None,
+                amm_config: None,
+                observation_state: None,
+                tick_arrays: Vec::new(),
+                bin_step: pj.bin_step,
+                active_bin_id: None,
+            };
+
+            // Index by vault
+            vault_index.insert(vault_a, (address, VaultSide::A));
+            vault_index.insert(vault_b, (address, VaultSide::B));
+            all_vaults.push(vault_a);
+            all_vaults.push(vault_b);
+
+            // Index by pair
+            let pair = PairKey::new(mint_a, mint_b);
+            pair_index.entry(pair).or_default().push(address);
+
+            // Track CLMM pools for tick subscriptions
+            if pj.dex == DexType::RaydiumClmm {
+                clmm_pools.push(address);
             }
+
+            pools.insert(address, pool);
         }
 
-        // Log vault_index size to verify vaults are being indexed
-        let vault_count = psm.all_vaults().len();
         tracing::info!(
-            "Registered {}/{} pools with PoolStateManager (vault_index has {} entries, all marked as subscribed)",
-            registered,
-            self.pools.len(),
-            vault_count
+            "Loaded {} pools, {} vaults, {} unique pairs",
+            pools.len(),
+            all_vaults.len(),
+            pair_index.len()
         );
 
-        Ok(registered)
+        Ok(Self {
+            pools,
+            vault_index,
+            pair_index,
+            all_vaults,
+            clmm_pools,
+        })
+    }
+
+    /// Update vault balance, return affected pool address and pair
+    pub fn update_vault(&mut self, vault: &Pubkey, balance: u64) -> Option<(Pubkey, PairKey)> {
+        let (pool_addr, side) = self.vault_index.get(vault)?;
+        let pool = self.pools.get_mut(pool_addr)?;
+
+        match side {
+            VaultSide::A => pool.reserve_a = balance,
+            VaultSide::B => pool.reserve_b = balance,
+        }
+
+        let pair = PairKey::new(pool.mint_a, pool.mint_b);
+        Some((*pool_addr, pair))
+    }
+
+    /// Get all pools for a pair
+    pub fn pools_for_pair(&self, pair: &PairKey) -> Vec<&Pool> {
+        self.pair_index
+            .get(pair)
+            .map(|addrs| {
+                addrs.iter()
+                    .filter_map(|a| self.pools.get(a))
+                    .collect()
+            })
+            .unwrap_or_default()
+    }
+
+    /// Get pool by address
+    pub fn get_pool(&self, address: &Pubkey) -> Option<&Pool> {
+        self.pools.get(address)
+    }
+
+    /// Check if pool has valid reserves
+    pub fn pool_has_liquidity(&self, address: &Pubkey) -> bool {
+        self.pools.get(address)
+            .map(|p| p.reserve_a > 0 && p.reserve_b > 0)
+            .unwrap_or(false)
+    }
+
+    /// Get mutable pool reference
+    pub fn get_pool_mut(&mut self, address: &Pubkey) -> Option<&mut Pool> {
+        self.pools.get_mut(address)
+    }
+
+    /// Update CLMM pool current_tick from pool state data
+    /// Returns Some(pair) if update succeeded, for arb checking
+    pub fn update_clmm_tick(&mut self, pool_addr: &Pubkey, pool_data: &[u8]) -> Option<PairKey> {
+        const POOL_TICK_CURRENT_OFFSET: usize = 253;
+        
+        if pool_data.len() <= POOL_TICK_CURRENT_OFFSET + 4 {
+            return None;
+        }
+        
+        let pool = self.pools.get_mut(pool_addr)?;
+        
+        // Only update CLMM pools
+        if pool.dex != DexType::RaydiumClmm {
+            return None;
+        }
+        
+        let current_tick = i32::from_le_bytes([
+            pool_data[POOL_TICK_CURRENT_OFFSET],
+            pool_data[POOL_TICK_CURRENT_OFFSET + 1],
+            pool_data[POOL_TICK_CURRENT_OFFSET + 2],
+            pool_data[POOL_TICK_CURRENT_OFFSET + 3],
+        ]);
+        
+        pool.current_tick = Some(current_tick);
+        Some(PairKey::new(pool.mint_a, pool.mint_b))
+    }
+
+    /// Check if this pubkey is a CLMM pool address
+    pub fn is_clmm_pool(&self, addr: &Pubkey) -> bool {
+        self.pools.get(addr)
+            .map(|p| p.dex == DexType::RaydiumClmm)
+            .unwrap_or(false)
     }
 }
 
-impl StaticPool {
-    /// Parse DEX type from string
-    fn parse_dex(&self) -> Result<DexType> {
-        match self.dex.as_str() {
-            "RaydiumAmm" | "raydium_amm" => Ok(DexType::RaydiumAmm),
-            "RaydiumClmm" | "raydium_clmm" => Ok(DexType::RaydiumClmm),
-            "OrcaWhirlpool" | "orca_whirlpool" | "Orca" => Ok(DexType::OrcaWhirlpool),
-            "MeteoraDlmm" | "meteora_dlmm" | "DLMM" => Ok(DexType::MeteoraDlmm),
-            "MeteoraDamm" | "meteora_damm" | "DAMM" => Ok(DexType::MeteoraDamm),
-            "PancakeSwapClmm" | "pancakeswap_clmm" | "PancakeSwap" => Ok(DexType::PancakeSwapClmm),
-            _ => anyhow::bail!("Unknown DEX type: {}", self.dex),
-        }
-    }
+// =============================================================================
+// CLMM Tick Array Helpers
+// =============================================================================
 
-    /// Determine curve type from DEX type
-    fn curve_type(dex: DexType) -> CurveType {
-        match dex {
-            DexType::RaydiumAmm => CurveType::ConstantProduct,
-            // Meteora DAMM v2 uses concentrated liquidity with sqrt_price/liquidity (NOT constant product!)
-            // Reference: MeteoraAg/damm-v2 curve.rs - uses √P' = √P * L / (L + Δa * √P)
-            DexType::RaydiumClmm | DexType::OrcaWhirlpool | DexType::PancakeSwapClmm | DexType::MeteoraDamm => {
-                CurveType::ConcentratedLiquidity
-            }
-            DexType::MeteoraDlmm => CurveType::Dlmm,
-        }
-    }
+/// Raydium CLMM program ID
+const RAYDIUM_CLMM: Pubkey = solana_sdk::pubkey!("CAMMCzo5YL8w4VFF8KVHrK22GGUsp5VTaW7grrKgrWqK");
 
-    /// Convert to PoolState for registration
-    pub fn to_pool_state(&self) -> Result<PoolState> {
-        let address = Pubkey::from_str(&self.address)
-            .with_context(|| format!("Invalid pool address: {}", self.address))?;
-        let dex = self.parse_dex()?;
-        let curve = Self::curve_type(dex);
+/// Tick array constants
+const TICK_ARRAY_SIZE: i32 = 60;
+const MIN_TICK: i32 = -443636;
+const MAX_TICK: i32 = 443636;
 
-        let token_mint_a = Pubkey::from_str(&self.token_mint_a)
-            .with_context(|| format!("Invalid token_mint_a: {}", self.token_mint_a))?;
-        let token_mint_b = Pubkey::from_str(&self.token_mint_b)
-            .with_context(|| format!("Invalid token_mint_b: {}", self.token_mint_b))?;
-        let token_vault_a = Pubkey::from_str(&self.token_vault_a)
-            .with_context(|| format!("Invalid token_vault_a: {}", self.token_vault_a))?;
-        let token_vault_b = Pubkey::from_str(&self.token_vault_b)
-            .with_context(|| format!("Invalid token_vault_b: {}", self.token_vault_b))?;
-
-        // Parse optional accounts
-        let amm_config = self
-            .amm_config
-            .as_ref()
-            .map(|s| Pubkey::from_str(s))
-            .transpose()
-            .with_context(|| "Invalid amm_config")?;
-        
-        let observation_state = self
-            .observation_state
-            .as_ref()
-            .map(|s| Pubkey::from_str(s))
-            .transpose()
-            .with_context(|| "Invalid observation_state")?;
-        
-        let bin_array_bitmap_extension = self
-            .bin_array_bitmap_extension
-            .as_ref()
-            .map(|s| Pubkey::from_str(s))
-            .transpose()
-            .with_context(|| "Invalid bin_array_bitmap_extension")?;
-
-        // Create base state - reserves initialized to 0, Geyser/bootstrap will populate
-        // All dynamic state (fees, sqrt_price, liquidity, tick/bin) comes from Geyser
-        let mut state = PoolState::new(
-            address,
-            dex,
-            token_mint_a,
-            token_mint_b,
-            0, // base_reserve - Geyser will update
-            0, // quote_reserve - Geyser will update
-            self.decimals_a,
-            self.decimals_b,
-            curve,
-            0, // slot will be updated by Geyser
-        );
-
-        // Derive PDAs based on DEX type
-        // Note: tick/bin arrays are derived at runtime from Geyser state, not from pools.json
-        let (amm_authority, derived_observation, pool_authority) =
-            Self::derive_pdas(&address, dex, observation_state)?;
-
-        // Set metadata (tick/bin arrays will be populated by bootstrap/Geyser)
-        state.set_metadata(
-            token_vault_a,
-            token_vault_b,
-            amm_authority,
-            amm_config,
-            derived_observation,
-            vec![], // tick_arrays - populated by bootstrap
-            bin_array_bitmap_extension,
-            vec![], // bin_arrays - populated by bootstrap
-            pool_authority,
-        );
-
-        Ok(state)
-    }
-
-    /// Derive PDAs for swap instruction building
-    /// Note: tick/bin arrays are derived at runtime when we have current tick/bin from Geyser
-    fn derive_pdas(
-        pool: &Pubkey,
-        dex: DexType,
-        observation_override: Option<Pubkey>,
-    ) -> Result<(
-        Option<Pubkey>,           // amm_authority
-        Option<Pubkey>,           // observation_state
-        Option<Pubkey>,           // pool_authority
-    )> {
-        match dex {
-            DexType::RaydiumAmm => {
-                let authority = derive_raydium_amm_authority();
-                Ok((Some(authority), None, None))
-            }
-            DexType::RaydiumClmm | DexType::PancakeSwapClmm => {
-                // Tick arrays derived at runtime from Geyser state
-                Ok((None, observation_override, None))
-            }
-            DexType::OrcaWhirlpool => {
-                let oracle = observation_override.unwrap_or_else(|| derive_whirlpool_oracle(pool));
-                // Tick arrays derived at runtime from Geyser state
-                Ok((None, Some(oracle), None))
-            }
-            DexType::MeteoraDlmm => {
-                // Bin arrays derived at runtime from Geyser state
-                Ok((None, None, None))
-            }
-            DexType::MeteoraDamm => {
-                // DAMM v2 uses a GLOBAL pool authority (unlike DLMM which is per-pool)
-                // The seed is just "pool_authority" with NO pool address suffix
-                // See: https://github.com/MeteoraAg/damm-v2/blob/main/programs/cp-amm/src/const_pda.rs
-                let pool_authority = Pubkey::find_program_address(
-                    &[b"pool_authority"],
-                    &crate::shredstream::programs::METEORA_DAMM,
-                )
-                .0;
-                Ok((None, None, Some(pool_authority)))
-            }
-        }
-    }
+/// Derive tick array PDA for a given pool and start_tick_index
+pub fn derive_tick_array_pda(pool: &Pubkey, start_tick_index: i32) -> Pubkey {
+    let start_bytes = start_tick_index.to_be_bytes();
+    let seeds: &[&[u8]] = &[b"tick_array", pool.as_ref(), &start_bytes];
+    Pubkey::find_program_address(seeds, &RAYDIUM_CLMM).0
 }
 
-#[cfg(test)]
-mod tests {
-    use super::*;
-
-    #[test]
-    fn test_parse_dex_types() {
-        let pool = StaticPool {
-            address: "11111111111111111111111111111111".to_string(),
-            dex: "RaydiumAmm".to_string(),
-            token_mint_a: "So11111111111111111111111111111111111111112".to_string(),
-            token_mint_b: "EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v".to_string(),
-            token_vault_a: "11111111111111111111111111111111".to_string(),
-            token_vault_b: "11111111111111111111111111111111".to_string(),
-            decimals_a: 9,
-            decimals_b: 6,
-            amm_config: None,
-            observation_state: None,
-            bin_array_bitmap_extension: None,
-        };
-
-        assert_eq!(pool.parse_dex().unwrap(), DexType::RaydiumAmm);
+/// Generate all possible tick array start indices for a given tick_spacing
+pub fn all_tick_array_starts(tick_spacing: i32) -> Vec<i32> {
+    let ticks_per_array = TICK_ARRAY_SIZE * tick_spacing;
+    let mut starts = Vec::new();
+    let mut start = (MIN_TICK / ticks_per_array) * ticks_per_array;
+    while start <= MAX_TICK {
+        starts.push(start);
+        start += ticks_per_array;
     }
+    starts
+}
 
-    #[test]
-    fn test_pools_file_deserialize() {
-        // Test that pools.json format without stale fields works
-        let json = r#"{
-            "pools": [
-                {
-                    "address": "58oQChx4yWmvKdwLLZzBi4ChoCc2fqCUWBkwMihLYQo2",
-                    "dex": "RaydiumAmm",
-                    "token_mint_a": "So11111111111111111111111111111111111111112",
-                    "token_mint_b": "EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v",
-                    "token_vault_a": "DQyrAcCrDXQ7NeoqGgDCZwBvWDcYmFCjSb9JtteuvPpz",
-                    "token_vault_b": "HLmqeL62xR1QoZ1HKKbXRrdN1p3phKpxRMb2VVopvBBz",
-                    "decimals_a": 9,
-                    "decimals_b": 6
-                }
-            ]
-        }"#;
-
-        let pools_file: PoolsFile = serde_json::from_str(json).unwrap();
-        assert_eq!(pools_file.pools.len(), 1);
-        assert_eq!(pools_file.pools[0].dex, "RaydiumAmm");
-    }
-
-    #[test]
-    fn test_pools_file_deserialize_with_extra_fields() {
-        // Test that pools.json with extra fields still parses correctly
-        // (serde ignores unknown fields by default)
-        let json = r#"{
-            "pools": [
-                {
-                    "address": "58oQChx4yWmvKdwLLZzBi4ChoCc2fqCUWBkwMihLYQo2",
-                    "dex": "RaydiumAmm",
-                    "token_mint_a": "So11111111111111111111111111111111111111112",
-                    "token_mint_b": "EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v",
-                    "token_vault_a": "DQyrAcCrDXQ7NeoqGgDCZwBvWDcYmFCjSb9JtteuvPpz",
-                    "token_vault_b": "HLmqeL62xR1QoZ1HKKbXRrdN1p3phKpxRMb2VVopvBBz",
-                    "decimals_a": 9,
-                    "decimals_b": 6,
-                    "fee_bps": 25,
-                    "spacing": 1,
-                    "current_tick_or_bin": 0,
-                    "sqrt_price": "18446744073709551616",
-                    "liquidity": "1000000"
-                }
-            ]
-        }"#;
-
-        let pools_file: PoolsFile = serde_json::from_str(json).unwrap();
-        assert_eq!(pools_file.pools.len(), 1);
-        assert_eq!(pools_file.pools[0].dex, "RaydiumAmm");
+/// Select tick arrays needed for a swap
+/// 
+/// CRITICAL: The FIRST tick array must always be the one containing the current tick.
+/// Subsequent arrays go in the direction of the swap:
+/// - zero_for_one = true (tick DOWN): current, then descending
+/// - zero_for_one = false (tick UP): current, then ascending
+/// 
+/// We provide 5 arrays to handle multi-tick swaps (covers ~300 ticks with spacing=60).
+pub fn select_tick_arrays_for_swap(
+    all_tick_arrays: &[TickArrayInfo],
+    current_tick: i32,
+    tick_spacing: i32,
+    zero_for_one: bool,
+) -> Vec<Pubkey> {
+    let ticks_per_array = TICK_ARRAY_SIZE * tick_spacing;
+    let current_array_start = (current_tick / ticks_per_array) * ticks_per_array;
+    
+    if zero_for_one {
+        // Tick going DOWN - need arrays from current going down (descending order)
+        // Filter: arrays at or below current, sort descending, take 5
+        let mut candidates: Vec<&TickArrayInfo> = all_tick_arrays.iter()
+            .filter(|ta| ta.start_tick_index <= current_array_start)
+            .collect();
+        candidates.sort_by(|a, b| b.start_tick_index.cmp(&a.start_tick_index));
+        candidates.into_iter().map(|t| t.pubkey).take(5).collect()
+    } else {
+        // Tick going UP - need arrays from current going up (ascending order)
+        // Filter: arrays at or above current, sort ascending, take 5
+        let mut candidates: Vec<&TickArrayInfo> = all_tick_arrays.iter()
+            .filter(|ta| ta.start_tick_index >= current_array_start)
+            .collect();
+        candidates.sort_by(|a, b| a.start_tick_index.cmp(&b.start_tick_index));
+        candidates.into_iter().map(|t| t.pubkey).take(5).collect()
     }
 }
