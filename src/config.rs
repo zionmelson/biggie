@@ -14,9 +14,14 @@ pub struct Config {
     pub helius_rpc: String,
     /// Helius WebSocket endpoint (with API key)
     pub helius_ws: String,
-    /// Jito block engine endpoint
+    /// Helius Sender endpoint for fast tx submission
+    #[serde(default = "default_helius_sender")]
+    pub helius_sender: String,
+    /// Jito block engine endpoint (legacy, optional)
+    #[serde(default)]
     pub jito_endpoint: String,
-    /// Path to Jito auth keypair
+    /// Path to Jito auth keypair (legacy, optional)
+    #[serde(default)]
     pub jito_auth_keypair: String,
     /// Path to payer/signer keypair
     pub payer_keypair: String,
@@ -92,6 +97,7 @@ fn default_slippage_bps() -> u16 { 150 }   // 1.5%
 fn default_tip_bps() -> u16 { 7500 }       // 75% of profit
 fn default_compute_units() -> u32 { 400_000 }
 fn default_compute_unit_price() -> u64 { 1000 }
+fn default_helius_sender() -> String { "https://sender.helius-rpc.com/fast".to_string() }
 
 impl Config {
     /// Load config from JSON file
@@ -110,11 +116,8 @@ impl Config {
         if self.helius_ws.is_empty() {
             anyhow::bail!("helius_ws is required");
         }
-        if self.jito_endpoint.is_empty() {
-            anyhow::bail!("jito_endpoint is required");
-        }
-        if !Path::new(&self.jito_auth_keypair).exists() {
-            anyhow::bail!("jito_auth_keypair file not found: {}", self.jito_auth_keypair);
+        if self.helius_sender.is_empty() {
+            anyhow::bail!("helius_sender is required");
         }
         if !Path::new(&self.payer_keypair).exists() {
             anyhow::bail!("payer_keypair file not found: {}", self.payer_keypair);

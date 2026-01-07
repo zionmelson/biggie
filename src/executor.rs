@@ -70,8 +70,40 @@ pub mod programs {
         Pubkey::from_str("Eo7WjKq67rjJQSZxS6z3YkapzY3eMj6Xy8X5EQVn5UaB").unwrap()
     }
 
+    pub fn pancakeswap_clmm() -> Pubkey {
+        Pubkey::from_str("HpNfyc2Saw7RKkQd8nEL4khUcuPhQ7WwY1B2qjx8jxFq").unwrap()
+    }
+
     pub fn memo_program() -> Pubkey {
         Pubkey::from_str("MemoSq4gqABAXKb96qnH8TysNcWxMyWCqXgDLGmfcHr").unwrap()
+    }
+
+    /// Derive Orca Whirlpool oracle PDA
+    pub fn whirlpool_oracle_pda(whirlpool: &Pubkey) -> Pubkey {
+        Pubkey::find_program_address(&[b"oracle", whirlpool.as_ref()], &orca_whirlpool()).0
+    }
+
+    /// Derive Orca Whirlpool tick array PDA
+    /// NOTE: Orca uses the STRING representation of the tick index as seed!
+    pub fn whirlpool_tick_array_pda(whirlpool: &Pubkey, start_tick_index: i32) -> Pubkey {
+        let tick_str = start_tick_index.to_string();
+        Pubkey::find_program_address(
+            &[b"tick_array", whirlpool.as_ref(), tick_str.as_bytes()],
+            &orca_whirlpool(),
+        ).0
+    }
+
+    /// Derive PancakeSwap CLMM tick array PDA
+    /// NOTE: PancakeSwap uses BIG ENDIAN bytes for the tick index!
+    pub fn pancakeswap_tick_array_pda(pool: &Pubkey, start_tick_index: i32) -> Pubkey {
+        Pubkey::find_program_address(
+            &[b"tick_array", pool.as_ref(), &start_tick_index.to_be_bytes()],
+            &pancakeswap_clmm(),
+        ).0
+    }
+
+    pub fn token_program_2022() -> Pubkey {
+        Pubkey::from_str("TokenzQdBNbLqP5VEhdkAS6EPFLC1PHnBqCXEpPxuEb").unwrap()
     }
 
     /// Derive Meteora DLMM oracle PDA
@@ -262,8 +294,9 @@ impl TxBuilder {
             DexType::RaydiumAmm => self.raydium_amm_swap_ix(pool, amount_in, min_amount_out, a_to_b),
             DexType::RaydiumClmm => self.raydium_clmm_swap_ix(pool, amount_in, min_amount_out, a_to_b),
             DexType::MeteoraDamm => self.meteora_damm_swap_ix(pool, amount_in, min_amount_out, a_to_b),
-            DexType::OrcaWhirlpool => Err(anyhow!("Orca Whirlpool not yet implemented")),
+            DexType::OrcaWhirlpool => self.orca_whirlpool_swap_ix(pool, amount_in, min_amount_out, a_to_b),
             DexType::MeteoraDlmm => self.meteora_dlmm_swap_ix(pool, amount_in, min_amount_out, a_to_b),
+            DexType::PancakeSwapClmm => self.pancakeswap_clmm_swap_ix(pool, amount_in, min_amount_out, a_to_b),
         }
     }
 
@@ -425,6 +458,205 @@ impl TxBuilder {
 
         Ok(Instruction {
             program_id: programs::raydium_clmm(),
+            accounts,
+            data,
+        })
+    }
+
+    fn orca_whirlpool_swap_ix(
+        &self,
+        pool: &Pool,
+        amount_in: u64,
+        min_amount_out: u64,
+        a_to_b: bool,
+    ) -> Result<Instruction> {
+        // Require CLMM-specific fields
+        let tick_spacing = pool.tick_spacing
+            .ok_or_else(|| anyhow!("Whirlpool missing tick_spacing"))?;
+        let current_tick = pool.current_tick
+            .ok_or_else(|| anyhow!("Whirlpool missing current_tick"))?;
+        
+        if pool.tick_arrays.is_empty() {
+            return Err(anyhow!("Whirlpool has no tick arrays - run tick array discovery first"));
+        }
+
+        // Derive oracle PDA
+        let oracle = programs::whirlpool_oracle_pda(&pool.address);
+
+        // Select tick arrays for this swap direction
+        // For Orca: a_to_b means tick goes DOWN, need descending arrays
+        let tick_arrays = crate::pools::select_whirlpool_tick_arrays(
+            &pool.tick_arrays,
+            current_tick,
+            tick_spacing,
+            a_to_b,
+        );
+        
+        if tick_arrays.len() < 3 {
+            return Err(anyhow!("Need 3 tick arrays for Whirlpool swap, got {}", tick_arrays.len()));
+        }
+
+        // User token accounts
+        let user_ata_a = self.payer_token_account(&pool.mint_a)?;
+        let user_ata_b = self.payer_token_account(&pool.mint_b)?;
+
+        // sqrt_price_limit based on direction
+        const MIN_SQRT_PRICE_X64: u128 = 4295048016;
+        const MAX_SQRT_PRICE_X64: u128 = 79226673515401279992447579055;
+        let sqrt_price_limit: u128 = if a_to_b {
+            MIN_SQRT_PRICE_X64 + 1 // Going down
+        } else {
+            MAX_SQRT_PRICE_X64 - 1 // Going up
+        };
+
+        // Account layout:
+        // 0:  token_program
+        // 1:  token_authority (signer)
+        // 2:  whirlpool (writable)
+        // 3:  token_owner_account_a (writable)
+        // 4:  token_vault_a (writable)
+        // 5:  token_owner_account_b (writable)
+        // 6:  token_vault_b (writable)
+        // 7:  tick_array_0 (writable)
+        // 8:  tick_array_1 (writable)
+        // 9:  tick_array_2 (writable)
+        // 10: oracle (writable for AdaptiveFee pools)
+        let accounts = vec![
+            AccountMeta::new_readonly(programs::token_program(), false),
+            AccountMeta::new_readonly(self.payer.pubkey(), true),
+            AccountMeta::new(pool.address, false),
+            AccountMeta::new(user_ata_a, false),
+            AccountMeta::new(pool.vault_a, false),
+            AccountMeta::new(user_ata_b, false),
+            AccountMeta::new(pool.vault_b, false),
+            AccountMeta::new(tick_arrays[0], false),
+            AccountMeta::new(tick_arrays[1], false),
+            AccountMeta::new(tick_arrays[2], false),
+            AccountMeta::new(oracle, false),
+        ];
+
+        // Build instruction data
+        // Discriminator (8) + amount (8) + other_amount_threshold (8) + sqrt_price_limit (16) + amount_specified_is_input (1) + a_to_b (1)
+        const SWAP_DISCRIMINATOR: [u8; 8] = [248, 198, 158, 145, 225, 117, 135, 200];
+        
+        let mut data = Vec::with_capacity(42);
+        data.extend_from_slice(&SWAP_DISCRIMINATOR);
+        data.extend_from_slice(&amount_in.to_le_bytes());
+        data.extend_from_slice(&min_amount_out.to_le_bytes());
+        data.extend_from_slice(&sqrt_price_limit.to_le_bytes());
+        data.push(1u8); // amount_specified_is_input = true
+        data.push(if a_to_b { 1u8 } else { 0u8 });
+
+        Ok(Instruction {
+            program_id: programs::orca_whirlpool(),
+            accounts,
+            data,
+        })
+    }
+
+    fn pancakeswap_clmm_swap_ix(
+        &self,
+        pool: &Pool,
+        amount_in: u64,
+        min_amount_out: u64,
+        a_to_b: bool,
+    ) -> Result<Instruction> {
+        // PancakeSwap CLMM uses swap_v2 instruction with 17 accounts
+        // Require CLMM-specific fields
+        let amm_config = pool.amm_config
+            .ok_or_else(|| anyhow!("PancakeSwap pool missing amm_config"))?;
+        let observation_state = pool.observation_state
+            .ok_or_else(|| anyhow!("PancakeSwap pool missing observation_state"))?;
+        let tick_spacing = pool.tick_spacing
+            .ok_or_else(|| anyhow!("PancakeSwap pool missing tick_spacing"))?;
+        let current_tick = pool.current_tick
+            .ok_or_else(|| anyhow!("PancakeSwap pool missing current_tick"))?;
+        let bitmap_extension = pool.bitmap_extension
+            .ok_or_else(|| anyhow!("PancakeSwap pool missing bitmap_extension"))?;
+        
+        if pool.tick_arrays.is_empty() {
+            return Err(anyhow!("PancakeSwap pool has no tick arrays"));
+        }
+
+        // In PancakeSwap, a_to_b means selling token_0 for token_1 = zero_for_one = true
+        let zero_for_one = a_to_b;
+        
+        // Select tick arrays for swap direction
+        let tick_arrays = crate::pools::select_tick_arrays_for_swap(
+            &pool.tick_arrays,
+            current_tick,
+            tick_spacing,
+            zero_for_one,
+        );
+        
+        if tick_arrays.is_empty() {
+            return Err(anyhow!("No tick arrays available for swap direction"));
+        }
+
+        let (input_vault, output_vault, input_mint, output_mint) = if a_to_b {
+            (pool.vault_a, pool.vault_b, pool.mint_a, pool.mint_b)
+        } else {
+            (pool.vault_b, pool.vault_a, pool.mint_b, pool.mint_a)
+        };
+
+        let user_input = self.payer_token_account(&input_mint)?;
+        let user_output = self.payer_token_account(&output_mint)?;
+
+        // PancakeSwap swap_v2 uses 0 for no sqrt_price_limit
+        let sqrt_price_limit_x64: u128 = 0;
+
+        // PancakeSwap CLMM account layout (17 accounts):
+        // 0: payer (signer)
+        // 1: amm_config
+        // 2: pool_state
+        // 3: input_token_account (user)
+        // 4: output_token_account (user)
+        // 5: input_vault
+        // 6: output_vault
+        // 7: observation_state
+        // 8: token_program (SPL)
+        // 9: token_program_2022
+        // 10: memo_program
+        // 11: input_vault_mint
+        // 12: output_vault_mint
+        // 13: bitmap_extension
+        // 14-16: tick_arrays[0..3]
+        let mut accounts = vec![
+            AccountMeta::new_readonly(self.payer.pubkey(), true),    // 0
+            AccountMeta::new_readonly(amm_config, false),            // 1
+            AccountMeta::new(pool.address, false),                   // 2
+            AccountMeta::new(user_input, false),                     // 3
+            AccountMeta::new(user_output, false),                    // 4
+            AccountMeta::new(input_vault, false),                    // 5
+            AccountMeta::new(output_vault, false),                   // 6
+            AccountMeta::new(observation_state, false),              // 7
+            AccountMeta::new_readonly(programs::token_program(), false),      // 8
+            AccountMeta::new_readonly(programs::token_program_2022(), false), // 9
+            AccountMeta::new_readonly(programs::memo_program(), false),       // 10
+            AccountMeta::new_readonly(input_mint, false),            // 11
+            AccountMeta::new_readonly(output_mint, false),           // 12
+            AccountMeta::new(bitmap_extension, false),               // 13
+        ];
+        
+        // Add tick arrays (positions 14-16)
+        for ta in tick_arrays.iter().take(3) {
+            accounts.push(AccountMeta::new(*ta, false));
+        }
+
+        // swap_v2 discriminator = sha256("global:swap_v2")[0..8]
+        const SWAP_V2_DISCRIMINATOR: [u8; 8] = [0x2b, 0x04, 0xed, 0x0b, 0x1a, 0xc9, 0x1e, 0x62];
+        
+        // swap_v2 instruction data (41 bytes):
+        // discriminator (8) + amount (8) + threshold (8) + sqrt_price_limit (16) + zero_for_one (1)
+        let mut data = Vec::with_capacity(41);
+        data.extend_from_slice(&SWAP_V2_DISCRIMINATOR);
+        data.extend_from_slice(&amount_in.to_le_bytes());
+        data.extend_from_slice(&min_amount_out.to_le_bytes());
+        data.extend_from_slice(&sqrt_price_limit_x64.to_le_bytes());
+        data.push(zero_for_one as u8);
+
+        Ok(Instruction {
+            program_id: programs::pancakeswap_clmm(),
             accounts,
             data,
         })
@@ -615,33 +847,44 @@ fn spl_associated_token_account_id(owner: &Pubkey, mint: &Pubkey) -> Pubkey {
 }
 
 // ============================================================================
-// Jito Bundle Submission
+// Helius Sender - Fast Transaction Submission
 // ============================================================================
+// Uses Helius Sender for ultra-low latency tx submission with dual routing
+// to validators and Jito infrastructure.
 
 use reqwest::Client;
 use serde::{Deserialize, Serialize};
 
 #[derive(Serialize)]
-struct JitoBundleRequest {
+struct HeliusSendRequest {
     jsonrpc: String,
-    id: u64,
+    id: String,
     method: String,
-    params: Vec<Vec<String>>, // Array of base58-encoded transactions
+    params: (String, HeliusSendOptions), // (base64 tx, options)
+}
+
+#[derive(Serialize)]
+struct HeliusSendOptions {
+    encoding: String,
+    #[serde(rename = "skipPreflight")]
+    skip_preflight: bool,
+    #[serde(rename = "maxRetries")]
+    max_retries: u32,
 }
 
 #[derive(Deserialize)]
-struct JitoBundleResponse {
-    result: Option<String>, // Bundle ID
+struct HeliusSendResponse {
+    result: Option<String>, // Transaction signature
     error: Option<serde_json::Value>,
 }
 
-/// Simple Jito client
-pub struct JitoClient {
+/// Helius Sender client for fast transaction submission
+pub struct HeliusSender {
     endpoint: String,
     http: Client,
 }
 
-impl JitoClient {
+impl HeliusSender {
     pub fn new(endpoint: String) -> Self {
         Self {
             endpoint,
@@ -649,32 +892,48 @@ impl JitoClient {
         }
     }
 
-    /// Submit transaction bundle to Jito
-    pub async fn send_bundle(&self, txs: Vec<Transaction>) -> Result<String> {
-        let tx_strings: Vec<String> = txs
-            .iter()
-            .map(|tx| bs58::encode(bincode::serialize(tx).unwrap()).into_string())
-            .collect();
+    /// Submit a single transaction via Helius Sender
+    /// Returns the transaction signature
+    pub async fn send_transaction(&self, tx: &Transaction) -> Result<String> {
+        use base64::Engine;
+        let tx_bytes = bincode::serialize(tx)?;
+        let tx_base64 = base64::engine::general_purpose::STANDARD.encode(&tx_bytes);
 
-        let request = JitoBundleRequest {
+        let request = HeliusSendRequest {
             jsonrpc: "2.0".to_string(),
-            id: 1,
-            method: "sendBundle".to_string(),
-            params: vec![tx_strings],
+            id: "1".to_string(),
+            method: "sendTransaction".to_string(),
+            params: (
+                tx_base64,
+                HeliusSendOptions {
+                    encoding: "base64".to_string(),
+                    skip_preflight: true,
+                    max_retries: 0,
+                },
+            ),
         };
 
-        let response = self.http
-            .post(&format!("{}/api/v1/bundles", self.endpoint))
+        let resp = self.http
+            .post(&self.endpoint)
+            .header("Content-Type", "application/json")
             .json(&request)
             .send()
-            .await?
-            .json::<JitoBundleResponse>()
             .await?;
-
-        if let Some(error) = response.error {
-            return Err(anyhow!("Jito error: {:?}", error));
+        
+        let status = resp.status();
+        let body = resp.text().await?;
+        
+        if !status.is_success() {
+            return Err(anyhow!("HTTP {}: {}", status, body));
         }
 
-        response.result.ok_or_else(|| anyhow!("No bundle ID returned"))
+        let response: HeliusSendResponse = serde_json::from_str(&body)
+            .map_err(|e| anyhow!("Parse error: {} - body: {}", e, &body[..body.len().min(200)]))?;
+
+        if let Some(error) = response.error {
+            return Err(anyhow!("RPC error: {}", serde_json::to_string(&error).unwrap_or_default()));
+        }
+
+        response.result.ok_or_else(|| anyhow!("No signature in response: {}", &body[..body.len().min(200)]))
     }
 }

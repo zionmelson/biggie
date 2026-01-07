@@ -34,6 +34,15 @@ clap = { version = "4", features = ["derive"] }
 # Logging
 tracing = "0.1"
 tracing-subscriber = { version = "0.3", features = ["env-filter"] }
+solana-account-decoder = "2"
+
+# gRPC for Jito bundle submission
+tonic = { version = "0.12", features = ["tls", "tls-webpki-roots"] }
+prost = "0.13"
+prost-types = "0.13"
+
+[build-dependencies]
+tonic-build = "0.12"
 
 [profile.release]
 opt-level = 3

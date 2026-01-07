@@ -15,6 +15,7 @@ pub enum DexType {
     OrcaWhirlpool,
     MeteoraDlmm,
     MeteoraDamm,
+    PancakeSwapClmm,
 }
 
 /// Pool with live state
@@ -34,9 +35,13 @@ pub struct Pool {
     // CLMM specific
     pub tick_spacing: Option<i32>,
     pub current_tick: Option<i32>,
+    pub sqrt_price_x64: Option<u128>,  // sqrt(price) * 2^64
+    pub liquidity: Option<u128>,       // Active liquidity in current tick range
     pub amm_config: Option<Pubkey>,
     pub observation_state: Option<Pubkey>,
     pub tick_arrays: Vec<TickArrayInfo>,
+    // PancakeSwap CLMM specific
+    pub bitmap_extension: Option<Pubkey>,
     // DLMM specific
     pub bin_step: Option<u16>,
     pub active_bin_id: Option<i32>,
@@ -141,9 +146,12 @@ impl PoolRegistry {
                 fee_bps: pj.fee_bps,
                 tick_spacing: pj.tick_spacing,
                 current_tick: None,
+                sqrt_price_x64: None,
+                liquidity: None,
                 amm_config: None,
                 observation_state: None,
                 tick_arrays: Vec::new(),
+                bitmap_extension: None,
                 bin_step: pj.bin_step,
                 active_bin_id: None,
             };
@@ -158,9 +166,12 @@ impl PoolRegistry {
             let pair = PairKey::new(mint_a, mint_b);
             pair_index.entry(pair).or_default().push(address);
 
-            // Track CLMM pools for tick subscriptions
-            if pj.dex == DexType::RaydiumClmm {
-                clmm_pools.push(address);
+            // Track CLMM and DLMM pools for state subscriptions
+            match pj.dex {
+                DexType::RaydiumClmm | DexType::OrcaWhirlpool | DexType::PancakeSwapClmm | DexType::MeteoraDlmm => {
+                    clmm_pools.push(address);
+                }
+                _ => {}
             }
 
             pools.insert(address, pool);
@@ -225,37 +236,135 @@ impl PoolRegistry {
         self.pools.get_mut(address)
     }
 
-    /// Update CLMM pool current_tick from pool state data
+    /// Update CLMM/DLMM pool state from pool account data
+    /// Parses: liquidity, sqrt_price_x64, current_tick (CLMM) or active_bin_id (DLMM)
     /// Returns Some(pair) if update succeeded, for arb checking
     pub fn update_clmm_tick(&mut self, pool_addr: &Pubkey, pool_data: &[u8]) -> Option<PairKey> {
-        const POOL_TICK_CURRENT_OFFSET: usize = 253;
-        
-        if pool_data.len() <= POOL_TICK_CURRENT_OFFSET + 4 {
-            return None;
-        }
-        
         let pool = self.pools.get_mut(pool_addr)?;
         
-        // Only update CLMM pools
-        if pool.dex != DexType::RaydiumClmm {
-            return None;
+        match pool.dex {
+            DexType::RaydiumClmm => {
+                // Raydium CLMM layout offsets
+                const LIQUIDITY_OFFSET: usize = 237;
+                const SQRT_PRICE_OFFSET: usize = 253;
+                const TICK_OFFSET: usize = 269;
+                
+                if pool_data.len() < TICK_OFFSET + 4 {
+                    return None;
+                }
+                
+                // Parse liquidity (u128)
+                if pool_data.len() >= LIQUIDITY_OFFSET + 16 {
+                    if let Ok(bytes) = pool_data[LIQUIDITY_OFFSET..LIQUIDITY_OFFSET+16].try_into() {
+                        pool.liquidity = Some(u128::from_le_bytes(bytes));
+                    }
+                }
+                
+                // Parse sqrt_price_x64 (u128)
+                if pool_data.len() >= SQRT_PRICE_OFFSET + 16 {
+                    if let Ok(bytes) = pool_data[SQRT_PRICE_OFFSET..SQRT_PRICE_OFFSET+16].try_into() {
+                        pool.sqrt_price_x64 = Some(u128::from_le_bytes(bytes));
+                    }
+                }
+                
+                // Parse current_tick (i32)
+                pool.current_tick = Some(i32::from_le_bytes([
+                    pool_data[TICK_OFFSET],
+                    pool_data[TICK_OFFSET + 1],
+                    pool_data[TICK_OFFSET + 2],
+                    pool_data[TICK_OFFSET + 3],
+                ]));
+            }
+            DexType::OrcaWhirlpool => {
+                // Orca Whirlpool layout offsets (after 8-byte discriminator)
+                const SQRT_PRICE_OFFSET: usize = 65;
+                const TICK_OFFSET: usize = 261;
+                const LIQUIDITY_OFFSET: usize = 265;
+                
+                if pool_data.len() < LIQUIDITY_OFFSET + 16 {
+                    return None;
+                }
+                
+                // Parse sqrt_price (u128)
+                if let Ok(bytes) = pool_data[SQRT_PRICE_OFFSET..SQRT_PRICE_OFFSET+16].try_into() {
+                    pool.sqrt_price_x64 = Some(u128::from_le_bytes(bytes));
+                }
+                
+                // Parse tick_current_index (i32)
+                pool.current_tick = Some(i32::from_le_bytes([
+                    pool_data[TICK_OFFSET],
+                    pool_data[TICK_OFFSET + 1],
+                    pool_data[TICK_OFFSET + 2],
+                    pool_data[TICK_OFFSET + 3],
+                ]));
+                
+                // Parse liquidity (u128)
+                if let Ok(bytes) = pool_data[LIQUIDITY_OFFSET..LIQUIDITY_OFFSET+16].try_into() {
+                    pool.liquidity = Some(u128::from_le_bytes(bytes));
+                }
+            }
+            DexType::PancakeSwapClmm => {
+                // PancakeSwap CLMM has same layout as Raydium CLMM
+                const LIQUIDITY_OFFSET: usize = 237;
+                const SQRT_PRICE_OFFSET: usize = 253;
+                const TICK_OFFSET: usize = 269;
+                
+                if pool_data.len() < TICK_OFFSET + 4 {
+                    return None;
+                }
+                
+                if pool_data.len() >= LIQUIDITY_OFFSET + 16 {
+                    if let Ok(bytes) = pool_data[LIQUIDITY_OFFSET..LIQUIDITY_OFFSET+16].try_into() {
+                        pool.liquidity = Some(u128::from_le_bytes(bytes));
+                    }
+                }
+                
+                if pool_data.len() >= SQRT_PRICE_OFFSET + 16 {
+                    if let Ok(bytes) = pool_data[SQRT_PRICE_OFFSET..SQRT_PRICE_OFFSET+16].try_into() {
+                        pool.sqrt_price_x64 = Some(u128::from_le_bytes(bytes));
+                    }
+                }
+                
+                pool.current_tick = Some(i32::from_le_bytes([
+                    pool_data[TICK_OFFSET],
+                    pool_data[TICK_OFFSET + 1],
+                    pool_data[TICK_OFFSET + 2],
+                    pool_data[TICK_OFFSET + 3],
+                ]));
+            }
+            DexType::MeteoraDlmm => {
+                // Meteora DLMM layout (8-byte Anchor discriminator + fields)
+                const ACTIVE_ID_OFFSET: usize = 76;  // 8 + 68 (various fields)
+                const BIN_STEP_OFFSET: usize = 80;   // 8 + 72
+                
+                if pool_data.len() < BIN_STEP_OFFSET + 2 {
+                    return None;
+                }
+                
+                // Parse active_bin_id (i32)
+                pool.active_bin_id = Some(i32::from_le_bytes([
+                    pool_data[ACTIVE_ID_OFFSET],
+                    pool_data[ACTIVE_ID_OFFSET + 1],
+                    pool_data[ACTIVE_ID_OFFSET + 2],
+                    pool_data[ACTIVE_ID_OFFSET + 3],
+                ]));
+                
+                // Parse bin_step (u16)
+                pool.bin_step = Some(u16::from_le_bytes([
+                    pool_data[BIN_STEP_OFFSET],
+                    pool_data[BIN_STEP_OFFSET + 1],
+                ]));
+            }
+            _ => return None, // AMM pools don't need state updates
         }
         
-        let current_tick = i32::from_le_bytes([
-            pool_data[POOL_TICK_CURRENT_OFFSET],
-            pool_data[POOL_TICK_CURRENT_OFFSET + 1],
-            pool_data[POOL_TICK_CURRENT_OFFSET + 2],
-            pool_data[POOL_TICK_CURRENT_OFFSET + 3],
-        ]);
-        
-        pool.current_tick = Some(current_tick);
         Some(PairKey::new(pool.mint_a, pool.mint_b))
     }
 
-    /// Check if this pubkey is a CLMM pool address
+    /// Check if this pubkey is a CLMM or DLMM pool address (needs state updates)
     pub fn is_clmm_pool(&self, addr: &Pubkey) -> bool {
         self.pools.get(addr)
-            .map(|p| p.dex == DexType::RaydiumClmm)
+            .map(|p| matches!(p.dex, DexType::RaydiumClmm | DexType::OrcaWhirlpool | DexType::PancakeSwapClmm | DexType::MeteoraDlmm))
             .unwrap_or(false)
     }
 }
@@ -324,5 +433,43 @@ pub fn select_tick_arrays_for_swap(
             .collect();
         candidates.sort_by(|a, b| a.start_tick_index.cmp(&b.start_tick_index));
         candidates.into_iter().map(|t| t.pubkey).take(5).collect()
+    }
+}
+
+/// Select tick arrays for Orca Whirlpool swap
+/// 
+/// Orca Whirlpool semantics:
+/// - a_to_b = true: tick goes DOWN (need descending arrays)
+/// - a_to_b = false: tick goes UP (need ascending arrays)
+/// 
+/// Returns exactly 3 tick arrays (Whirlpool requires exactly 3).
+pub fn select_whirlpool_tick_arrays(
+    all_tick_arrays: &[TickArrayInfo],
+    current_tick: i32,
+    tick_spacing: i32,
+    a_to_b: bool,
+) -> Vec<Pubkey> {
+    let ticks_per_array = TICK_ARRAY_SIZE * tick_spacing;
+    
+    // Calculate the start tick for current tick
+    let mut current_array_start = (current_tick / ticks_per_array) * ticks_per_array;
+    if current_tick < 0 && current_tick % ticks_per_array != 0 {
+        current_array_start -= ticks_per_array;
+    }
+    
+    if a_to_b {
+        // A→B: tick goes DOWN - need current and lower arrays (descending)
+        let mut candidates: Vec<&TickArrayInfo> = all_tick_arrays.iter()
+            .filter(|ta| ta.start_tick_index <= current_array_start)
+            .collect();
+        candidates.sort_by(|a, b| b.start_tick_index.cmp(&a.start_tick_index)); // Descending
+        candidates.into_iter().map(|t| t.pubkey).take(3).collect()
+    } else {
+        // B→A: tick goes UP - need current and higher arrays (ascending)
+        let mut candidates: Vec<&TickArrayInfo> = all_tick_arrays.iter()
+            .filter(|ta| ta.start_tick_index >= current_array_start)
+            .collect();
+        candidates.sort_by(|a, b| a.start_tick_index.cmp(&b.start_tick_index)); // Ascending
+        candidates.into_iter().map(|t| t.pubkey).take(3).collect()
     }
 }

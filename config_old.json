@@ -6,7 +6,7 @@
       "receiver_threads": 2,
       "recv_buffer_size": 134217728,
       "shred_channel_size": 10000,
-      "max_fec_sets": 1001,
+      "max_fec_sets": 1000,
       "fec_timeout_ms": 2000
     },
     "endpoint": "http://127.0.0.1:10000",

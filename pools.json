@@ -1,28 +1,6 @@
 {
   "pools": [
     {
-      "address": "BXKsUcqEW9BXY417zj7ovmtTcxJvTDQA3HE9hvv9K1AK",
-      "dex": "MeteoraDamm",
-      "token_mint_a": "JUPyiwrYJFskUPiHa7hkeR8VUtAeFoSYbKedZNsDvCN",
-      "token_mint_b": "So11111111111111111111111111111111111111112",
-      "token_vault_a": "CvNeVmRVZGwE2M7EdiLnJ8owMDcmcJsR75DyCe444fNv",
-      "token_vault_b": "4PNeR1NvVkYyxQEn6HEGHcym2wa13jzqUkfZN69Zgk6i",
-      "decimals_a": 6,
-      "decimals_b": 9,
-      "_comment": "Meteora JUP/SOL DAMM"
-    },
-    {
-      "address": "CcRnVX8whS7GjZuvXdw9SteNMiVszKHVX1AsUC2oC56k",
-      "dex": "MeteoraDamm",
-      "token_mint_a": "jupSoLaHXQiZZTSfEWMTRRgpnyFm8f6sZdosWBjx93v",
-      "token_mint_b": "EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v",
-      "token_vault_a": "3xdGg2jUmFiT6anzHdUhbKdMbSvnFAj6gUxrnJ6u6oWH",
-      "token_vault_b": "CnwbV4Q7vbGpUs2BPcFPbMgBs4FKWR9p9gcru5x1JWZa",
-      "decimals_a": 9,
-      "decimals_b": 6,
-      "_comment": "Meteora jupSOL/USDC DAMM"
-    },
-    {
       "address": "7eexH14UjhNxJe6zTT3f1Vb1E8iACsBMVaWheDEmxdT2",
       "dex": "MeteoraDlmm",
       "token_mint_a": "DezXAZ8z7PnrnRJjz3wXBoRgixCa6xjnB7YaB1pPB263",
@@ -40,50 +18,6 @@
       "token_mint_b": "So11111111111111111111111111111111111111112",
       "token_vault_a": "3uPRZzdBXr3d5UziTzVnaDcXxSJdHerQRntJ56SFN8ed",
       "token_vault_b": "3d6ieKbz74WkACA6J5UJ1Szgfm8SxZwejfb5GQwgTN5N",
-      "decimals_a": 5,
-      "decimals_b": 9,
-      "_comment": "Meteora BONK/SOL DLMM"
-    },
-    {
-      "address": "6Qmm15WNFfA5MhAxknsQjmxX2kGqb8H3qCoZwfWVxRNB",
-      "dex": "MeteoraDlmm",
-      "token_mint_a": "DezXAZ8z7PnrnRJjz3wXBoRgixCa6xjnB7YaB1pPB263",
-      "token_mint_b": "So11111111111111111111111111111111111111112",
-      "token_vault_a": "13grxnxkeiyVBycg6R2w8RqXxM16rLnA8awuMFf6YMPH",
-      "token_vault_b": "8o3V6AYjnPRoZkPKLYmxPXv2EgZ5bfC8M5UyzJcso3Yj",
-      "decimals_a": 5,
-      "decimals_b": 9,
-      "_comment": "Meteora BONK/SOL DLMM"
-    },
-    {
-      "address": "GkBsEDBvSBywMzBoVa1ug1V3hRYpzEaaeTBtjYRgjEW9",
-      "dex": "MeteoraDlmm",
-      "token_mint_a": "DezXAZ8z7PnrnRJjz3wXBoRgixCa6xjnB7YaB1pPB263",
-      "token_mint_b": "So11111111111111111111111111111111111111112",
-      "token_vault_a": "GKqqPBqza719do4hdojK8WHCXWEPy8yYCUWRyweUdh1W",
-      "token_vault_b": "6gYLgky8wa2euDMAZeMkudBHBV3h44Fv2hf4CD4ES6am",
-      "decimals_a": 5,
-      "decimals_b": 9,
-      "_comment": "Meteora BONK/SOL DLMM"
-    },
-    {
-      "address": "AtcGozT6i1GR3wJAjVwRwmt7qbHqZrBUqKs2DcMAKoVe",
-      "dex": "MeteoraDlmm",
-      "token_mint_a": "DezXAZ8z7PnrnRJjz3wXBoRgixCa6xjnB7YaB1pPB263",
-      "token_mint_b": "So11111111111111111111111111111111111111112",
-      "token_vault_a": "4MZbtD12foZmJZPyLGHAQUayhsbwGq8UQUMuuaMUpZx6",
-      "token_vault_b": "61wSQd9okbmzn9CYG3RXbbG8zFKDjKcW6EzP6v3zajXr",
-      "decimals_a": 5,
-      "decimals_b": 9,
-      "_comment": "Meteora BONK/SOL DLMM"
-    },
-    {
-      "address": "6HntXch88ittxUN37tik5avqSPZNXkYhj5T1amfZ3EnJ",
-      "dex": "MeteoraDlmm",
-      "token_mint_a": "DezXAZ8z7PnrnRJjz3wXBoRgixCa6xjnB7YaB1pPB263",
-      "token_mint_b": "So11111111111111111111111111111111111111112",
-      "token_vault_a": "2m7SnoSvau4KqKL8TBotApjLrneEoK5SCGTz5LHWFbNi",
-      "token_vault_b": "FrXW8vGr5GfhAufuqaqfQfJYK2umwd7kGYoFEbRdu2aB",
       "decimals_a": 5,
       "decimals_b": 9,
       "_comment": "Meteora BONK/SOL DLMM"
@@ -133,56 +67,12 @@
       "_comment": "Meteora BONK/SOL DLMM"
     },
     {
-      "address": "59xpmjjPhrotF35kJsD6KMkeySxW5jz2jWtxgsRS217m",
-      "dex": "MeteoraDlmm",
-      "token_mint_a": "DezXAZ8z7PnrnRJjz3wXBoRgixCa6xjnB7YaB1pPB263",
-      "token_mint_b": "So11111111111111111111111111111111111111112",
-      "token_vault_a": "Eucre67m5ha29y6NjhFBYiLNUFFnhKx6a52cnYM54FpE",
-      "token_vault_b": "4tMKMEeowZxUWFjpxmmGog3NKpJuXc2R5vv4TYz5KsJD",
-      "decimals_a": 5,
-      "decimals_b": 9,
-      "_comment": "Meteora BONK/SOL DLMM"
-    },
-    {
       "address": "vD3W793vcQRcWRkSaR5euQmdneAqcrgXqKHtuaeBbmS",
       "dex": "MeteoraDlmm",
       "token_mint_a": "DezXAZ8z7PnrnRJjz3wXBoRgixCa6xjnB7YaB1pPB263",
       "token_mint_b": "EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v",
       "token_vault_a": "6xGCcXavMGSDtF1NT9PaxgsmjeK757UPyHMJo3YBiFht",
       "token_vault_b": "7731J9wPWYLQD3ka2ZBPX9YRg4X4uSAWovVsZ9ZiNfVX",
-      "decimals_a": 5,
-      "decimals_b": 6,
-      "_comment": "Meteora BONK/USDC DLMM"
-    },
-    {
-      "address": "79QjN1uZ8hnwxRzswUX28ivspxbB5wPsooaUgfkkpMGq",
-      "dex": "MeteoraDlmm",
-      "token_mint_a": "DezXAZ8z7PnrnRJjz3wXBoRgixCa6xjnB7YaB1pPB263",
-      "token_mint_b": "EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v",
-      "token_vault_a": "H2XENXa7kcu4SAmeFaJT3rWRSDhBq4MbTsebp4jCVE8q",
-      "token_vault_b": "7UbhBBVhuWMARp9ZQEctvz2bSwzqaCysVg1WMUEXtesU",
-      "decimals_a": 5,
-      "decimals_b": 6,
-      "_comment": "Meteora BONK/USDC DLMM"
-    },
-    {
-      "address": "jKzkEPEnoGkrR7QQqzsTDQ1MuGDSyHM3yCgYpNKwREm",
-      "dex": "MeteoraDlmm",
-      "token_mint_a": "DezXAZ8z7PnrnRJjz3wXBoRgixCa6xjnB7YaB1pPB263",
-      "token_mint_b": "EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v",
-      "token_vault_a": "8HTcxspwBE8VJM9JA8xUAppjFHcigiEVeagp2wyJSds3",
-      "token_vault_b": "Ew9PcDEQr9BMC54HPSJzJhKJrf4R38rupwefxTMSgCyP",
-      "decimals_a": 5,
-      "decimals_b": 6,
-      "_comment": "Meteora BONK/USDC DLMM"
-    },
-    {
-      "address": "BuRGwvZuhdT4ihPysWYLPNMqXdiiJFNZBfPqSQ1MJ9jE",
-      "dex": "MeteoraDlmm",
-      "token_mint_a": "DezXAZ8z7PnrnRJjz3wXBoRgixCa6xjnB7YaB1pPB263",
-      "token_mint_b": "EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v",
-      "token_vault_a": "FhjujSiXaB48GWcGvLatJ3myf5LWpjo18xc9YAjkNfcy",
-      "token_vault_b": "GHLPM9obAuuNz35jh1RMp2b3tPgwdzGHmPwx1YzP2T5x",
       "decimals_a": 5,
       "decimals_b": 6,
       "_comment": "Meteora BONK/USDC DLMM"
@@ -221,28 +111,6 @@
       "_comment": "Meteora JTO/SOL DLMM"
     },
     {
-      "address": "GcpvtppeWvXqxnHgSSqbR5NbUXv5SkVZs7DXi51zkRNS",
-      "dex": "MeteoraDlmm",
-      "token_mint_a": "jtojtomepa8beP8AuQc6eXt5FriJwfFMwQx2v2f9mCL",
-      "token_mint_b": "So11111111111111111111111111111111111111112",
-      "token_vault_a": "3h4HdN2E8uX4HXQsJnNgWhSWS9T345TFmNPdYa6G1wag",
-      "token_vault_b": "FVd7DnwgX3ShmFqL78D3W1yPev2U62VMcLiS9TKtYrmz",
-      "decimals_a": 9,
-      "decimals_b": 9,
-      "_comment": "Meteora JTO/SOL DLMM"
-    },
-    {
-      "address": "H8BpENx4vyKFMeaNH1wD9jRVwN7C3qTs7PRDjgaVia6g",
-      "dex": "MeteoraDlmm",
-      "token_mint_a": "jtojtomepa8beP8AuQc6eXt5FriJwfFMwQx2v2f9mCL",
-      "token_mint_b": "EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v",
-      "token_vault_a": "GfM7YQsMShjBTNJUkJQqB5zAJjn9cfaZU99qbXm7N7FV",
-      "token_vault_b": "Ag422d3DXPRzeVN2nuDXEhkHhgEsPbzWhhbhvnECxgfe",
-      "decimals_a": 9,
-      "decimals_b": 6,
-      "_comment": "Meteora JTO/USDC DLMM"
-    },
-    {
       "address": "Eqv1tJGkLFeH4giGy8vqKxF4NJBHtGR5cGmKG6cpVy4Z",
       "dex": "MeteoraDlmm",
       "token_mint_a": "jtojtomepa8beP8AuQc6eXt5FriJwfFMwQx2v2f9mCL",
@@ -254,34 +122,12 @@
       "_comment": "Meteora JTO/USDC DLMM"
     },
     {
-      "address": "GZvFLe5tGb21ftDeCjnSJVwgkPGv9rXRTVeTfLkYfcqY",
-      "dex": "MeteoraDlmm",
-      "token_mint_a": "jtojtomepa8beP8AuQc6eXt5FriJwfFMwQx2v2f9mCL",
-      "token_mint_b": "EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v",
-      "token_vault_a": "6ntsg55Tx3jg75aHS8Phm8nspgBj9i3yU71KufwzM2zx",
-      "token_vault_b": "FYHm46mvJfwtyFMQUp39mFkyMNpTqc3nKH4UAaqHTGBh",
-      "decimals_a": 9,
-      "decimals_b": 6,
-      "_comment": "Meteora JTO/USDC DLMM"
-    },
-    {
       "address": "BrMYU1XWCqMAtBURD8yp3d9gni3uHxomoj5JG9LWr7Mj",
       "dex": "MeteoraDlmm",
       "token_mint_a": "JUPyiwrYJFskUPiHa7hkeR8VUtAeFoSYbKedZNsDvCN",
       "token_mint_b": "DezXAZ8z7PnrnRJjz3wXBoRgixCa6xjnB7YaB1pPB263",
       "token_vault_a": "Dp49vg5Y2BmYyFb5i8FcyNJn5d5bX1Jm8ophyoafDiwd",
       "token_vault_b": "C1qZxtr6ouNiv8B4wm6stWdEx9J7coN3FEtHkM4z3WUp",
-      "decimals_a": 6,
-      "decimals_b": 5,
-      "_comment": "Meteora JUP/BONK DLMM"
-    },
-    {
-      "address": "5GYyNnSnDZNicCE11MCGx6eqXBsaF6jbZwPd87SR2M7X",
-      "dex": "MeteoraDlmm",
-      "token_mint_a": "JUPyiwrYJFskUPiHa7hkeR8VUtAeFoSYbKedZNsDvCN",
-      "token_mint_b": "DezXAZ8z7PnrnRJjz3wXBoRgixCa6xjnB7YaB1pPB263",
-      "token_vault_a": "GQVrNGbdfaGpQVw7hRswaFRiK5AaarSvEw3SXKpL8eda",
-      "token_vault_b": "zRoFQLqKvKWTkX5kEV71aTSk18WWBXx13tbGtEDnwPR",
       "decimals_a": 6,
       "decimals_b": 5,
       "_comment": "Meteora JUP/BONK DLMM"
@@ -307,28 +153,6 @@
       "decimals_a": 6,
       "decimals_b": 9,
       "_comment": "Meteora JUP/JitoSOL DLMM"
-    },
-    {
-      "address": "GRTWQB49Ctx1LzsLiYWX22w4quAarDJmjtJ8NFb2f9J1",
-      "dex": "MeteoraDlmm",
-      "token_mint_a": "JUPyiwrYJFskUPiHa7hkeR8VUtAeFoSYbKedZNsDvCN",
-      "token_mint_b": "So11111111111111111111111111111111111111112",
-      "token_vault_a": "C2WMdk2o633ecPUmvQBAvPf8PesQCkWH5bryRytscAzL",
-      "token_vault_b": "a3MbU2MxmzcQiGSm4EF8HQJcg8NFGaJQ6tzY8jjYW3Q",
-      "decimals_a": 6,
-      "decimals_b": 9,
-      "_comment": "Meteora JUP/SOL DLMM"
-    },
-    {
-      "address": "ALiDPdzEUCHj9xqWAQtZVuLeuVPX8s3qnNT5a6VnFU1R",
-      "dex": "MeteoraDlmm",
-      "token_mint_a": "JUPyiwrYJFskUPiHa7hkeR8VUtAeFoSYbKedZNsDvCN",
-      "token_mint_b": "So11111111111111111111111111111111111111112",
-      "token_vault_a": "BnWLhoxDtNYsgUssGkVNgDfm5XeK8oGB34BYPfVqjSe3",
-      "token_vault_b": "BjRhLiEAQ1oKFt2t5oZMDdVnYy7NSimnT4E6eT1jsX2e",
-      "decimals_a": 6,
-      "decimals_b": 9,
-      "_comment": "Meteora JUP/SOL DLMM"
     },
     {
       "address": "Hb4ksMUbnsw5ssXdC1ANf3A49djUnxSLd48HxHwjHVNF",
@@ -359,50 +183,6 @@
       "token_mint_b": "So11111111111111111111111111111111111111112",
       "token_vault_a": "23n1iw2wJxo2SXF3rpj6kEK4RqErL4ax5AcMofVNFyk5",
       "token_vault_b": "5DaXj8PBS4D4FbYLuRnD7VcbTKLyZrfQiJ2L3B9eMd5m",
-      "decimals_a": 6,
-      "decimals_b": 9,
-      "_comment": "Meteora JUP/SOL DLMM"
-    },
-    {
-      "address": "AYodcswHgVL8BVFo78y3jymdhUEYmPop51ksqgSRR6Q6",
-      "dex": "MeteoraDlmm",
-      "token_mint_a": "JUPyiwrYJFskUPiHa7hkeR8VUtAeFoSYbKedZNsDvCN",
-      "token_mint_b": "So11111111111111111111111111111111111111112",
-      "token_vault_a": "fsX1PG2VjoDNgDF9s8SyGHpLtDuJuQv6yTcN7U3Sjr2",
-      "token_vault_b": "3Qb5viFPcRkNibNrrV3FA2PGQy7ASd7BMdR4yZ6UrXHp",
-      "decimals_a": 6,
-      "decimals_b": 9,
-      "_comment": "Meteora JUP/SOL DLMM"
-    },
-    {
-      "address": "4yNwAxpdfFTQDQGFQcyskgPFSFnr9tZLJcKAozTidJZL",
-      "dex": "MeteoraDlmm",
-      "token_mint_a": "JUPyiwrYJFskUPiHa7hkeR8VUtAeFoSYbKedZNsDvCN",
-      "token_mint_b": "So11111111111111111111111111111111111111112",
-      "token_vault_a": "9gJki2p5P3eT5f446SKBLnXpj3v9WgHuDmHGCmQa7e2x",
-      "token_vault_b": "EDjy73quMPkf8NG8w6goRSVnQewsJP75S4sidhGR6kRd",
-      "decimals_a": 6,
-      "decimals_b": 9,
-      "_comment": "Meteora JUP/SOL DLMM"
-    },
-    {
-      "address": "6ZuCxK4v61KkSBCzpGwYbVB87YJssobL4WW9LJ3h2RdM",
-      "dex": "MeteoraDlmm",
-      "token_mint_a": "JUPyiwrYJFskUPiHa7hkeR8VUtAeFoSYbKedZNsDvCN",
-      "token_mint_b": "So11111111111111111111111111111111111111112",
-      "token_vault_a": "GNLCDwooz7ajKfjBNrsgAgvEd2tH9u7Di6wEtEbC9MbL",
-      "token_vault_b": "6cpjuj74vjPSzTL1AidGgvTNHQoyD9oKm8QDPpacBHit",
-      "decimals_a": 6,
-      "decimals_b": 9,
-      "_comment": "Meteora JUP/SOL DLMM"
-    },
-    {
-      "address": "SzYghMeXeaLrcVZyi27563JYgpiBWzq1TytGDGxLKv1",
-      "dex": "MeteoraDlmm",
-      "token_mint_a": "JUPyiwrYJFskUPiHa7hkeR8VUtAeFoSYbKedZNsDvCN",
-      "token_mint_b": "So11111111111111111111111111111111111111112",
-      "token_vault_a": "5vWDaUK28XR4fXQkVnoTeJavxbz5V4q9S7VDnHonABRN",
-      "token_vault_b": "5cTEqrp41dUtk7LHSvSiUfPUSCNe68txpphJt8j7z9zb",
       "decimals_a": 6,
       "decimals_b": 9,
       "_comment": "Meteora JUP/SOL DLMM"
@@ -441,28 +221,6 @@
       "_comment": "Meteora JUP/SOL DLMM"
     },
     {
-      "address": "8EFwNNGbEK5PgzLPL6gS56emh6LDcRmzPGxNPiWdu7wK",
-      "dex": "MeteoraDlmm",
-      "token_mint_a": "JUPyiwrYJFskUPiHa7hkeR8VUtAeFoSYbKedZNsDvCN",
-      "token_mint_b": "So11111111111111111111111111111111111111112",
-      "token_vault_a": "4gPSQHK96TttxoK3AmAVKk6mJvcDDNhAiRmbZh1sDkyA",
-      "token_vault_b": "7pUi1PcbZQd3ysuvLPtuxW8BksLRrL2sG5PGqejhQm2n",
-      "decimals_a": 6,
-      "decimals_b": 9,
-      "_comment": "Meteora JUP/SOL DLMM"
-    },
-    {
-      "address": "4wmkbL49rV3T98TpRMigoyg8bmqYw16NVZcxBdQ3jkWS",
-      "dex": "MeteoraDlmm",
-      "token_mint_a": "JUPyiwrYJFskUPiHa7hkeR8VUtAeFoSYbKedZNsDvCN",
-      "token_mint_b": "So11111111111111111111111111111111111111112",
-      "token_vault_a": "2DcqPVKatcLzbR2KKpYvmd7hEDkkxug5s3jDdo4favzG",
-      "token_vault_b": "7c37aUAQC3XYziZL4B5qEMJn5M4n4tHmEU67W8o1vafA",
-      "decimals_a": 6,
-      "decimals_b": 9,
-      "_comment": "Meteora JUP/SOL DLMM"
-    },
-    {
       "address": "8ZBbyDGErfqvY65fRZnm6dtQBe3REuAPqzRN7819fzeW",
       "dex": "MeteoraDlmm",
       "token_mint_a": "JUPyiwrYJFskUPiHa7hkeR8VUtAeFoSYbKedZNsDvCN",
@@ -474,67 +232,12 @@
       "_comment": "Meteora JUP/SOL DLMM"
     },
     {
-      "address": "ADSMtzZmyz2NvF4JvA42TRNEMHatYeTNJbMqv1WtLzgU",
-      "dex": "MeteoraDlmm",
-      "token_mint_a": "JUPyiwrYJFskUPiHa7hkeR8VUtAeFoSYbKedZNsDvCN",
-      "token_mint_b": "So11111111111111111111111111111111111111112",
-      "token_vault_a": "C93aott3VnmgaSuib5ywhzqhhmMqSwc6EfDC9gymYqFQ",
-      "token_vault_b": "2Zigy2ZhxsJF49iq49WLa6qER22P92s4K5Ty97HgAAxq",
-      "decimals_a": 6,
-      "decimals_b": 9,
-      "_comment": "Meteora JUP/SOL DLMM"
-    },
-    {
       "address": "7qt1qBnQ5CNNpMH1no6jYAzuyazP5QWXsUZB7dot5kga",
       "dex": "MeteoraDlmm",
       "token_mint_a": "JUPyiwrYJFskUPiHa7hkeR8VUtAeFoSYbKedZNsDvCN",
       "token_mint_b": "So11111111111111111111111111111111111111112",
       "token_vault_a": "HoL4xqoB9LteY7TdVjUVpw2B8YAN1wnqsbEryNRdvmuP",
       "token_vault_b": "9zXV3Ju93iaMK36NHQ7kvRp7SfkprHJhAw8FFBQn2P9M",
-      "decimals_a": 6,
-      "decimals_b": 9,
-      "_comment": "Meteora JUP/SOL DLMM"
-    },
-    {
-      "address": "2per8tB99umAPvfSZbHTmZwkfCUS8N9hMVsnoYBqzj8j",
-      "dex": "MeteoraDlmm",
-      "token_mint_a": "JUPyiwrYJFskUPiHa7hkeR8VUtAeFoSYbKedZNsDvCN",
-      "token_mint_b": "So11111111111111111111111111111111111111112",
-      "token_vault_a": "D2zJnsGgtNZwNT7KMFEZYTPUBT9RjaUnr7e6MLRK8nEd",
-      "token_vault_b": "J8dhCG8DpTmF1WorRF7LDmNbx1BGBjn8U1F6EfHhMeRH",
-      "decimals_a": 6,
-      "decimals_b": 9,
-      "_comment": "Meteora JUP/SOL DLMM"
-    },
-    {
-      "address": "9DFwVTwFYYvQFmr9iSV6tQ5TW2CgXU82pgAU7B4Cd6LF",
-      "dex": "MeteoraDlmm",
-      "token_mint_a": "JUPyiwrYJFskUPiHa7hkeR8VUtAeFoSYbKedZNsDvCN",
-      "token_mint_b": "So11111111111111111111111111111111111111112",
-      "token_vault_a": "7mtZMMJaVTTbL11jRyS2MfU6EhqQwKbekyaT4erWAHFX",
-      "token_vault_b": "HqEFDuwmLgN91AGSAicp1cZgGu8GNnKwtLewH9ohpTwr",
-      "decimals_a": 6,
-      "decimals_b": 9,
-      "_comment": "Meteora JUP/SOL DLMM"
-    },
-    {
-      "address": "7ZW4JsTZeuogmiJHMPtwxZXYYkKYVzYUGUdjbqutRcQK",
-      "dex": "MeteoraDlmm",
-      "token_mint_a": "JUPyiwrYJFskUPiHa7hkeR8VUtAeFoSYbKedZNsDvCN",
-      "token_mint_b": "So11111111111111111111111111111111111111112",
-      "token_vault_a": "5WpxBuZL2sys9UwVtRdKW4XstDSteUX8SzpNjzztcGqq",
-      "token_vault_b": "Efziy8kGLUU4nVRogeWGQGJ9tSR6wCcy9ye1VKamjyqe",
-      "decimals_a": 6,
-      "decimals_b": 9,
-      "_comment": "Meteora JUP/SOL DLMM"
-    },
-    {
-      "address": "FpjYwNjCStVE2Rvk9yVZsV46YwgNTFjp7ktJUDcZdyyk",
-      "dex": "MeteoraDlmm",
-      "token_mint_a": "JUPyiwrYJFskUPiHa7hkeR8VUtAeFoSYbKedZNsDvCN",
-      "token_mint_b": "So11111111111111111111111111111111111111112",
-      "token_vault_a": "FYufeBgFrSjWnRKgoNkpk5QvVSscctmA3j2ZoWAqDzHj",
-      "token_vault_b": "3yRSKQ35iJ4vS48Q4CN7kG6osxmmbNzzt4khDdvNfCNb",
       "decimals_a": 6,
       "decimals_b": 9,
       "_comment": "Meteora JUP/SOL DLMM"
@@ -584,72 +287,6 @@
       "_comment": "Meteora JUP/USDC DLMM"
     },
     {
-      "address": "GhZtugCqUskpDPiuB5zJPxabxpZZKuPZmAQtfSDB3jpZ",
-      "dex": "MeteoraDlmm",
-      "token_mint_a": "JUPyiwrYJFskUPiHa7hkeR8VUtAeFoSYbKedZNsDvCN",
-      "token_mint_b": "EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v",
-      "token_vault_a": "DC7dKVhozaLN7D6QE3eAtwxSVmf7zbLAa5AFSMLTqfF2",
-      "token_vault_b": "2A9TJtcb8bGTXPgycX1dQx1fHkbNsxn7vujaAuVw8X6N",
-      "decimals_a": 6,
-      "decimals_b": 6,
-      "_comment": "Meteora JUP/USDC DLMM"
-    },
-    {
-      "address": "3H8reV51SedmYCiKmQp68wkAixVcNem1YepByHJWQnDh",
-      "dex": "MeteoraDlmm",
-      "token_mint_a": "JUPyiwrYJFskUPiHa7hkeR8VUtAeFoSYbKedZNsDvCN",
-      "token_mint_b": "EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v",
-      "token_vault_a": "FoyuyM9HCpYbwEQTuwRLTXArDfbSKu2AynXiQa4ws6fw",
-      "token_vault_b": "J8wasX44CGm6cw6y9KT8qbRugc8XcErW83EjbrRB6Xuw",
-      "decimals_a": 6,
-      "decimals_b": 6,
-      "_comment": "Meteora JUP/USDC DLMM"
-    },
-    {
-      "address": "Goejzu7Zbbua6jP9zaduQKLuK4XJrhFFt1skVqhWSEv3",
-      "dex": "MeteoraDlmm",
-      "token_mint_a": "JUPyiwrYJFskUPiHa7hkeR8VUtAeFoSYbKedZNsDvCN",
-      "token_mint_b": "EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v",
-      "token_vault_a": "8TpoPPYTaKCdAsa8RwLMv3kvBBp4v4XNKjnH58PcpGFc",
-      "token_vault_b": "EVkVa8BKwNtEJFoDiDQhG9uiX6SuXuWPNn8h3wJiznXk",
-      "decimals_a": 6,
-      "decimals_b": 6,
-      "_comment": "Meteora JUP/USDC DLMM"
-    },
-    {
-      "address": "3oPv9Ssot1mMEGK2uZnKWd2JPdjwnXM3Cfbj6MFTJndy",
-      "dex": "MeteoraDlmm",
-      "token_mint_a": "JUPyiwrYJFskUPiHa7hkeR8VUtAeFoSYbKedZNsDvCN",
-      "token_mint_b": "EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v",
-      "token_vault_a": "D35M9mSxCrRcxpBSf5cwwD1zGMpFyJPdLkbHbPWuNYLN",
-      "token_vault_b": "5DbXruo9CKe3zhrccKUFmuZLWLyPTiAaQCeVkBV7xLpA",
-      "decimals_a": 6,
-      "decimals_b": 6,
-      "_comment": "Meteora JUP/USDC DLMM"
-    },
-    {
-      "address": "CrJao7TGHGq5BrS46Fn8joZLjTK9pU7ybgSSK4DNvLpC",
-      "dex": "MeteoraDlmm",
-      "token_mint_a": "JUPyiwrYJFskUPiHa7hkeR8VUtAeFoSYbKedZNsDvCN",
-      "token_mint_b": "EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v",
-      "token_vault_a": "7JVeEtPEDRpeUCdebHNnMivGbKD5BitkEiRrxTtFUgfq",
-      "token_vault_b": "9vSQQpWUXuGWv4x4yu289Y13QJTK2EfYmgT67cqAjgi9",
-      "decimals_a": 6,
-      "decimals_b": 6,
-      "_comment": "Meteora JUP/USDC DLMM"
-    },
-    {
-      "address": "2EqF48QLk1WAQZ7Xr5vLYApFmasAe9CXDPnj7KXX6NnW",
-      "dex": "MeteoraDlmm",
-      "token_mint_a": "JUPyiwrYJFskUPiHa7hkeR8VUtAeFoSYbKedZNsDvCN",
-      "token_mint_b": "EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v",
-      "token_vault_a": "7c1z7SFp83H3byAuStrQn1CKq7F52qfUAq5L9aejm7JA",
-      "token_vault_b": "8QNTwnF3rSdbbvq73ARYxvMDhng9ed8ckJ8vytrUoEW5",
-      "decimals_a": 6,
-      "decimals_b": 6,
-      "_comment": "Meteora JUP/USDC DLMM"
-    },
-    {
       "address": "6N1nUDCC9gkbRaA2X2G2feuoZJk3KWFpGzHgqvSMAusq",
       "dex": "MeteoraDlmm",
       "token_mint_a": "JUPyiwrYJFskUPiHa7hkeR8VUtAeFoSYbKedZNsDvCN",
@@ -672,28 +309,6 @@
       "_comment": "Meteora JUP/USDC DLMM"
     },
     {
-      "address": "Xyb1mSNAtwWWt8nDsg3XX8xuuGtyaq2LHPD2hECbvSo",
-      "dex": "MeteoraDlmm",
-      "token_mint_a": "JUPyiwrYJFskUPiHa7hkeR8VUtAeFoSYbKedZNsDvCN",
-      "token_mint_b": "EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v",
-      "token_vault_a": "DNyGJxwGJeNXBgbCDqwjoDzC4PCSZMWycaTfPH6YPYuk",
-      "token_vault_b": "A8pPnJ9AgTKtR2xSZjMTtyqYBV7eu2qCsh8FtFbCnSAx",
-      "decimals_a": 6,
-      "decimals_b": 6,
-      "_comment": "Meteora JUP/USDC DLMM"
-    },
-    {
-      "address": "64i1hLH9hX1UT8fhJJFe6REhpogZRmG65Ecswa7W2RAF",
-      "dex": "MeteoraDlmm",
-      "token_mint_a": "JUPyiwrYJFskUPiHa7hkeR8VUtAeFoSYbKedZNsDvCN",
-      "token_mint_b": "EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v",
-      "token_vault_a": "Aw6N6Tb7wd94ZXvwMWWpDsijtaiVWUqmSTdQC5xyQ3ua",
-      "token_vault_b": "2BVQ6P3L3UqkkM3NPE9sy1KKCoFsb7CfzhzAU7NmsFsU",
-      "decimals_a": 6,
-      "decimals_b": 6,
-      "_comment": "Meteora JUP/USDC DLMM"
-    },
-    {
       "address": "DUVXxEkNphUDc7gVtw4VvrKJWoHyEV4JKvg3UsoorT1h",
       "dex": "MeteoraDlmm",
       "token_mint_a": "JUPyiwrYJFskUPiHa7hkeR8VUtAeFoSYbKedZNsDvCN",
@@ -703,50 +318,6 @@
       "decimals_a": 6,
       "decimals_b": 6,
       "_comment": "Meteora JUP/USDC DLMM"
-    },
-    {
-      "address": "DvnF8t9Dh3dwXmKZtDUSpLRsngMvbrciW5xFqgFVMhVR",
-      "dex": "MeteoraDlmm",
-      "token_mint_a": "JUPyiwrYJFskUPiHa7hkeR8VUtAeFoSYbKedZNsDvCN",
-      "token_mint_b": "EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v",
-      "token_vault_a": "HMKy5KKUsxFjPLc6YXh7ubcY32WWr7r3FD7gEPBncP21",
-      "token_vault_b": "6vn3TVwgkWJvCGYdnq2vqonUDaphrDEXqLZVyUNJYkdz",
-      "decimals_a": 6,
-      "decimals_b": 6,
-      "_comment": "Meteora JUP/USDC DLMM"
-    },
-    {
-      "address": "7HR1ouGwPsCyPScUCx4WJCPyktXMoLitrGkLczd7Vabx",
-      "dex": "MeteoraDlmm",
-      "token_mint_a": "JUPyiwrYJFskUPiHa7hkeR8VUtAeFoSYbKedZNsDvCN",
-      "token_mint_b": "EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v",
-      "token_vault_a": "6sYmUgb6pFn1TTytXwhxQftPAmsf4A6UuzqtM7q48u6A",
-      "token_vault_b": "AmubyAzdyCUSXQiiuzGKXNDTgduZeFaTxxRXukJcCZCV",
-      "decimals_a": 6,
-      "decimals_b": 6,
-      "_comment": "Meteora JUP/USDC DLMM"
-    },
-    {
-      "address": "BfxJcifavkCgznhvAtLsBHQpyNwaTMs2cR986qbH4fPh",
-      "dex": "MeteoraDlmm",
-      "token_mint_a": "JUPyiwrYJFskUPiHa7hkeR8VUtAeFoSYbKedZNsDvCN",
-      "token_mint_b": "Es9vMFrzaCERmJfrF4H2FYD4KCoNkY11McCe8BenwNYB",
-      "token_vault_a": "8UbkQeXMQcG7wdfY8wBxg5S5kg69UPYF93YSvEPvdYtp",
-      "token_vault_b": "essCQCA21doXcm6RfncHnWfTdUKCcCCRQ8XWDVeGCQs",
-      "decimals_a": 6,
-      "decimals_b": 6,
-      "_comment": "Meteora JUP/USDT DLMM"
-    },
-    {
-      "address": "FNZsxG8QrUb5er8NR2fHuLo9nkQqKzxLf6p96R6fggZH",
-      "dex": "MeteoraDlmm",
-      "token_mint_a": "JUPyiwrYJFskUPiHa7hkeR8VUtAeFoSYbKedZNsDvCN",
-      "token_mint_b": "WENWENvqqNya429ubCdR81ZmD69brwQaaBYY6p3LCpk",
-      "token_vault_a": "FpKtTYd8Kz4DBFBsFqPjJxbcfQDogaFLkXANYy2xbVp1",
-      "token_vault_b": "864ArNDSGF9pVsF16VkNeMKipqmPEQuwsKaLhZzwhUrZ",
-      "decimals_a": 6,
-      "decimals_b": 5,
-      "_comment": "Meteora JUP/WEN DLMM"
     },
     {
       "address": "6cDtJkcJKFEsGDhptmgvy3XtbwyRqnW3GoGcmnwVzJ7U",
@@ -760,17 +331,6 @@
       "_comment": "Meteora JUP/bSOL DLMM"
     },
     {
-      "address": "67kn7dbRuvaGSnTqdegwFAc9p1yPNN9LMJd4qDuo6kfG",
-      "dex": "MeteoraDlmm",
-      "token_mint_a": "JUPyiwrYJFskUPiHa7hkeR8VUtAeFoSYbKedZNsDvCN",
-      "token_mint_b": "jupSoLaHXQiZZTSfEWMTRRgpnyFm8f6sZdosWBjx93v",
-      "token_vault_a": "AYteVxF7hJM9ANbWxRrdzAG6gGJpHthuK5fv6aecxzSb",
-      "token_vault_b": "J3vQ8GQRR8nesRi2r5yD3LbQ5q7GHx8RbrbJ6VNVApz4",
-      "decimals_a": 6,
-      "decimals_b": 9,
-      "_comment": "Meteora JUP/jupSOL DLMM"
-    },
-    {
       "address": "BoeMUkCLHchTD31HdXsbDExuZZfcUppSLpYtV3LZTH6U",
       "dex": "MeteoraDlmm",
       "token_mint_a": "J1toso1uCk3RLmjorhTtrVwY9HJ7X8V9yYac6Y7kGCPn",
@@ -782,171 +342,6 @@
       "_comment": "Meteora JitoSOL/SOL DLMM"
     },
     {
-      "address": "Fyk231bsexgwpyRF7XNtK5Q4HenXPf8gRxL7fnvkYKg7",
-      "dex": "MeteoraDlmm",
-      "token_mint_a": "J1toso1uCk3RLmjorhTtrVwY9HJ7X8V9yYac6Y7kGCPn",
-      "token_mint_b": "So11111111111111111111111111111111111111112",
-      "token_vault_a": "8Qo8xbb8NT7oo4c8s18S9wsouZRxpuBP6cG4Jd2WqQwD",
-      "token_vault_b": "27ewTiSHb5JnbekXZXUk6kYgHfy6oHGiSzGFQqamECaq",
-      "decimals_a": 9,
-      "decimals_b": 9,
-      "_comment": "Meteora JitoSOL/SOL DLMM"
-    },
-    {
-      "address": "Dbw9ZAYSm5NKBnQK33y43Si1LGgjQ2i1bTgXPrsUpSff",
-      "dex": "MeteoraDlmm",
-      "token_mint_a": "J1toso1uCk3RLmjorhTtrVwY9HJ7X8V9yYac6Y7kGCPn",
-      "token_mint_b": "jupSoLaHXQiZZTSfEWMTRRgpnyFm8f6sZdosWBjx93v",
-      "token_vault_a": "CnR51GpHNMqa1NZc9sfBTozjp6QmLhu392uYf5kMGVac",
-      "token_vault_b": "HRFxGxxXw2eiJ7TH37Fw3ES38e3TPChtDmtH5JsiKUvJ",
-      "decimals_a": 9,
-      "decimals_b": 9,
-      "_comment": "Meteora JitoSOL/jupSOL DLMM"
-    },
-    {
-      "address": "GsqgePFCN965f93BGTRvuuHmPk2CsDmsAxyfW6KEK5Bj",
-      "dex": "MeteoraDlmm",
-      "token_mint_a": "7GCihgDB8fe6KNjn2MYtkzZcRjQy3t9GHdC8uHYmW2hr",
-      "token_mint_b": "WENWENvqqNya429ubCdR81ZmD69brwQaaBYY6p3LCpk",
-      "token_vault_a": "BQc1X6tc1iKwPLymMHpKNfyVyJ3geJTX3caHXnEUPkFN",
-      "token_vault_b": "C85Ps3F7VfuCTbj7tnPKGtFs6iHvB21PdatFjLS411KX",
-      "decimals_a": 9,
-      "decimals_b": 5,
-      "_comment": "Meteora POPCAT/WEN DLMM"
-    },
-    {
-      "address": "8eMwNC5sVsD3Mp5C1HCCVSGGaphi8riqqxb2XDDi3rHv",
-      "dex": "MeteoraDlmm",
-      "token_mint_a": "HZ1JovNiVvGrGNiiYvEozEVgZ58xaU3RKwX8eACQBCt3",
-      "token_mint_b": "JUPyiwrYJFskUPiHa7hkeR8VUtAeFoSYbKedZNsDvCN",
-      "token_vault_a": "1obk6YJcXRN9eqoeuty3wypACicguxqmoGjSc5HubwE",
-      "token_vault_b": "FU3qey9XfDeGPjMndXQGxUQSDLc2KhxxsQG5emV5u2sc",
-      "decimals_a": 6,
-      "decimals_b": 6,
-      "_comment": "Meteora PYTH/JUP DLMM"
-    },
-    {
-      "address": "id8vVg64nafvnWYpYQnwtjA1YBJ1r9FPoUByQDQrrbf",
-      "dex": "MeteoraDlmm",
-      "token_mint_a": "HZ1JovNiVvGrGNiiYvEozEVgZ58xaU3RKwX8eACQBCt3",
-      "token_mint_b": "So11111111111111111111111111111111111111112",
-      "token_vault_a": "J3uZJSv8i2g4ryjjAEDgCoqUpNfsWj8NzA18rhhg5Sr6",
-      "token_vault_b": "G7U8e4pj2yXnoem94gY75zjowwdDhaFr58oqL3oPG7L3",
-      "decimals_a": 6,
-      "decimals_b": 9,
-      "_comment": "Meteora PYTH/SOL DLMM"
-    },
-    {
-      "address": "9zX5VYaxxBwmSJYbHKGzmZqzzY9V3A1RHFaeZpzKMmm8",
-      "dex": "MeteoraDlmm",
-      "token_mint_a": "HZ1JovNiVvGrGNiiYvEozEVgZ58xaU3RKwX8eACQBCt3",
-      "token_mint_b": "So11111111111111111111111111111111111111112",
-      "token_vault_a": "5gSKraYQWGANxMKnxg3pQ33VMRvsztYo72dF4kznztxX",
-      "token_vault_b": "CQHS7j7tm15Mx4YEuNeoWyaw2sjacjBWoqWe9UDvkDaw",
-      "decimals_a": 6,
-      "decimals_b": 9,
-      "_comment": "Meteora PYTH/SOL DLMM"
-    },
-    {
-      "address": "DgVsrQKX5JpwjLyXXUyvw5GweT6sKvYgPzsN5JYt6Ny",
-      "dex": "MeteoraDlmm",
-      "token_mint_a": "HZ1JovNiVvGrGNiiYvEozEVgZ58xaU3RKwX8eACQBCt3",
-      "token_mint_b": "So11111111111111111111111111111111111111112",
-      "token_vault_a": "5GVKUxvdZxzQrMftmyBkCNXw7XrPMgDhbhda5Yj2FZqp",
-      "token_vault_b": "79PxftnNEQ5NNS1D5S2HRKN5NsnmmtYKBHPKmqjF2dse",
-      "decimals_a": 6,
-      "decimals_b": 9,
-      "_comment": "Meteora PYTH/SOL DLMM"
-    },
-    {
-      "address": "2i3Gn6DY1ghRxgyHeBHVXbUfSDqGPBg4Wjx6dE9Dt7g6",
-      "dex": "MeteoraDlmm",
-      "token_mint_a": "HZ1JovNiVvGrGNiiYvEozEVgZ58xaU3RKwX8eACQBCt3",
-      "token_mint_b": "So11111111111111111111111111111111111111112",
-      "token_vault_a": "Bpre4RfjmGfmLiYZZzdFQq8hUqaSRAwxgtFGRZDRVQ2y",
-      "token_vault_b": "37yYVwJZ4eAwLTdhFFGaMxa7T3NYnkqWN766awTidnsq",
-      "decimals_a": 6,
-      "decimals_b": 9,
-      "_comment": "Meteora PYTH/SOL DLMM"
-    },
-    {
-      "address": "D37XdQGVLgTPBJGgTzPGKZXNpMLU8KqZ2ggFwnreHTDY",
-      "dex": "MeteoraDlmm",
-      "token_mint_a": "HZ1JovNiVvGrGNiiYvEozEVgZ58xaU3RKwX8eACQBCt3",
-      "token_mint_b": "So11111111111111111111111111111111111111112",
-      "token_vault_a": "6ZuqztjPmZe8zWXGZck1NXdMEt7iCrFxQBNoxsFcMZzw",
-      "token_vault_b": "72VcqTS9owbFY1mioj3Gn2mZwR2yCKsbhaVD8nKpxips",
-      "decimals_a": 6,
-      "decimals_b": 9,
-      "_comment": "Meteora PYTH/SOL DLMM"
-    },
-    {
-      "address": "6UJJapjaWALGfDckjxPk6SgMtv4fuvPsmx3WPxc9VTEx",
-      "dex": "MeteoraDlmm",
-      "token_mint_a": "HZ1JovNiVvGrGNiiYvEozEVgZ58xaU3RKwX8eACQBCt3",
-      "token_mint_b": "EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v",
-      "token_vault_a": "JDWc7WCtyu1kuHYdTLPJtjWiS2xELNxiSBWen4ZzL99K",
-      "token_vault_b": "9SSTmBvx3HHwkAw2NBqB3YfyeMJDt1YRJPXabc7aGPFV",
-      "decimals_a": 6,
-      "decimals_b": 6,
-      "_comment": "Meteora PYTH/USDC DLMM"
-    },
-    {
-      "address": "7qnkr7EQJjwKbQyemdMKiemXDjyri4C54Z9JMakMWey2",
-      "dex": "MeteoraDlmm",
-      "token_mint_a": "HZ1JovNiVvGrGNiiYvEozEVgZ58xaU3RKwX8eACQBCt3",
-      "token_mint_b": "EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v",
-      "token_vault_a": "Hxi6CQveQxsjvNWaQybTx8fPpuDUAGqL9VnVKbeZmCDs",
-      "token_vault_b": "2Zfcpv9n1q11n89pyLzNsxzYjpY88qWFEFs4Fofss6mT",
-      "decimals_a": 6,
-      "decimals_b": 6,
-      "_comment": "Meteora PYTH/USDC DLMM"
-    },
-    {
-      "address": "5jkq4B3S8A2akcn1p6hZL4Hkt2QAezw8CGovbcfWmVQ8",
-      "dex": "MeteoraDlmm",
-      "token_mint_a": "HZ1JovNiVvGrGNiiYvEozEVgZ58xaU3RKwX8eACQBCt3",
-      "token_mint_b": "EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v",
-      "token_vault_a": "BZbn9HUPdCrXvtBfjQZHXAX9H8L2aETg4FHVT9jBkFth",
-      "token_vault_b": "5DgAFk62w1DU8HjJW2jjnWqJ2W4hHqXRCbLhJmuREKPG",
-      "decimals_a": 6,
-      "decimals_b": 6,
-      "_comment": "Meteora PYTH/USDC DLMM"
-    },
-    {
-      "address": "8nGw9VHzwTBLcAfxWYnFLWbind4tJPSAXiq8nB89mx9d",
-      "dex": "MeteoraDlmm",
-      "token_mint_a": "So11111111111111111111111111111111111111112",
-      "token_mint_b": "JUPyiwrYJFskUPiHa7hkeR8VUtAeFoSYbKedZNsDvCN",
-      "token_vault_a": "BsJboxvat5myKQmRXmBAaYd5X2iBeZX7pJVXxXMreUZU",
-      "token_vault_b": "E6coXKEXRRDwcnA9KFzpTXhBmea8Fm7zBBHhKxDtypsL",
-      "decimals_a": 9,
-      "decimals_b": 6,
-      "_comment": "Meteora SOL/JUP DLMM"
-    },
-    {
-      "address": "HAoJGoLoMtwuA9mhHhtYbsQpYf7PExQbhxExCpa8Vh1q",
-      "dex": "MeteoraDlmm",
-      "token_mint_a": "So11111111111111111111111111111111111111112",
-      "token_mint_b": "J1toso1uCk3RLmjorhTtrVwY9HJ7X8V9yYac6Y7kGCPn",
-      "token_vault_a": "HSNCXfzZj1QpVutjU3JoatweDnDjbWHbCUbSfpDwqj7p",
-      "token_vault_b": "9jwMMLiqZkyMH2XiW5tfE2Qv9AFCNb3ScNgPAmCvJsnt",
-      "decimals_a": 9,
-      "decimals_b": 9,
-      "_comment": "Meteora SOL/JitoSOL DLMM"
-    },
-    {
-      "address": "7wCLiUaEUNEqZbeEN5SyYxAo8EeNS9wzwFKqVnuCcqd9",
-      "dex": "MeteoraDlmm",
-      "token_mint_a": "6p6xgHyF7AeE6TZkSmFsko444wqoP15icUSqi2jfGiPN",
-      "token_mint_b": "DezXAZ8z7PnrnRJjz3wXBoRgixCa6xjnB7YaB1pPB263",
-      "token_vault_a": "9Nu22VPWQZYKrB9d33nfbrigbQZCdXY8w1yTnANDQMsn",
-      "token_vault_b": "BEd7tvMUhupVMAxGou1cpndiSAfyCFbrF4gf9pYXMJFs",
-      "decimals_a": 6,
-      "decimals_b": 5,
-      "_comment": "Meteora TRUMP/BONK DLMM"
-    },
-    {
       "address": "7fModB8GkovkyNHH5ce8moknFCYLLD1TV54tkTKg6nno",
       "dex": "MeteoraDlmm",
       "token_mint_a": "EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v",
@@ -956,138 +351,6 @@
       "decimals_a": 6,
       "decimals_b": 6,
       "_comment": "Meteora USDC/PYTH DLMM"
-    },
-    {
-      "address": "A6u8tWDtSNuEyZSZufoP9TGQvuEREKnpGcNP7xUsYMKq",
-      "dex": "MeteoraDlmm",
-      "token_mint_a": "WENWENvqqNya429ubCdR81ZmD69brwQaaBYY6p3LCpk",
-      "token_mint_b": "So11111111111111111111111111111111111111112",
-      "token_vault_a": "cySejBk877MqKG46TobYR9KG834TXa3uP8P5kqEnE3C",
-      "token_vault_b": "7aQh25Ahdn7se6TT6pnS7bE3KAKmEsurGoiDxvZsc5Fv",
-      "decimals_a": 5,
-      "decimals_b": 9,
-      "_comment": "Meteora WEN/SOL DLMM"
-    },
-    {
-      "address": "48Nt6RDEPkW4gxBEdTZZB2AxzFMArE1nJstkDyFSgLbv",
-      "dex": "MeteoraDlmm",
-      "token_mint_a": "WENWENvqqNya429ubCdR81ZmD69brwQaaBYY6p3LCpk",
-      "token_mint_b": "So11111111111111111111111111111111111111112",
-      "token_vault_a": "8yaXVQnz2Wtu2fFgUGaYfHoK4VikX4sBeavySRFHM2zP",
-      "token_vault_b": "5taWVMLKxGAeeyufmUfA6prLTgY4tRgNv6yBf5iKS2oH",
-      "decimals_a": 5,
-      "decimals_b": 9,
-      "_comment": "Meteora WEN/SOL DLMM"
-    },
-    {
-      "address": "GhqPR2A8mqhSyYDrJ8V8wsoGGe11qoURFjWWMm6BPfK4",
-      "dex": "MeteoraDlmm",
-      "token_mint_a": "WENWENvqqNya429ubCdR81ZmD69brwQaaBYY6p3LCpk",
-      "token_mint_b": "So11111111111111111111111111111111111111112",
-      "token_vault_a": "4KwKyix2C5wtsC95csCwkneSkHDKHQFH4evVSmUq3Fax",
-      "token_vault_b": "Dhagqha17Qk33SsPVdSdEw1kG15LVYVEyTHcdUwKj98h",
-      "decimals_a": 5,
-      "decimals_b": 9,
-      "_comment": "Meteora WEN/SOL DLMM"
-    },
-    {
-      "address": "6GtSA5EVvxW9x8hUT8AieJTaqEVg7we8mFQ7dAfokp2i",
-      "dex": "MeteoraDlmm",
-      "token_mint_a": "WENWENvqqNya429ubCdR81ZmD69brwQaaBYY6p3LCpk",
-      "token_mint_b": "So11111111111111111111111111111111111111112",
-      "token_vault_a": "ESR98SRFZ9gL7mLdCBKeFGdHusGNaPboJaBqGusyk8nR",
-      "token_vault_b": "GESMAe2QZVxcrJomhDMb4tAZpT2mW4psHZcu7unWTv7G",
-      "decimals_a": 5,
-      "decimals_b": 9,
-      "_comment": "Meteora WEN/SOL DLMM"
-    },
-    {
-      "address": "DdwKGvapP14467yE49omjz7i5zVBS43BofBdGLE1To34",
-      "dex": "MeteoraDlmm",
-      "token_mint_a": "WENWENvqqNya429ubCdR81ZmD69brwQaaBYY6p3LCpk",
-      "token_mint_b": "So11111111111111111111111111111111111111112",
-      "token_vault_a": "9kcrNsPX3N1CmJtySLaj3jqUFpsPeJL9auv5iRgQ6wEw",
-      "token_vault_b": "4sv1vVnu6mkUuQUBqGeQ7HxVVoxQ96bFsi8xA3jHfSxq",
-      "decimals_a": 5,
-      "decimals_b": 9,
-      "_comment": "Meteora WEN/SOL DLMM"
-    },
-    {
-      "address": "9h4PWSsYmzHs1x6FCwWbng5WGsxx6qV6XEDE5nFMBRU",
-      "dex": "MeteoraDlmm",
-      "token_mint_a": "WENWENvqqNya429ubCdR81ZmD69brwQaaBYY6p3LCpk",
-      "token_mint_b": "So11111111111111111111111111111111111111112",
-      "token_vault_a": "14CpP5NXquQiVHX1GiwE9F5um13VVSYxhKHudRzokbBp",
-      "token_vault_b": "CpbafJvp52wk6Q7LUXQBGBsNZXAUaC5hd4vmmUJ92K6Q",
-      "decimals_a": 5,
-      "decimals_b": 9,
-      "_comment": "Meteora WEN/SOL DLMM"
-    },
-    {
-      "address": "2ySwA2Suk8dCRTwdPUC79CBeL7sJRAqFLnVpP9GGGrKN",
-      "dex": "MeteoraDlmm",
-      "token_mint_a": "WENWENvqqNya429ubCdR81ZmD69brwQaaBYY6p3LCpk",
-      "token_mint_b": "So11111111111111111111111111111111111111112",
-      "token_vault_a": "2ztjy6SiGujZWzqY9MKvv2kr48gHTvwDEadLpTW66GBU",
-      "token_vault_b": "Cs3tbfSnWVPo4cR2ZuYuJGD42wkwQ4ZmizF91PesgMpc",
-      "decimals_a": 5,
-      "decimals_b": 9,
-      "_comment": "Meteora WEN/SOL DLMM"
-    },
-    {
-      "address": "4R9J2J4SdD72VoKBeRBkJVFpmRdWh29bTAKspkKbsquA",
-      "dex": "MeteoraDlmm",
-      "token_mint_a": "WENWENvqqNya429ubCdR81ZmD69brwQaaBYY6p3LCpk",
-      "token_mint_b": "EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v",
-      "token_vault_a": "7bCiJ4aJZzzznc5TVXioEiC1q6hhGT6h7YEMGVyHZKSt",
-      "token_vault_b": "557NUJA6qwTjE8YkgdExevHY59iqHwiJHpoWUSi2SdNC",
-      "decimals_a": 5,
-      "decimals_b": 6,
-      "_comment": "Meteora WEN/USDC DLMM"
-    },
-    {
-      "address": "66A2vg4jwC9oSp5MGikzefgibdC5oSS3oARKjGbd2R1L",
-      "dex": "MeteoraDlmm",
-      "token_mint_a": "WENWENvqqNya429ubCdR81ZmD69brwQaaBYY6p3LCpk",
-      "token_mint_b": "EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v",
-      "token_vault_a": "7pw1dLzsjCqdnTcTz1otkDGQ4SZ6ybgdbPJ9bBFijpJj",
-      "token_vault_b": "7YNnP9PyB7i94tF11Te9MTGhftTrdWaDU4My71MgKMJk",
-      "decimals_a": 5,
-      "decimals_b": 6,
-      "_comment": "Meteora WEN/USDC DLMM"
-    },
-    {
-      "address": "dRdvEyNn2JPXYHV5n37UVHZuenGq7McTtmaf7mJ1tLJ",
-      "dex": "MeteoraDlmm",
-      "token_mint_a": "WENWENvqqNya429ubCdR81ZmD69brwQaaBYY6p3LCpk",
-      "token_mint_b": "EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v",
-      "token_vault_a": "553Pzy9yJirMd3XUCxhM45f8fQWB4Vy7zJjsFfkFkXE8",
-      "token_vault_b": "4YX7k7xUZisPx14modAcPSbJ42VjhojDWtmpt5fN6NZc",
-      "decimals_a": 5,
-      "decimals_b": 6,
-      "_comment": "Meteora WEN/USDC DLMM"
-    },
-    {
-      "address": "6vHCZP6Nytp2pn4P9VkK8hFZCecaojvx4vUqNRWQ8YLw",
-      "dex": "MeteoraDlmm",
-      "token_mint_a": "WENWENvqqNya429ubCdR81ZmD69brwQaaBYY6p3LCpk",
-      "token_mint_b": "EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v",
-      "token_vault_a": "FArreX5i23VPi6c5LVFFDcYKFSN59uphMypXok6VHYaQ",
-      "token_vault_b": "74R455yPxbRyn2wHMgvMAipnSMbHBMD1Y7kXUDdRHfoX",
-      "decimals_a": 5,
-      "decimals_b": 6,
-      "_comment": "Meteora WEN/USDC DLMM"
-    },
-    {
-      "address": "314mKWRLXrwDdA3cH8o37N6Q39SmmR8uahkGYV75a6RN",
-      "dex": "MeteoraDlmm",
-      "token_mint_a": "WENWENvqqNya429ubCdR81ZmD69brwQaaBYY6p3LCpk",
-      "token_mint_b": "bSo13r4TkiE4KumL71LsHTPpL2euBYLFx6h9HP3piy1",
-      "token_vault_a": "QuQN451vgt9eFYaeZrNyFn7XtxPipQ6wk1xsntBxpod",
-      "token_vault_b": "8zMNaUMWToQfExabJz4HXRaazQ2gLjwhchZEyWvLFPdq",
-      "decimals_a": 5,
-      "decimals_b": 9,
-      "_comment": "Meteora WEN/bSOL DLMM"
     },
     {
       "address": "3q4KmkMmzatUwvBs15Pdn2PR1X6h8GvuoXF5T9cPejqF",
@@ -1123,28 +386,6 @@
       "_comment": "Meteora jupSOL/SOL DLMM"
     },
     {
-      "address": "2c8t845Piebguzo4BoeAdhKc536L7QPDHy5UMf8MYcn1",
-      "dex": "MeteoraDlmm",
-      "token_mint_a": "jupSoLaHXQiZZTSfEWMTRRgpnyFm8f6sZdosWBjx93v",
-      "token_mint_b": "EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v",
-      "token_vault_a": "DWtTkVmANCd125VZA6kRFsC2gTvXzSo7XHW8bo8PGnoF",
-      "token_vault_b": "6WWkdP1KfiRdjCnzqBB3ea9WanwUjVZ2zFepb2z2Q8zr",
-      "decimals_a": 9,
-      "decimals_b": 6,
-      "_comment": "Meteora jupSOL/USDC DLMM"
-    },
-    {
-      "address": "7MAxiaoWkpsvJkKueMC4zCTVt7p5osMDtGxfCDZS488k",
-      "dex": "MeteoraDlmm",
-      "token_mint_a": "jupSoLaHXQiZZTSfEWMTRRgpnyFm8f6sZdosWBjx93v",
-      "token_mint_b": "mSoLzYCxHdYgdzU16g5QSh3i5K3z3KZK7ytfqcJm7So",
-      "token_vault_a": "BVmCvLc8kz23TM4QwXZHtgGoDYCQRKAyaahv3QDTShhb",
-      "token_vault_b": "3Aua82DSDQomPYahmWtEq7pg7rCpBQVU87RUyo1NjAZh",
-      "decimals_a": 9,
-      "decimals_b": 9,
-      "_comment": "Meteora jupSOL/mSOL DLMM"
-    },
-    {
       "address": "2dBPJGLgNDZnzA32452zV2u6vensbo28dveBvecDg6X1",
       "dex": "MeteoraDlmm",
       "token_mint_a": "mSoLzYCxHdYgdzU16g5QSh3i5K3z3KZK7ytfqcJm7So",
@@ -1156,28 +397,6 @@
       "_comment": "Meteora mSOL/SOL DLMM"
     },
     {
-      "address": "Ckgsi4DDinsvnUdYzQNnLPtnR9t7LEtGcJZA7jWfvwAv",
-      "dex": "OrcaWhirlpool",
-      "token_mint_a": "DezXAZ8z7PnrnRJjz3wXBoRgixCa6xjnB7YaB1pPB263",
-      "token_mint_b": "HZ1JovNiVvGrGNiiYvEozEVgZ58xaU3RKwX8eACQBCt3",
-      "token_vault_a": "CiLM8AyWXzMuuftwnQknLn75NuV9SMc3Ytzpk26ETLCP",
-      "token_vault_b": "4tkUWwBjhbtd3HAUx4YjMPBRDdCWnEN1NB9pxmeKaQR5",
-      "decimals_a": 5,
-      "decimals_b": 6,
-      "_comment": "Orca BONK/PYTH Whirlpool"
-    },
-    {
-      "address": "5P6n5omLbLbP4kaPGL8etqQAHEx2UCkaUyvjLDnwV4EY",
-      "dex": "OrcaWhirlpool",
-      "token_mint_a": "DezXAZ8z7PnrnRJjz3wXBoRgixCa6xjnB7YaB1pPB263",
-      "token_mint_b": "EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v",
-      "token_vault_a": "4ba1AsNw9gdHkWWArvz4zBErNrMDVZHny1AdUkm9Yv2n",
-      "token_vault_b": "HggXczDfUVQY9BrZ4whryvjbyG3sTUUxmphApSS481gy",
-      "decimals_a": 5,
-      "decimals_b": 6,
-      "_comment": "Orca BONK/USDC Whirlpool"
-    },
-    {
       "address": "8QaXeHBrShJTdtN1rWCccBxpSVvKksQ2PCu5nufb2zbk",
       "dex": "OrcaWhirlpool",
       "token_mint_a": "DezXAZ8z7PnrnRJjz3wXBoRgixCa6xjnB7YaB1pPB263",
@@ -1187,39 +406,6 @@
       "decimals_a": 5,
       "decimals_b": 6,
       "_comment": "Orca BONK/USDC Whirlpool"
-    },
-    {
-      "address": "6Qa4N6dvQYAh6oZk7dMhPqMaGHBaFP3XTVpVQQLVX4Lx",
-      "dex": "OrcaWhirlpool",
-      "token_mint_a": "7vfCXTUXx5WJV5JADk17DUJ4ksgau7utNKj4b963voxs",
-      "token_mint_b": "J1toso1uCk3RLmjorhTtrVwY9HJ7X8V9yYac6Y7kGCPn",
-      "token_vault_a": "CxMJ7Kv2K6YMiZDpbesQw7WvcfeAYbpD6vrdkmKnRiKj",
-      "token_vault_b": "9xnMDDY6F8d1DfT1cmLnjcTb931Ypq9Rob7dwYVUACrg",
-      "decimals_a": 8,
-      "decimals_b": 9,
-      "_comment": "Orca ETH/JitoSOL Whirlpool"
-    },
-    {
-      "address": "CATwaLAaExjs1Rk8vjB1UoNwUC42rQsvWCN1A6BmDqxS",
-      "dex": "OrcaWhirlpool",
-      "token_mint_a": "jtojtomepa8beP8AuQc6eXt5FriJwfFMwQx2v2f9mCL",
-      "token_mint_b": "DezXAZ8z7PnrnRJjz3wXBoRgixCa6xjnB7YaB1pPB263",
-      "token_vault_a": "BEsx9Gp4JwGwyEB26gqpsyqENABRK5SLQRQxrvtQnson",
-      "token_vault_b": "9PGFK8A9xotAythnsFozwxNkzZ194Hn1ND5CL1cMhr4u",
-      "decimals_a": 9,
-      "decimals_b": 5,
-      "_comment": "Orca JTO/BONK Whirlpool"
-    },
-    {
-      "address": "9uFggMQFraFjqKR88g4kxFxHPNEhBYPaoVzmF5fnQpyG",
-      "dex": "OrcaWhirlpool",
-      "token_mint_a": "jtojtomepa8beP8AuQc6eXt5FriJwfFMwQx2v2f9mCL",
-      "token_mint_b": "J1toso1uCk3RLmjorhTtrVwY9HJ7X8V9yYac6Y7kGCPn",
-      "token_vault_a": "6GQTejeQDNXJp7YrWmT7qWZoEtBSc2kDyYk7btVcdKUN",
-      "token_vault_b": "Af3amonhntoi6TyCdL1pP36oK2DyACSb7Z3MaDSiCKKN",
-      "decimals_a": 9,
-      "decimals_b": 9,
-      "_comment": "Orca JTO/JitoSOL Whirlpool"
     },
     {
       "address": "G2FiE1yn9N9ZJx5e1E2LxxMnHvb1H3hCuHLPfKJ98smA",
@@ -1244,28 +430,6 @@
       "_comment": "Orca JTO/JitoSOL Whirlpool"
     },
     {
-      "address": "2NhFXQhthjH31LqyPv4JD1oDtvkX4z7Kubkxe27eHxLV",
-      "dex": "OrcaWhirlpool",
-      "token_mint_a": "jtojtomepa8beP8AuQc6eXt5FriJwfFMwQx2v2f9mCL",
-      "token_mint_b": "J1toso1uCk3RLmjorhTtrVwY9HJ7X8V9yYac6Y7kGCPn",
-      "token_vault_a": "WTT9jbyEFGSiR9Yme9RKpSiRYP53pQK3n2cwt4UKhAw",
-      "token_vault_b": "6cqF4AyLFKYKZULBgXRBSjvb577QG7tN8DYvdyahNrzm",
-      "decimals_a": 9,
-      "decimals_b": 9,
-      "_comment": "Orca JTO/JitoSOL Whirlpool"
-    },
-    {
-      "address": "Cvg45etASWwM1E5Cy8cQapHcWcYQ2pqF5MJPSRR9nNN7",
-      "dex": "OrcaWhirlpool",
-      "token_mint_a": "jtojtomepa8beP8AuQc6eXt5FriJwfFMwQx2v2f9mCL",
-      "token_mint_b": "HZ1JovNiVvGrGNiiYvEozEVgZ58xaU3RKwX8eACQBCt3",
-      "token_vault_a": "9LgD51YxPsShEvS1tvaG5SEaLkBr5W4tKWUaoPeVLk6n",
-      "token_vault_b": "469Y2FtYSdxGT34Jjn1oXrgNpB3CRr1yj5TDNsprat2E",
-      "decimals_a": 9,
-      "decimals_b": 6,
-      "_comment": "Orca JTO/PYTH Whirlpool"
-    },
-    {
       "address": "93MjUKNKxazKmgS3GBX2Gj2BttEjJUyi7NYeyDHdHSc2",
       "dex": "OrcaWhirlpool",
       "token_mint_a": "jtojtomepa8beP8AuQc6eXt5FriJwfFMwQx2v2f9mCL",
@@ -1275,72 +439,6 @@
       "decimals_a": 9,
       "decimals_b": 6,
       "_comment": "Orca JTO/USDC Whirlpool"
-    },
-    {
-      "address": "AwBhvNXf5X5hNbC1jAqrJ7Stx5xLuG97xDjJ9PNy1h65",
-      "dex": "OrcaWhirlpool",
-      "token_mint_a": "jtojtomepa8beP8AuQc6eXt5FriJwfFMwQx2v2f9mCL",
-      "token_mint_b": "EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v",
-      "token_vault_a": "EZ6kpYGL1z9G1LTzA9HjjVhmnSK4L8bk8C1oNbyEpY96",
-      "token_vault_b": "DSRmTZbSBx4tzgkzz4Cwr7THCXDqT2CDeGHBqFoswmi4",
-      "decimals_a": 9,
-      "decimals_b": 6,
-      "_comment": "Orca JTO/USDC Whirlpool"
-    },
-    {
-      "address": "B7dHRBwEkhPWUnzP1uNFpWTtSHKNkaT73tKiwony6Fr5",
-      "dex": "OrcaWhirlpool",
-      "token_mint_a": "JUPyiwrYJFskUPiHa7hkeR8VUtAeFoSYbKedZNsDvCN",
-      "token_mint_b": "jtojtomepa8beP8AuQc6eXt5FriJwfFMwQx2v2f9mCL",
-      "token_vault_a": "4yH2g467Rp1kChiNYyFjsfm5h8q8nkh28WCaEuetB2mV",
-      "token_vault_b": "7MMMzMm6qWvieGnXqr7GyAdww2P7ZCWPqF5efWhyJian",
-      "decimals_a": 6,
-      "decimals_b": 9,
-      "_comment": "Orca JUP/JTO Whirlpool"
-    },
-    {
-      "address": "4y9wdkdXdiK8mu3gqFCaeRD1np1L9cL6YCvaNsL9GxRR",
-      "dex": "OrcaWhirlpool",
-      "token_mint_a": "JUPyiwrYJFskUPiHa7hkeR8VUtAeFoSYbKedZNsDvCN",
-      "token_mint_b": "HZ1JovNiVvGrGNiiYvEozEVgZ58xaU3RKwX8eACQBCt3",
-      "token_vault_a": "Auj8oUqFqXnBoUb1aggghWPnTaK2cF2MVVLfHMDU7XqD",
-      "token_vault_b": "9pkU5LPNjeSrT9iEwa3TeAg5GDXv8Gpy2R1B2iUevuAw",
-      "decimals_a": 6,
-      "decimals_b": 6,
-      "_comment": "Orca JUP/PYTH Whirlpool"
-    },
-    {
-      "address": "DkVN7RKTNjSSER5oyurf3vddQU2ZneSCYwXvpErvTCFA",
-      "dex": "OrcaWhirlpool",
-      "token_mint_a": "JUPyiwrYJFskUPiHa7hkeR8VUtAeFoSYbKedZNsDvCN",
-      "token_mint_b": "So11111111111111111111111111111111111111112",
-      "token_vault_a": "HRBd7gkQbhpTuXA61a7ii3Bbmcvp6ZCNwne28aC8A8Qq",
-      "token_vault_b": "EsU4fjzg2JSSgqbh3jx95qaDSpRe4gLqPWQLbmLjYaLF",
-      "decimals_a": 6,
-      "decimals_b": 9,
-      "_comment": "Orca JUP/SOL Whirlpool"
-    },
-    {
-      "address": "4h9SaY7YMVtKfTewpGFq8StWJgGdRN3gVD7XmAGCSbki",
-      "dex": "OrcaWhirlpool",
-      "token_mint_a": "JUPyiwrYJFskUPiHa7hkeR8VUtAeFoSYbKedZNsDvCN",
-      "token_mint_b": "So11111111111111111111111111111111111111112",
-      "token_vault_a": "CKtaUjfhg4uvTsgwqssMS2YrDQ6koJbiW7sRJriARnfC",
-      "token_vault_b": "3KqpKfbXT7WUrERQrDnA7SrtQ6oYyUuKiShUoHCAcJuz",
-      "decimals_a": 6,
-      "decimals_b": 9,
-      "_comment": "Orca JUP/SOL Whirlpool"
-    },
-    {
-      "address": "DKVSTt1CuCYGk1uPiFVwMRcQkR6zUVqTX82qgvxsPGPt",
-      "dex": "OrcaWhirlpool",
-      "token_mint_a": "JUPyiwrYJFskUPiHa7hkeR8VUtAeFoSYbKedZNsDvCN",
-      "token_mint_b": "So11111111111111111111111111111111111111112",
-      "token_vault_a": "6zpWo5m2QNnXetyALXdCR2yeCjbUrnmVV1GyaVjv9f93",
-      "token_vault_b": "7gUmKWAo2jw9W1Acx6otp7bHxLsCy2JzAqicDwXG5aHW",
-      "decimals_a": 6,
-      "decimals_b": 9,
-      "_comment": "Orca JUP/SOL Whirlpool"
     },
     {
       "address": "FgTCR1ufcaTZMwZZYhNRhJm2K3HgMA8V8kXtdqyttm19",
@@ -1387,17 +485,6 @@
       "_comment": "Orca JUP/SOL Whirlpool"
     },
     {
-      "address": "85sChDdMcqeJhR7UsBf9jqk3guproVzWrqkf9dn1yYn5",
-      "dex": "OrcaWhirlpool",
-      "token_mint_a": "JUPyiwrYJFskUPiHa7hkeR8VUtAeFoSYbKedZNsDvCN",
-      "token_mint_b": "EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v",
-      "token_vault_a": "EkAdQBLWKVUz3SG1fAWQnKrDmrD1Jws2bdJ2RxhgBLeU",
-      "token_vault_b": "4H42jx1We3u5m3brvhhP5snrVMK33buPNQyLT7SBbJwv",
-      "decimals_a": 6,
-      "decimals_b": 6,
-      "_comment": "Orca JUP/USDC Whirlpool"
-    },
-    {
       "address": "FYmLrqgfrZ6u1Qvfo48wnhGp4HxXeQP7SQB5USQyQCPQ",
       "dex": "OrcaWhirlpool",
       "token_mint_a": "JUPyiwrYJFskUPiHa7hkeR8VUtAeFoSYbKedZNsDvCN",
@@ -1420,17 +507,6 @@
       "_comment": "Orca JUP/USDC Whirlpool"
     },
     {
-      "address": "A37RS54hkPY9ezT5EGSDvQnMr1WqToJBkSeav683o144",
-      "dex": "OrcaWhirlpool",
-      "token_mint_a": "JUPyiwrYJFskUPiHa7hkeR8VUtAeFoSYbKedZNsDvCN",
-      "token_mint_b": "EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v",
-      "token_vault_a": "BaSprAwxV4JEtG9LrsJCwwwLfjV3KQoGbmvyjUQjniwD",
-      "token_vault_b": "yLqBzBiLSMpc2LBBTJVMCjSsSdkb5K9NvHWDbZ6RtwQ",
-      "decimals_a": 6,
-      "decimals_b": 6,
-      "_comment": "Orca JUP/USDC Whirlpool"
-    },
-    {
       "address": "4Ui9QdDNuUaAGqCPcDSp191QrixLzQiLxJ1Gnqvz3szP",
       "dex": "OrcaWhirlpool",
       "token_mint_a": "JUPyiwrYJFskUPiHa7hkeR8VUtAeFoSYbKedZNsDvCN",
@@ -1442,61 +518,6 @@
       "_comment": "Orca JUP/USDC Whirlpool"
     },
     {
-      "address": "GaRZqVJCpRMsM12ZTaP13zpaY6npHw2SeruZRWY2GGfn",
-      "dex": "OrcaWhirlpool",
-      "token_mint_a": "JUPyiwrYJFskUPiHa7hkeR8VUtAeFoSYbKedZNsDvCN",
-      "token_mint_b": "EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v",
-      "token_vault_a": "Ahouy7tt2jhJoUECtC2VmFw45XrjL1Q5p3Ccz6TCdw8K",
-      "token_vault_b": "3eiMaeCXVKHgkJTABZeKTQg5w7GJ3PPh8gEQSj36FbG5",
-      "decimals_a": 6,
-      "decimals_b": 6,
-      "_comment": "Orca JUP/USDC Whirlpool"
-    },
-    {
-      "address": "AyFajbj7QEi8CizFnfEjJn3vSUxgDjVKob4A8i618YJD",
-      "dex": "OrcaWhirlpool",
-      "token_mint_a": "JUPyiwrYJFskUPiHa7hkeR8VUtAeFoSYbKedZNsDvCN",
-      "token_mint_b": "Es9vMFrzaCERmJfrF4H2FYD4KCoNkY11McCe8BenwNYB",
-      "token_vault_a": "B2sJ4mzLK19Ndc9gGH56ug2wmxqVDe5pwtpfuJ6zGw3S",
-      "token_vault_b": "6NnRwLpJg27euEkyRyvAHGxc4kZxsjjnicskay1kqvTA",
-      "decimals_a": 6,
-      "decimals_b": 6,
-      "_comment": "Orca JUP/USDT Whirlpool"
-    },
-    {
-      "address": "3NwGdGPBkwVMZAkJeBAqKz4CazrcCRMT8kuW4Fffcedg",
-      "dex": "OrcaWhirlpool",
-      "token_mint_a": "JUPyiwrYJFskUPiHa7hkeR8VUtAeFoSYbKedZNsDvCN",
-      "token_mint_b": "Es9vMFrzaCERmJfrF4H2FYD4KCoNkY11McCe8BenwNYB",
-      "token_vault_a": "6HoiQEh9BvYYzyQfCPR6WKgzEyhaJKtLDNw1HxNMDM2N",
-      "token_vault_b": "DLDozCcFv4rvWvtZdyDVBZj1EhSiGCso7PTDtDpky1Qr",
-      "decimals_a": 6,
-      "decimals_b": 6,
-      "_comment": "Orca JUP/USDT Whirlpool"
-    },
-    {
-      "address": "BJaSQNjHug4jYdTnNeD12UVzUvxh5CEKuP74YQ2B7RXv",
-      "dex": "OrcaWhirlpool",
-      "token_mint_a": "JUPyiwrYJFskUPiHa7hkeR8VUtAeFoSYbKedZNsDvCN",
-      "token_mint_b": "Es9vMFrzaCERmJfrF4H2FYD4KCoNkY11McCe8BenwNYB",
-      "token_vault_a": "3Ei3iKzPx8NGNCsXwn9EH5MgTym3B6i3YhijNwMJjwg8",
-      "token_vault_b": "8TAjg5195VfLEDTWjfRbjtvszSopzZ2Pm6fhW689PGxx",
-      "decimals_a": 6,
-      "decimals_b": 6,
-      "_comment": "Orca JUP/USDT Whirlpool"
-    },
-    {
-      "address": "7vWRTPPBq3aNaJZsrfterTz1BSjht4YSHBXJwnbuV6SC",
-      "dex": "OrcaWhirlpool",
-      "token_mint_a": "JUPyiwrYJFskUPiHa7hkeR8VUtAeFoSYbKedZNsDvCN",
-      "token_mint_b": "WENWENvqqNya429ubCdR81ZmD69brwQaaBYY6p3LCpk",
-      "token_vault_a": "523Kaeu17bkNT6wfQCc3gLuiaiNmDFRmKA2n5q5CLCDA",
-      "token_vault_b": "95pCBcDjxf7Dgrik1B9a9U72i1w7AmKByzXxvKQ4VNss",
-      "decimals_a": 6,
-      "decimals_b": 5,
-      "_comment": "Orca JUP/WEN Whirlpool"
-    },
-    {
       "address": "KdcztfHmVNRd5qY7oR7AdoNhcpHhjXKesK9JTBnNxwL",
       "dex": "OrcaWhirlpool",
       "token_mint_a": "JUPyiwrYJFskUPiHa7hkeR8VUtAeFoSYbKedZNsDvCN",
@@ -1506,28 +527,6 @@
       "decimals_a": 6,
       "decimals_b": 9,
       "_comment": "Orca JUP/bSOL Whirlpool"
-    },
-    {
-      "address": "5r2SKyVDAmaj8HJak4qRS2oLCn2caf3jmrJi8ikRKj6s",
-      "dex": "OrcaWhirlpool",
-      "token_mint_a": "So11111111111111111111111111111111111111112",
-      "token_mint_b": "DezXAZ8z7PnrnRJjz3wXBoRgixCa6xjnB7YaB1pPB263",
-      "token_vault_a": "3NsMmhR1LHM7qAjAfhPJcoj55n3JtJK8YN3kiWcds94U",
-      "token_vault_b": "AipuCvovfgYCtsuVubYoyxoWuaKvvecczv3iUS1rZh7N",
-      "decimals_a": 9,
-      "decimals_b": 5,
-      "_comment": "Orca SOL/BONK Whirlpool"
-    },
-    {
-      "address": "Gb4FqYysZDyucrw1w1CKnXj76c2ucAiBMJuQTy77a8vk",
-      "dex": "OrcaWhirlpool",
-      "token_mint_a": "So11111111111111111111111111111111111111112",
-      "token_mint_b": "DezXAZ8z7PnrnRJjz3wXBoRgixCa6xjnB7YaB1pPB263",
-      "token_vault_a": "9GEHXTSMLzagBjVAQRbfpjuvv9wTbGvH3WpsyyQPzget",
-      "token_vault_b": "4F8pHMXgQ61red9GMG2wmZRSzybyKjrmKTJW1KUTBSTQ",
-      "decimals_a": 9,
-      "decimals_b": 5,
-      "_comment": "Orca SOL/BONK Whirlpool"
     },
     {
       "address": "3ne4mWqdYuNiYrYZC9TrA3FcfuFdErghH97vNPbjicr1",
@@ -1563,17 +562,6 @@
       "_comment": "Orca SOL/BONK Whirlpool"
     },
     {
-      "address": "2x6oDcyFpWqogTMxbbTAHHMqAsefFdApDdpiTJbgzPHQ",
-      "dex": "OrcaWhirlpool",
-      "token_mint_a": "So11111111111111111111111111111111111111112",
-      "token_mint_b": "jtojtomepa8beP8AuQc6eXt5FriJwfFMwQx2v2f9mCL",
-      "token_vault_a": "2qR5bWvepjvhPLkN13zRNWobNeuGVADReLhrSp3Djcwu",
-      "token_vault_b": "24bjVvmb3bRriomRCWgoKJvJ7psNLCDbycQNmWcUyiug",
-      "decimals_a": 9,
-      "decimals_b": 9,
-      "_comment": "Orca SOL/JTO Whirlpool"
-    },
-    {
       "address": "2UhFnySoJi6c89aydGAGS7ZRemo2dbkFRhvSJqDX4gHJ",
       "dex": "OrcaWhirlpool",
       "token_mint_a": "So11111111111111111111111111111111111111112",
@@ -1585,34 +573,12 @@
       "_comment": "Orca SOL/JTO Whirlpool"
     },
     {
-      "address": "69pZkiUKgFrHj2EzGnFZbZQs9czo131hTVqrh4L1azjv",
-      "dex": "OrcaWhirlpool",
-      "token_mint_a": "So11111111111111111111111111111111111111112",
-      "token_mint_b": "jtojtomepa8beP8AuQc6eXt5FriJwfFMwQx2v2f9mCL",
-      "token_vault_a": "Bho3donncBEvtRPGgxk439oe6nZxz2Q5MLyFAiqqNB6V",
-      "token_vault_b": "D3Yw378zQi6X8kXFpRwJwXdsf2sSSZk2SLAdn93k6GwD",
-      "decimals_a": 9,
-      "decimals_b": 9,
-      "_comment": "Orca SOL/JTO Whirlpool"
-    },
-    {
       "address": "Hp53XEtt4S8SvPCXarsLSdGfZBuUr5mMmZmX2DRNXQKp",
       "dex": "OrcaWhirlpool",
       "token_mint_a": "So11111111111111111111111111111111111111112",
       "token_mint_b": "J1toso1uCk3RLmjorhTtrVwY9HJ7X8V9yYac6Y7kGCPn",
       "token_vault_a": "F7tcS67EfP4bBJhWLxCk6ZmPVcsmPnJvPLQcDw5eeR67",
       "token_vault_b": "8tfJVFdcogGMmvW1RA1kDZey2BjwdCznF3MD4Pcxi9xn",
-      "decimals_a": 9,
-      "decimals_b": 9,
-      "_comment": "Orca SOL/JitoSOL Whirlpool"
-    },
-    {
-      "address": "4RedE6jkBz11zHp5kwEPuWJMi9BnRRUzSBqyR3jSvw7r",
-      "dex": "OrcaWhirlpool",
-      "token_mint_a": "So11111111111111111111111111111111111111112",
-      "token_mint_b": "J1toso1uCk3RLmjorhTtrVwY9HJ7X8V9yYac6Y7kGCPn",
-      "token_vault_a": "9DbJ6CAVgHcbeWEVQAQ7UG3CskVMxtuMFeetgc1Swaho",
-      "token_vault_b": "E9u1KhSFKYjARKgXgAvdXpUKq9JRmKiS8tZfXabxmQgo",
       "decimals_a": 9,
       "decimals_b": 9,
       "_comment": "Orca SOL/JitoSOL Whirlpool"
@@ -1651,61 +617,6 @@
       "_comment": "Orca SOL/PYTH Whirlpool"
     },
     {
-      "address": "3gYLU5tdbvXw4yFW6HjaXHNwPX2VDKNRXJtcgAz1qFsJ",
-      "dex": "OrcaWhirlpool",
-      "token_mint_a": "So11111111111111111111111111111111111111112",
-      "token_mint_b": "HZ1JovNiVvGrGNiiYvEozEVgZ58xaU3RKwX8eACQBCt3",
-      "token_vault_a": "4wCdFjvetbBP1yfNJSuFkRYXUe3kqNLAiX2NXjYDVC7W",
-      "token_vault_b": "6H8vMZe7MZHctra6YaWE7Fy6DuefhNHp7envXTZXSX9K",
-      "decimals_a": 9,
-      "decimals_b": 6,
-      "_comment": "Orca SOL/PYTH Whirlpool"
-    },
-    {
-      "address": "HLZhDXoCKDmDjhFubaEa5um3dMcbEFDs847EixYgbUM5",
-      "dex": "OrcaWhirlpool",
-      "token_mint_a": "So11111111111111111111111111111111111111112",
-      "token_mint_b": "WENWENvqqNya429ubCdR81ZmD69brwQaaBYY6p3LCpk",
-      "token_vault_a": "21ujZ8ZU2PUSot3oicumTrCBu1AsbpRK72furNZ8B98z",
-      "token_vault_b": "RsiHLfQkDfN7kx6oQZPYDjpA5J1PnozD46RuAMDsCJ3",
-      "decimals_a": 9,
-      "decimals_b": 5,
-      "_comment": "Orca SOL/WEN Whirlpool"
-    },
-    {
-      "address": "7BZzoP3QB2zK3R7WqRzjS5fpeeErgdy3HGzxXrN97aEY",
-      "dex": "OrcaWhirlpool",
-      "token_mint_a": "So11111111111111111111111111111111111111112",
-      "token_mint_b": "WENWENvqqNya429ubCdR81ZmD69brwQaaBYY6p3LCpk",
-      "token_vault_a": "7erBtaD366XQS12Cegb4JjMDXxFoLCCeXnvio9ogVSQf",
-      "token_vault_b": "ApvXp4Rv4ZEPraeEHKgokDhZ2FBRm7Dd3kWjZWVcYq34",
-      "decimals_a": 9,
-      "decimals_b": 5,
-      "_comment": "Orca SOL/WEN Whirlpool"
-    },
-    {
-      "address": "2vokT9GE9iNafwWN98JQcW8QbSUyQVE182o2QSbhAqrA",
-      "dex": "OrcaWhirlpool",
-      "token_mint_a": "So11111111111111111111111111111111111111112",
-      "token_mint_b": "WENWENvqqNya429ubCdR81ZmD69brwQaaBYY6p3LCpk",
-      "token_vault_a": "5725ifXqeJYSA6iEZWfefZvvbFhZhchHsjbtUeWSTo25",
-      "token_vault_b": "GfuG7RRSLYnRAnjh2nBwubLRinoTAemDx5ip4unv1YWb",
-      "decimals_a": 9,
-      "decimals_b": 5,
-      "_comment": "Orca SOL/WEN Whirlpool"
-    },
-    {
-      "address": "F7ocu8fhsoV7CHsEGRHmSKXNDdt7f1xXUEDc7KmZ3hi3",
-      "dex": "OrcaWhirlpool",
-      "token_mint_a": "So11111111111111111111111111111111111111112",
-      "token_mint_b": "WENWENvqqNya429ubCdR81ZmD69brwQaaBYY6p3LCpk",
-      "token_vault_a": "65E7saaWYTrRmfyeAWJq4CLv1VVeSUhod8W5WbaKTMAW",
-      "token_vault_b": "5ij79LE2eDadwuLPTTDx6bmsrSaQ7Cmvbk3TizBHAjJM",
-      "decimals_a": 9,
-      "decimals_b": 5,
-      "_comment": "Orca SOL/WEN Whirlpool"
-    },
-    {
       "address": "8phK65jxmTPEN158xLgSr4oZvssw9SyTErpNZj3g7px4",
       "dex": "OrcaWhirlpool",
       "token_mint_a": "So11111111111111111111111111111111111111112",
@@ -1726,28 +637,6 @@
       "decimals_a": 9,
       "decimals_b": 9,
       "_comment": "Orca SOL/jupSOL Whirlpool"
-    },
-    {
-      "address": "4oxgHVZUXsz2TrLEqfAk6GuK12bSDM68m3AaMdxu8Q92",
-      "dex": "OrcaWhirlpool",
-      "token_mint_a": "So11111111111111111111111111111111111111112",
-      "token_mint_b": "jupSoLaHXQiZZTSfEWMTRRgpnyFm8f6sZdosWBjx93v",
-      "token_vault_a": "Hw12k8L1NwFW5mVzjNNeoG7H4Tvw6dDzqaLYmMBy3n6c",
-      "token_vault_b": "BPNNjaq7uyZrMyBh4rseRPrLa4FPGUoSpLxZLGsL3TWe",
-      "decimals_a": 9,
-      "decimals_b": 9,
-      "_comment": "Orca SOL/jupSOL Whirlpool"
-    },
-    {
-      "address": "EkDQqNFijZHQDKfM8KcNBFb3UUGaJRuZpJkj1Zu2BYFN",
-      "dex": "OrcaWhirlpool",
-      "token_mint_a": "So11111111111111111111111111111111111111112",
-      "token_mint_b": "mSoLzYCxHdYgdzU16g5QSh3i5K3z3KZK7ytfqcJm7So",
-      "token_vault_a": "J3Xok74WvWCSLdvw3HQ39GAnPL9SsajFrXtDYh1p9dE3",
-      "token_vault_b": "GUmeH2s5ZKUFrLxUpmurekH6UzarshxidpfGCoKaut26",
-      "decimals_a": 9,
-      "decimals_b": 9,
-      "_comment": "Orca SOL/mSOL Whirlpool"
     },
     {
       "address": "HQcY5n2zP6rW74fyFEhWeBd3LnJpBcZechkvJpmdb8cx",
@@ -1783,105 +672,6 @@
       "_comment": "Orca USDC/JitoSOL Whirlpool"
     },
     {
-      "address": "GgAqL1Lfs3zYZK6Gea9Bey5jmPbK8c4dmBbe5gPeYQEz",
-      "dex": "OrcaWhirlpool",
-      "token_mint_a": "EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v",
-      "token_mint_b": "J1toso1uCk3RLmjorhTtrVwY9HJ7X8V9yYac6Y7kGCPn",
-      "token_vault_a": "3Rqyg3uxvQTjh4VPtzxsnKWuetwNQ1Zp3rCuNa72ifAY",
-      "token_vault_b": "HtDDmn33fYZpYcHWbqjSWWzFn2agTCU4exyoqcucSugP",
-      "decimals_a": 6,
-      "decimals_b": 9,
-      "_comment": "Orca USDC/JitoSOL Whirlpool"
-    },
-    {
-      "address": "9ffGX6gyZVHqZgCoPfxytUbuPC9aXyZLV2Cgx34KagMV",
-      "dex": "OrcaWhirlpool",
-      "token_mint_a": "EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v",
-      "token_mint_b": "HZ1JovNiVvGrGNiiYvEozEVgZ58xaU3RKwX8eACQBCt3",
-      "token_vault_a": "6B7dF6MSmR8uA2R3q9DQHNNFYLCVicaBNJCu955bhyS5",
-      "token_vault_b": "5FkVmA5gzzaQew4NfRcws23xf6QqzRUiLujzeZs3yCc",
-      "decimals_a": 6,
-      "decimals_b": 6,
-      "_comment": "Orca USDC/PYTH Whirlpool"
-    },
-    {
-      "address": "CKyPqtvkenW8SRYsK4z5txZzCsCZFS2NTCrzLMmtXTPz",
-      "dex": "OrcaWhirlpool",
-      "token_mint_a": "EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v",
-      "token_mint_b": "HZ1JovNiVvGrGNiiYvEozEVgZ58xaU3RKwX8eACQBCt3",
-      "token_vault_a": "AmQx2n4o4sQsTSU4PykbffKk6ARgDdxv7BuumyS6Ddpi",
-      "token_vault_b": "B9PbXQSioiftSwaSNQyYwTjpqf4nQNTE9TRDpwPmKZii",
-      "decimals_a": 6,
-      "decimals_b": 6,
-      "_comment": "Orca USDC/PYTH Whirlpool"
-    },
-    {
-      "address": "Fra9rBL1F5eAgtoqjXsBzZocD1UKbxXoERKVs6e23ixn",
-      "dex": "OrcaWhirlpool",
-      "token_mint_a": "EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v",
-      "token_mint_b": "HZ1JovNiVvGrGNiiYvEozEVgZ58xaU3RKwX8eACQBCt3",
-      "token_vault_a": "2dSTnPrBNs2V4AQMHyJQE3ozd9BXGrc4TzL22cR6N627",
-      "token_vault_b": "8NFroAuwKG5i8AJsAkWYUCNBoPj4w6tDRbARoLfoD2i4",
-      "decimals_a": 6,
-      "decimals_b": 6,
-      "_comment": "Orca USDC/PYTH Whirlpool"
-    },
-    {
-      "address": "657PTJfJevDZkCRLpMpRNzNAPf6eap1EdzWob2fUbEwN",
-      "dex": "OrcaWhirlpool",
-      "token_mint_a": "WENWENvqqNya429ubCdR81ZmD69brwQaaBYY6p3LCpk",
-      "token_mint_b": "7GCihgDB8fe6KNjn2MYtkzZcRjQy3t9GHdC8uHYmW2hr",
-      "token_vault_a": "AYVBXwVf3UUzzeppudDo34AfroNJYiz3Sj96UEbiZsBF",
-      "token_vault_b": "JDxc75Pfm5WVN2pKDZ6eL2S76Jfyh79UZCPvrMnWzmpN",
-      "decimals_a": 5,
-      "decimals_b": 9,
-      "_comment": "Orca WEN/POPCAT Whirlpool"
-    },
-    {
-      "address": "AaKQexvSih5oLCt8QDj1CWV3g21gLUJTGKfrMVmVypLm",
-      "dex": "OrcaWhirlpool",
-      "token_mint_a": "WENWENvqqNya429ubCdR81ZmD69brwQaaBYY6p3LCpk",
-      "token_mint_b": "EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v",
-      "token_vault_a": "DJxH2pKSU36i1uq7K1qCB34Zt6JmHz4Ly9CCff1sA4sv",
-      "token_vault_b": "1YBapRwKrEBHfFJgahZEo9AaiTczBpKBVD6Cazs1dpu",
-      "decimals_a": 5,
-      "decimals_b": 6,
-      "_comment": "Orca WEN/USDC Whirlpool"
-    },
-    {
-      "address": "5y2jFFA3A8GNjRnVMg8LfTHbBg7y2vivopiK8LmGRP2B",
-      "dex": "OrcaWhirlpool",
-      "token_mint_a": "WENWENvqqNya429ubCdR81ZmD69brwQaaBYY6p3LCpk",
-      "token_mint_b": "EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v",
-      "token_vault_a": "FLVWmkfEcacdRW3xw6ZsW2couNwyiXKXP7nyTc1zJMov",
-      "token_vault_b": "A7CSkqoDemkyLnBCN8zhdpscFDntEqsv3jw4LDHEHs9T",
-      "decimals_a": 5,
-      "decimals_b": 6,
-      "_comment": "Orca WEN/USDC Whirlpool"
-    },
-    {
-      "address": "FdfSfHaU851eNLaKnbHHkVheYRhPCgpqcSJdEk6iXHfK",
-      "dex": "OrcaWhirlpool",
-      "token_mint_a": "WENWENvqqNya429ubCdR81ZmD69brwQaaBYY6p3LCpk",
-      "token_mint_b": "Es9vMFrzaCERmJfrF4H2FYD4KCoNkY11McCe8BenwNYB",
-      "token_vault_a": "8AURTX2X6mbWgf5hufhJJ7gBh5QNBCKGfsEEBn6J1rMF",
-      "token_vault_b": "ziHyn4aefVaAPhdNNeWwG3tZKVYzs2tV5BR6yzLEKgj",
-      "decimals_a": 5,
-      "decimals_b": 6,
-      "_comment": "Orca WEN/USDT Whirlpool"
-    },
-    {
-      "address": "FGRVfcBFvjAi6ncXRdLkq4oNRYKPD88uQ2ihm5XjzsAF",
-      "dex": "OrcaWhirlpool",
-      "token_mint_a": "WENWENvqqNya429ubCdR81ZmD69brwQaaBYY6p3LCpk",
-      "token_mint_b": "bSo13r4TkiE4KumL71LsHTPpL2euBYLFx6h9HP3piy1",
-      "token_vault_a": "7tmkv5G5XNwGnwEQq4bk9EJkzyb5P2jCtpG8QmtRxDgr",
-      "token_vault_b": "CrdayJSVi7YV4pt9zmY2nyb3i28pQmUE7DS4NKQrfF2W",
-      "decimals_a": 5,
-      "decimals_b": 9,
-      "_comment": "Orca WEN/bSOL Whirlpool"
-    },
-    {
       "address": "5snaYowgJDfuM1LPbTNUYHbgkKHtVVnzHiiLDWUV2hh8",
       "dex": "OrcaWhirlpool",
       "token_mint_a": "bSo13r4TkiE4KumL71LsHTPpL2euBYLFx6h9HP3piy1",
@@ -1904,17 +694,6 @@
       "_comment": "Orca bSOL/PYTH Whirlpool"
     },
     {
-      "address": "HGw4exa5vdxhJHNVyyxhCc6ZwycwHQEVzpRXMDPDAmVP",
-      "dex": "OrcaWhirlpool",
-      "token_mint_a": "bSo13r4TkiE4KumL71LsHTPpL2euBYLFx6h9HP3piy1",
-      "token_mint_b": "EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v",
-      "token_vault_a": "CnnLoEyGjS1Bwhnc5fCHHoU6fLQ7zfxp7UAqgoBX27QL",
-      "token_vault_b": "FAehFHnQqqP6Mq9yY6ofFKPFDdz1K5dK2FsrTTf3o4Gq",
-      "decimals_a": 9,
-      "decimals_b": 6,
-      "_comment": "Orca bSOL/USDC Whirlpool"
-    },
-    {
       "address": "CwZbEdMZdxjnPLcRGRz8PwuvA4tK4iBmS9YZrMvnrNJr",
       "dex": "OrcaWhirlpool",
       "token_mint_a": "bSo13r4TkiE4KumL71LsHTPpL2euBYLFx6h9HP3piy1",
@@ -1935,17 +714,6 @@
       "decimals_a": 9,
       "decimals_b": 9,
       "_comment": "Orca jupSOL/JitoSOL Whirlpool"
-    },
-    {
-      "address": "bTnKHSTSDY49nKZpBfMuYpMDziodqvRQCNBMzKjJGhe",
-      "dex": "OrcaWhirlpool",
-      "token_mint_a": "jupSoLaHXQiZZTSfEWMTRRgpnyFm8f6sZdosWBjx93v",
-      "token_mint_b": "EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v",
-      "token_vault_a": "HfqDLLyjaNjQE1fcGC1QnMwXo9F5vNy7gGbuLQat21KX",
-      "token_vault_b": "qmGFs2GHAHPQceKBjPDGTZLcPKsyyDQordxWoRjSZri",
-      "decimals_a": 9,
-      "decimals_b": 6,
-      "_comment": "Orca jupSOL/USDC Whirlpool"
     },
     {
       "address": "2NjYrAWmiNE4dRRB8am4p8mWcvBDg22aGB9AfQoU9RRJ",
@@ -1992,34 +760,12 @@
       "_comment": "Orca mSOL/JitoSOL Whirlpool"
     },
     {
-      "address": "9pZsKgKrhVbiSBdMaL2aaBrADnTGkuerPnmBpPswLw4x",
-      "dex": "OrcaWhirlpool",
-      "token_mint_a": "mSoLzYCxHdYgdzU16g5QSh3i5K3z3KZK7ytfqcJm7So",
-      "token_mint_b": "HZ1JovNiVvGrGNiiYvEozEVgZ58xaU3RKwX8eACQBCt3",
-      "token_vault_a": "AaBQYieK3uZvZZ4FfT8ydFaw9EYrsjLvhzsctAq8jjjC",
-      "token_vault_b": "4SQpni7PKCQgi2Eo1uCEr6cmfhZwatuVuum7rYFnS558",
-      "decimals_a": 9,
-      "decimals_b": 6,
-      "_comment": "Orca mSOL/PYTH Whirlpool"
-    },
-    {
       "address": "AiMZS5U3JMvpdvsr1KeaMiS354Z1DeSg5XjA4yYRxtFf",
       "dex": "OrcaWhirlpool",
       "token_mint_a": "mSoLzYCxHdYgdzU16g5QSh3i5K3z3KZK7ytfqcJm7So",
       "token_mint_b": "EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v",
       "token_vault_a": "7BgpVo7LDk5MJ29K7p5xbbRASgZ1Q2PhkkHQnKUbZvfj",
       "token_vault_b": "42mjJXBiccoctt7oDv3RhXqP8Y7mLZ9SNjv6f4ywCi7p",
-      "decimals_a": 9,
-      "decimals_b": 6,
-      "_comment": "Orca mSOL/USDC Whirlpool"
-    },
-    {
-      "address": "GSB3ihYWppzQps3X25UDC7MExW7HC2gH6EN9d6Eh48Ec",
-      "dex": "OrcaWhirlpool",
-      "token_mint_a": "mSoLzYCxHdYgdzU16g5QSh3i5K3z3KZK7ytfqcJm7So",
-      "token_mint_b": "EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v",
-      "token_vault_a": "WgbzEkGYQgS6MeBzheFA2PbHtr4YzBM2MgWYuwLjc7c",
-      "token_vault_b": "jBYQjFg2MEhTK9d9w8j9gcPAM5YRc8cXZvin4FZV346",
       "decimals_a": 9,
       "decimals_b": 6,
       "_comment": "Orca mSOL/USDC Whirlpool"
@@ -2047,65 +793,6 @@
       "_comment": "Orca mSOL/USDC Whirlpool"
     },
     {
-      "address": "7A1R3L7AxcxuZHMJjFgskKGeBR5Rwst3Ai5bv5uAWZFG",
-      "dex": "OrcaWhirlpool",
-      "token_mint_a": "mSoLzYCxHdYgdzU16g5QSh3i5K3z3KZK7ytfqcJm7So",
-      "token_mint_b": "Es9vMFrzaCERmJfrF4H2FYD4KCoNkY11McCe8BenwNYB",
-      "token_vault_a": "7DZbXiG9eeK3xUPMSDSsUHHps9uxh1X3EQ13jF9SGXb6",
-      "token_vault_b": "Gn9ZRtqrrxbpLwHi9RVMNEbsBV9UFS7g4LmY3oTNZtoi",
-      "decimals_a": 9,
-      "decimals_b": 6,
-      "_comment": "Orca mSOL/USDT Whirlpool"
-    },
-    {
-      "address": "Hgnmt4WVNEkDVhu7yQYFKUf9V7DrGdyPCJSuS4pLAG2U",
-      "dex": "PancakeSwapClmm",
-      "token_mint_a": "DezXAZ8z7PnrnRJjz3wXBoRgixCa6xjnB7YaB1pPB263",
-      "token_mint_b": "EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v",
-      "token_vault_a": "9CNQXDdVbHkiPjHm8RciZsXhG44NEMJtFPLhdhqwaTCP",
-      "token_vault_b": "GRaDnpfSjrqorPMUubr2wq6tgyfNnrTnjSwrM3z38G1v",
-      "decimals_a": 5,
-      "decimals_b": 6,
-      "amm_config": "JDvGyR6gKqdbqggFLdfyUiCQ3MfhbeKof1NHN8b2oBnX",
-      "_comment": "PancakeSwap BONK/USDC CLMM"
-    },
-    {
-      "address": "CcWQgvvybBJSZYNQVHp1dQFM4JM1cVwuTuHtMAUkZ9T5",
-      "dex": "PancakeSwapClmm",
-      "token_mint_a": "jtojtomepa8beP8AuQc6eXt5FriJwfFMwQx2v2f9mCL",
-      "token_mint_b": "EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v",
-      "token_vault_a": "4K3uu4e2GwTi7P57b2hg4fMQMhouTwtMDcts7zwKxWFw",
-      "token_vault_b": "AECrUusTmHqKfNePqPvczkrMYVikRC8svLNRP6jSCtBf",
-      "decimals_a": 9,
-      "decimals_b": 6,
-      "amm_config": "JEGTPwPjCfi2juurxRbLZp9gauvf35ERPtikZXaoSpRw",
-      "_comment": "PancakeSwap JTO/USDC CLMM"
-    },
-    {
-      "address": "HJuipW7pcVq6kPQWJ4hovubwcu3gg8Vd2hmkR5bHh1Vs",
-      "dex": "PancakeSwapClmm",
-      "token_mint_a": "JUPyiwrYJFskUPiHa7hkeR8VUtAeFoSYbKedZNsDvCN",
-      "token_mint_b": "So11111111111111111111111111111111111111112",
-      "token_vault_a": "Ds7RP35X1TzLf4jC9DW5nmTY513ecgmpj734m1RcYFjH",
-      "token_vault_b": "34ogNm11hWHddXHqZ2uxuTeHUXPPAemgBn3ijmgibADt",
-      "decimals_a": 6,
-      "decimals_b": 9,
-      "amm_config": "J3gdr92ZFGMozMYxaken3UqRKNCix3Fc6Qsjt8iL9nvL",
-      "_comment": "PancakeSwap JUP/SOL CLMM"
-    },
-    {
-      "address": "EqNzMLPJaYA1vN65foWEfvzufu9c3SW3zN3kx46ponBR",
-      "dex": "PancakeSwapClmm",
-      "token_mint_a": "JUPyiwrYJFskUPiHa7hkeR8VUtAeFoSYbKedZNsDvCN",
-      "token_mint_b": "So11111111111111111111111111111111111111112",
-      "token_vault_a": "3LHhR135CyooL4bppLDNeHj3uDTZeKBLwGVcLsYLSWms",
-      "token_vault_b": "3tqDSYEiENUJwnqrAW2z85tNTEpaDaR4s1JmxkvZgrWg",
-      "decimals_a": 6,
-      "decimals_b": 9,
-      "amm_config": "J6MsfFHsXY8KBcjsKDzc5zxqXWqrdLbrZddJtXmE8N1G",
-      "_comment": "PancakeSwap JUP/SOL CLMM"
-    },
-    {
       "address": "FG1EitLebiWFhJyx8XHvryds2fnrD59xdge9kMVkSQnY",
       "dex": "PancakeSwapClmm",
       "token_mint_a": "JUPyiwrYJFskUPiHa7hkeR8VUtAeFoSYbKedZNsDvCN",
@@ -2116,18 +803,6 @@
       "decimals_b": 6,
       "amm_config": "JAHCiu8XvVe54LK8hVBYHH5gDr2H7sj9erhVGioFSMZH",
       "_comment": "PancakeSwap JUP/USDC CLMM"
-    },
-    {
-      "address": "GtpsrTHYnfFVm3qkPJtyKVwQLpXT7p2MRy9bp5hYeJnQ",
-      "dex": "PancakeSwapClmm",
-      "token_mint_a": "So11111111111111111111111111111111111111112",
-      "token_mint_b": "DezXAZ8z7PnrnRJjz3wXBoRgixCa6xjnB7YaB1pPB263",
-      "token_vault_a": "EBiroedmishB2RPNhNK2rc7ahAAgRpwyWV5s6MJBf4kj",
-      "token_vault_b": "3iKECpVAAusjadujcdgN5yXth7tGkF7VqeHeVyh97E79",
-      "decimals_a": 9,
-      "decimals_b": 5,
-      "amm_config": "JAsC9JwKc8C1ce39J48AvrFmTt1rJKQ4nYQxL1tfkgwm",
-      "_comment": "PancakeSwap SOL/BONK CLMM"
     },
     {
       "address": "HVNwzt7Pxfu76KHCMQPTLuTCLTm6WnQ1esLv4eizseSv",
@@ -2163,61 +838,6 @@
       "_comment": "Raydium JUP/SOL AMM"
     },
     {
-      "address": "5Qtn7FFKmVH4Brx3V1cR8E4mot2V3eSmvFRBpmKjNy35",
-      "dex": "RaydiumAmm",
-      "token_mint_a": "So11111111111111111111111111111111111111112",
-      "token_mint_b": "JUPyiwrYJFskUPiHa7hkeR8VUtAeFoSYbKedZNsDvCN",
-      "token_vault_a": "Acwf28DzuSVX6eYVWMNuPaD5378twu17NafazqF5PH89",
-      "token_vault_b": "BegAFgvdVAkdvZv6G8tTjpuGxd1m6TagyBR26APSt5su",
-      "decimals_a": 9,
-      "decimals_b": 6,
-      "_comment": "Raydium SOL/JUP AMM"
-    },
-    {
-      "address": "59VtDHQrcDKswbaStjTsjNiqLngjX72UHFqChnpAb93p",
-      "dex": "RaydiumAmm",
-      "token_mint_a": "So11111111111111111111111111111111111111112",
-      "token_mint_b": "HZ1JovNiVvGrGNiiYvEozEVgZ58xaU3RKwX8eACQBCt3",
-      "token_vault_a": "HLX4E1BbDfoX4e5rzhw7Wwd1pArPzXd8XdZ3DaBXY9BR",
-      "token_vault_b": "5vqxzbPytvVm58vPkA2WYWvoAYfa8AoxD9i1UXCdqzCN",
-      "decimals_a": 9,
-      "decimals_b": 6,
-      "_comment": "Raydium SOL/PYTH AMM"
-    },
-    {
-      "address": "5WGx6mE9Xww3ocYzSenGVQMJLCVVwK7ePnYV6cXcpJtK",
-      "dex": "RaydiumAmm",
-      "token_mint_a": "WENWENvqqNya429ubCdR81ZmD69brwQaaBYY6p3LCpk",
-      "token_mint_b": "So11111111111111111111111111111111111111112",
-      "token_vault_a": "46Bk4BaXzAsLYbrf3UQvGZLPdEwt5nkeb2wHjiqpa5VG",
-      "token_vault_b": "G86oqnqDH4NxsnhJEtMBPURwUfuJ8yd43ecsgg3kgRW4",
-      "decimals_a": 5,
-      "decimals_b": 9,
-      "_comment": "Raydium WEN/SOL AMM"
-    },
-    {
-      "address": "HrPMN9xR3csgXNEZFZBU2SZagDUDzNH8JwVSDcZvvYHA",
-      "dex": "RaydiumAmm",
-      "token_mint_a": "WENWENvqqNya429ubCdR81ZmD69brwQaaBYY6p3LCpk",
-      "token_mint_b": "EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v",
-      "token_vault_a": "HMCvE88kiqpmqNgdYPABLQsrM9LuGvjiy4kKfmfV6QM",
-      "token_vault_b": "26RMnLdbV2koYcDDPnpNtd1niV8nBx2EQkDF4HqBLxtG",
-      "decimals_a": 5,
-      "decimals_b": 6,
-      "_comment": "Raydium WEN/USDC AMM"
-    },
-    {
-      "address": "C4ZTAnN6Fa6gekjmYaoivD6E4N2ahnqsXmJqUxD5KssH",
-      "dex": "RaydiumAmm",
-      "token_mint_a": "mSoLzYCxHdYgdzU16g5QSh3i5K3z3KZK7ytfqcJm7So",
-      "token_mint_b": "JUPyiwrYJFskUPiHa7hkeR8VUtAeFoSYbKedZNsDvCN",
-      "token_vault_a": "4TjtkxVhp2RowtLQwszCD81rpk3eFyYv7sWWwG255uWs",
-      "token_vault_b": "A5g3G98GoTgR9omhYNrsEswbPKkFatHnebbMNHCYKGsE",
-      "decimals_a": 9,
-      "decimals_b": 6,
-      "_comment": "Raydium mSOL/JUP AMM"
-    },
-    {
       "address": "EGyhb2uLAsRUbRx9dNFBjMVYnFaASWMvD6RE1aEf2LxL",
       "dex": "RaydiumAmm",
       "token_mint_a": "mSoLzYCxHdYgdzU16g5QSh3i5K3z3KZK7ytfqcJm7So",
@@ -2249,32 +869,6 @@
       "decimals_a": 9,
       "decimals_b": 6,
       "_comment": "Raydium mSOL/USDT AMM"
-    },
-    {
-      "address": "Br2KNmeUQCXTEZHoNprtgKv31rJCKCnSKSxZzNdAA14S",
-      "dex": "RaydiumClmm",
-      "token_mint_a": "DezXAZ8z7PnrnRJjz3wXBoRgixCa6xjnB7YaB1pPB263",
-      "token_mint_b": "EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v",
-      "token_vault_a": "2fy4xZwtYC7z5vSjdQUfRDYv8nhH8895JcpM44UDoaMU",
-      "token_vault_b": "49vmSE4UFeUyp9u2zUCs2wmi47tMqdjDiNTURJt8iVt3",
-      "decimals_a": 5,
-      "decimals_b": 6,
-      "amm_config": "JDNwM8TG2JxCrxHJCB3uuYQRDbFT6bKUyiB8fUS8HAw6",
-      "_comment": "Raydium BONK/USDC CLMM",
-      "observation_state": "DvDycoxZMwBvqs6862sLm3RYnnpTqAE5LrnvuaMZ6qUZ"
-    },
-    {
-      "address": "CVW96A5BGmdhmdQSU2tTwciJwyTJVJ1HxaKuAEAXXDVb",
-      "dex": "RaydiumClmm",
-      "token_mint_a": "DezXAZ8z7PnrnRJjz3wXBoRgixCa6xjnB7YaB1pPB263",
-      "token_mint_b": "EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v",
-      "token_vault_a": "3iozQaZg3WikZh3DagXbQBMUABb6BNsC9to97mMFNfns",
-      "token_vault_b": "EQ7zZbZffpesP5i63DF7eyGZAGC2yKm5MXvovbVsWZR9",
-      "decimals_a": 5,
-      "decimals_b": 6,
-      "amm_config": "Hzk3dF6tK4AQiqzeiYCBMr5SVfhcB2b42QRjQJgvQG9s",
-      "_comment": "Raydium BONK/USDC CLMM",
-      "observation_state": "4Vwj2B4wBN62oBbbK9h3UcJK5NB1Zox1WxeeUUNhTpf6"
     },
     {
       "address": "3v2am7LrJD3Vc3XN6b6gH8whQqXbR3u2La3N4BdCzxu3",
@@ -2316,45 +910,6 @@
       "observation_state": "72uc9nXozQS2SKXzdbT115mMxjNeWwUjMoJgwbkN7VMU"
     },
     {
-      "address": "Fu5uXjR17rGbUur294Ke3UxCH8JF5nWYYCe9wqNjDuFr",
-      "dex": "RaydiumClmm",
-      "token_mint_a": "JUPyiwrYJFskUPiHa7hkeR8VUtAeFoSYbKedZNsDvCN",
-      "token_mint_b": "EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v",
-      "token_vault_a": "6ahp4gbmq3bWkmvRS31FhnMVXv7t2szBTthhH1WppK3D",
-      "token_vault_b": "5Tt78VMy6ncVdSUpLVdGhDw57de9JY4BSkZSGqYKGu3o",
-      "decimals_a": 6,
-      "decimals_b": 6,
-      "amm_config": "J9UXhdjB8UTVTGAKgfnU1cfBxaggPeDaPqsFAH88ZNGk",
-      "_comment": "Raydium JUP/USDC CLMM",
-      "observation_state": "BzRwC5EDuzNGimhHyFU21gNoYrmsCQbnMoLAj8Z64g7e"
-    },
-    {
-      "address": "5Z2YAbbCeagp8kMTAD61fvbT5bcw45Qjubz8t8YobtZR",
-      "dex": "RaydiumClmm",
-      "token_mint_a": "JUPyiwrYJFskUPiHa7hkeR8VUtAeFoSYbKedZNsDvCN",
-      "token_mint_b": "EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v",
-      "token_vault_a": "63SidPsbddJtAcg9ChYc4pVAbJHjNbF4wP64ZrboUxe5",
-      "token_vault_b": "7yQAqy72xzSdatLsWtphgpfrTBCmgdRefs9BKbPLvRyA",
-      "decimals_a": 6,
-      "decimals_b": 6,
-      "amm_config": "HvqdykNoRDfhK9sgD2vjTvLDEf8qU5V9SY7qu7NvgTVX",
-      "_comment": "Raydium JUP/USDC CLMM",
-      "observation_state": "Enigy92aUYyLpzE7Ja7s6LpEz3JoDgYEp83iyBwcHJEr"
-    },
-    {
-      "address": "DcM51yhj5e7AdMFV2xuejmpnMwWmSQVps7FVnMbcikiZ",
-      "dex": "RaydiumClmm",
-      "token_mint_a": "JUPyiwrYJFskUPiHa7hkeR8VUtAeFoSYbKedZNsDvCN",
-      "token_mint_b": "Es9vMFrzaCERmJfrF4H2FYD4KCoNkY11McCe8BenwNYB",
-      "token_vault_a": "DzDgTBjZPcK2k3Gkn4AMVv2sto7AJmuFsw84MvVmrxm2",
-      "token_vault_b": "E1E9rULZpWvQySZdqbdAasU2rvX4EPqdCueJWhHMZpd5",
-      "decimals_a": 6,
-      "decimals_b": 6,
-      "amm_config": "JCTGZjH8zZeYwvMaF3zX3dK8GhPvHstmn1MPutcuZg8u",
-      "_comment": "Raydium JUP/USDT CLMM",
-      "observation_state": "3WYyMuW41oYYqeMrJJj9yDoPEVWrHgXg2onfF6Z645Y1"
-    },
-    {
       "address": "GtKKKs3yaPdHbQd2aZS4SfWhy8zQ988BJGnKNndLxYsN",
       "dex": "RaydiumClmm",
       "token_mint_a": "So11111111111111111111111111111111111111112",
@@ -2366,58 +921,6 @@
       "amm_config": "J5a84916Edxn3a3MBAX27guxha7ugh7foyZMf5p8qZcQ",
       "_comment": "Raydium SOL/BONK CLMM",
       "observation_state": "Gj8gzDNKmf5y3p1LorKHTvMZ8eCLhbCDnhGiN5xVW8Jq"
-    },
-    {
-      "address": "ysq96dVZrrMVRassYB2Vr5cHFWoSQDRzQRGNmRRtr1L",
-      "dex": "RaydiumClmm",
-      "token_mint_a": "So11111111111111111111111111111111111111112",
-      "token_mint_b": "DezXAZ8z7PnrnRJjz3wXBoRgixCa6xjnB7YaB1pPB263",
-      "token_vault_a": "7B9icCwrEAwJhvpYtPixagtxM3AVXDwWrZkQiE7YiGpX",
-      "token_vault_b": "B7b8YgV8rJXdeuMyfP5mhZL3SU46si9owrKT5a8Ss8Nr",
-      "decimals_a": 9,
-      "decimals_b": 5,
-      "amm_config": "JB2KACppn93mBpbP5W1nXGpBKa5TWBS41ndhyxgZAi5S",
-      "_comment": "Raydium SOL/BONK CLMM",
-      "observation_state": "Gajn4cvFPSFNFCUrvLbTwjkgShvTTS4TGPxYqc1HcG6a"
-    },
-    {
-      "address": "BjZKz1z4UMjJPvPfKwTwjPErVBWnewnJFvcZB6minymy",
-      "dex": "RaydiumClmm",
-      "token_mint_a": "So11111111111111111111111111111111111111112",
-      "token_mint_b": "DezXAZ8z7PnrnRJjz3wXBoRgixCa6xjnB7YaB1pPB263",
-      "token_vault_a": "Q7UFU9VeeTCuMVGJdp6bukcySc2LVrafhcnAM6SPG9W",
-      "token_vault_b": "2LUJugRCHHo8gcJkQtGivx4LbRZKPRDZua5BoMUz1Z5B",
-      "decimals_a": 9,
-      "decimals_b": 5,
-      "amm_config": "J6P4SazNyUfSHcR5edw6WJhGoDNVUws9DioV7EAPkMBP",
-      "_comment": "Raydium SOL/BONK CLMM",
-      "observation_state": "7MZbMKTV5srt6BqctdfDi7eSzgvZBnuh9zgtKqfYcoKU"
-    },
-    {
-      "address": "ALYy1HRt3fsn1S9McLWsXCoq6Ke7bwMiwZ6QYr6HvsYS",
-      "dex": "RaydiumClmm",
-      "token_mint_a": "So11111111111111111111111111111111111111112",
-      "token_mint_b": "DezXAZ8z7PnrnRJjz3wXBoRgixCa6xjnB7YaB1pPB263",
-      "token_vault_a": "CZ7SknJbChFk2q1UP9CChusqs611ueF88Va2NAP2UVe",
-      "token_vault_b": "7FeHMmgf46nDQn4zqi1dDEGZFkeCENpQqnD11FK1GqF4",
-      "decimals_a": 9,
-      "decimals_b": 5,
-      "amm_config": "J8YrvEZ46j9qYEEbjYj59hZu1gq9avnsC93WQhJuqsUZ",
-      "_comment": "Raydium SOL/BONK CLMM",
-      "observation_state": "29FycfAbV5mQg4gvU72GnbRJux5jPsi2iQeH9aacTtFm"
-    },
-    {
-      "address": "296QdpvTmcnmNwzXu3VRuFV13UMaj2LsV65sGRrUnjBv",
-      "dex": "RaydiumClmm",
-      "token_mint_a": "So11111111111111111111111111111111111111112",
-      "token_mint_b": "jtojtomepa8beP8AuQc6eXt5FriJwfFMwQx2v2f9mCL",
-      "token_vault_a": "Hx63bW2KSzQEqCjcpGEmihGyPyPGbmAuL9td76dtux5e",
-      "token_vault_b": "Dw7N33p8Fsae94RxToUhy6gXtAdnJvmBz4faq6bgfNmX",
-      "decimals_a": 9,
-      "decimals_b": 9,
-      "amm_config": "JDNwM8TG2JxCrxHJCB3uuYQRDbFT6bKUyiB8fUS8HAw6",
-      "_comment": "Raydium SOL/JTO CLMM",
-      "observation_state": "2vahQ27C4jvpGGjAvFD7wXBJMAUbX3gQFTEVrQoRf6H2"
     },
     {
       "address": "JVoPtWWDsRcLvQosu5fWc2CaNF6jEtJzbxdPtcEuvZo",
@@ -2433,19 +936,6 @@
       "observation_state": "J56JoCEHyCG3P5fCKdB9S78NLBXY6T4UfxiCwRNh8gGP"
     },
     {
-      "address": "4Kty4cBWvf8fvTbwhDXVE7Yer6eqFmHQoeDm5v2PGuD4",
-      "dex": "RaydiumClmm",
-      "token_mint_a": "So11111111111111111111111111111111111111112",
-      "token_mint_b": "J1toso1uCk3RLmjorhTtrVwY9HJ7X8V9yYac6Y7kGCPn",
-      "token_vault_a": "A4GkpDL6zER79No4EoCJXrR1ihrkEvA4bs49rnLcrmrV",
-      "token_vault_b": "4GPbhE4tBQijmkZNGSHNRWuDfTe15WiULPV7Pw7Ujvg2",
-      "decimals_a": 9,
-      "decimals_b": 9,
-      "amm_config": "JB8j7YGuFQamgdE5rJ316aG5YeadCifd5HbeT7ZJwhBn",
-      "_comment": "Raydium SOL/JitoSOL CLMM",
-      "observation_state": "EYstuXRXLP7JY4mML4wPQ7NiSixD7t4qj86HkwZHBgvN"
-    },
-    {
       "address": "2uoKbPEidR7KAMYtY4x7xdkHXWqYib5k4CutJauSL3Mc",
       "dex": "RaydiumClmm",
       "token_mint_a": "So11111111111111111111111111111111111111112",
@@ -2457,19 +947,6 @@
       "amm_config": "JCPS6D41dkCnqv8Dtut9ALn1H6MPx3EdThKScmj6t7SL",
       "_comment": "Raydium SOL/JitoSOL CLMM",
       "observation_state": "CPbJctJNpDpV1BVDSq9jwjzz3hjUGSxq2B33g4ciC927"
-    },
-    {
-      "address": "bWpDAyJ8UidQoYU2rDemfoLE8pWP1p8GYKrxFrCtPbN",
-      "dex": "RaydiumClmm",
-      "token_mint_a": "So11111111111111111111111111111111111111112",
-      "token_mint_b": "HZ1JovNiVvGrGNiiYvEozEVgZ58xaU3RKwX8eACQBCt3",
-      "token_vault_a": "GdK8FRYE5BLuiokqXZQyRsBbKEjRFXcd24iERD2JxPn6",
-      "token_vault_b": "6TQhisKzUNCMzg5E5MMh6d4o2QEPYAGawqMDnAMUwMXS",
-      "decimals_a": 9,
-      "decimals_b": 6,
-      "amm_config": "J9Kbn8UXfXnxApNAykLF7MT23wz9ARPjAoeRap68yNSA",
-      "_comment": "Raydium SOL/PYTH CLMM",
-      "observation_state": "4sdBbRqjGAAgksAWLQNWJv2ig4pBG2JCNHHmSxWX7nsZ"
     },
     {
       "address": "D2P4D7xtUAwzd8WRDaNQRcojoKKVyoWVG2PUPYscMT7p",
@@ -2511,45 +988,6 @@
       "observation_state": "DULGhHJhNfKFcoXT5dko5YACasnC2UPs8FurDyXQFoHE"
     },
     {
-      "address": "7npqExgYmktC6S9YxdxFzsh7LEzokgQfxeAAZHxQwM6Z",
-      "dex": "RaydiumClmm",
-      "token_mint_a": "So11111111111111111111111111111111111111112",
-      "token_mint_b": "WENWENvqqNya429ubCdR81ZmD69brwQaaBYY6p3LCpk",
-      "token_vault_a": "iutEHQDFhEjaoWB6nj4PKtRqUUrVEHfGtLLdg4KEKAE",
-      "token_vault_b": "3uXhfzhAZjRdFmr62r7ooKyGHkJqQMMkBZvKZsfCKPVo",
-      "decimals_a": 9,
-      "decimals_b": 5,
-      "amm_config": "JCTGZjH8zZeYwvMaF3zX3dK8GhPvHstmn1MPutcuZg8u",
-      "_comment": "Raydium SOL/WEN CLMM",
-      "observation_state": "EVuYZVqpeua88TKEkAuiuPsVbazgoxxVo8EoisDYwLzQ"
-    },
-    {
-      "address": "FVahRzeovtD5Zbm8vcL65yAVxKMWzPQYdsz5u811qcGi",
-      "dex": "RaydiumClmm",
-      "token_mint_a": "So11111111111111111111111111111111111111112",
-      "token_mint_b": "bSo13r4TkiE4KumL71LsHTPpL2euBYLFx6h9HP3piy1",
-      "token_vault_a": "Gmw1JcGrnXek9CqiWK5nYteMfkzYpiQN1Adoev5fvtV6",
-      "token_vault_b": "2Jm1qeUWUX8c4pGBTqqEzbBJXTZ8m49c6HTfSswjJRtV",
-      "decimals_a": 9,
-      "decimals_b": 9,
-      "amm_config": "J3KupYpjTjbLsEz8qHW7Jimd2dT5npTouYysSiwKW5s6",
-      "_comment": "Raydium SOL/bSOL CLMM",
-      "observation_state": "FZsvspgE5np54CgFrqarUHJsWWDYghoADp5nXQHVZpYp"
-    },
-    {
-      "address": "HZf7wppva3wk4dCnrUe2GE1c8aUEXsUNk5asMFQ5sYch",
-      "dex": "RaydiumClmm",
-      "token_mint_a": "So11111111111111111111111111111111111111112",
-      "token_mint_b": "mSoLzYCxHdYgdzU16g5QSh3i5K3z3KZK7ytfqcJm7So",
-      "token_vault_a": "69NiU4uEBsSARjauUjC8b6aEWKk8qB9MEJaN7S89qx4s",
-      "token_vault_b": "HrVfprMaWiP19TFXdCyMjxKKK5xYWCXeEzW6TP373Rae",
-      "decimals_a": 9,
-      "decimals_b": 9,
-      "amm_config": "JB8j7YGuFQamgdE5rJ316aG5YeadCifd5HbeT7ZJwhBn",
-      "_comment": "Raydium SOL/mSOL CLMM",
-      "observation_state": "4darN1x7dPYBRP5UkgF8VN53vm5CPf1q2aAmvM4MiSLe"
-    },
-    {
       "address": "8EzbUfvcRT1Q6RL462ekGkgqbxsPmwC5FMLQZhSPMjJ3",
       "dex": "RaydiumClmm",
       "token_mint_a": "So11111111111111111111111111111111111111112",
@@ -2561,45 +999,6 @@
       "amm_config": "JCPS6D41dkCnqv8Dtut9ALn1H6MPx3EdThKScmj6t7SL",
       "_comment": "Raydium SOL/mSOL CLMM",
       "observation_state": "C29RA4TYnMjmVRSNnuodVowQXn8L1a1FSwMHWZjWWNFz"
-    },
-    {
-      "address": "FvviNYdPiReHR2RjH7GUgML2KAG2iD7QYzJ85B5RCQ7p",
-      "dex": "RaydiumClmm",
-      "token_mint_a": "So11111111111111111111111111111111111111112",
-      "token_mint_b": "mSoLzYCxHdYgdzU16g5QSh3i5K3z3KZK7ytfqcJm7So",
-      "token_vault_a": "GQYUxwSYARuXR2Dopdk5UzvryybvaDUcT7bwGqDw2cy6",
-      "token_vault_b": "FtLbYww1KyvarXhzkcp8nrZUxNVfERU4Lb1TA8CDfhdh",
-      "decimals_a": 9,
-      "decimals_b": 9,
-      "amm_config": "Hsru7epqZ8UdpVgReeigRugGvYRbZqox4Ndh9Vt9g9dN",
-      "_comment": "Raydium SOL/mSOL CLMM",
-      "observation_state": "ApDhqtz7jP41fM53Jx3b9dDZaNWXxGeLsA5fxD3bYGL6"
-    },
-    {
-      "address": "FWGk2dvJizVnbU8wAZt7YwgmKsnDZRyHhxnaWHvg64gU",
-      "dex": "RaydiumClmm",
-      "token_mint_a": "EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v",
-      "token_mint_b": "HZ1JovNiVvGrGNiiYvEozEVgZ58xaU3RKwX8eACQBCt3",
-      "token_vault_a": "7Fa7382VPvLPyoVXKd7ih1L56LFdeHiuGDffSpanBdsY",
-      "token_vault_b": "EZQGfC6wPQFpFux7DnUR4FDHqtRHKhUZsHxwTqUvdXa5",
-      "decimals_a": 6,
-      "decimals_b": 6,
-      "amm_config": "HwmJm9YvSxyMEBoQA9z8KqRWBYzNGnureEwaehC9PxHi",
-      "_comment": "Raydium USDC/PYTH CLMM",
-      "observation_state": "2V9CAwAnGCxdqCvUeMDquUqpxHnM3avyrmvZZHmdaHad"
-    },
-    {
-      "address": "ANNsQrhxx16ajJRnnPPmruFHfDpbfKyHLWqTSCsHRn9g",
-      "dex": "RaydiumClmm",
-      "token_mint_a": "WENWENvqqNya429ubCdR81ZmD69brwQaaBYY6p3LCpk",
-      "token_mint_b": "DezXAZ8z7PnrnRJjz3wXBoRgixCa6xjnB7YaB1pPB263",
-      "token_vault_a": "AmEsTtCxGgsaR3vEwaKdKoYfTApQcR4rs6i3JuFS4pmM",
-      "token_vault_b": "GpHzx877ZoGMJV6qtGTQdawNnHSM43Ya3rtwDrcuqiSB",
-      "decimals_a": 5,
-      "decimals_b": 5,
-      "amm_config": "J8YrvEZ46j9qYEEbjYj59hZu1gq9avnsC93WQhJuqsUZ",
-      "_comment": "Raydium WEN/BONK CLMM",
-      "observation_state": "2hHfAoubEKmkgo6MfC2x7Uy4idYPpvc7kzY7t5yyXeXr"
     },
     {
       "address": "FBy1oPG2HTDgtdp783wh6f32tMgYS656w2MgAEvq2JVB",
@@ -2628,58 +1027,6 @@
       "observation_state": "AfNc7mmazzWyQzuMmB7QR4W6EfjVJsbJ7cmAC2hY6ovG"
     },
     {
-      "address": "7j4Bq7SkbKEDJ9LjoDVFLbjpDaDxQNZKs8x2CvgcZRAY",
-      "dex": "RaydiumClmm",
-      "token_mint_a": "bSo13r4TkiE4KumL71LsHTPpL2euBYLFx6h9HP3piy1",
-      "token_mint_b": "EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v",
-      "token_vault_a": "FHAVSxmj2Es8CiC64eT2KYyuca3SyNfnwefMZFZ6VTqK",
-      "token_vault_b": "AVs9GkaCmJQSu5NMFxM6RBPGzLjPfAGZaZhqj4bKuqEm",
-      "decimals_a": 9,
-      "decimals_b": 6,
-      "amm_config": "J5a84916Edxn3a3MBAX27guxha7ugh7foyZMf5p8qZcQ",
-      "_comment": "Raydium bSOL/USDC CLMM",
-      "observation_state": "7RUm2YDuJzLMi5faW2SkziPV7kdcNQmnkfm5m1dWD6UV"
-    },
-    {
-      "address": "FJTS7LvcyDLCbFkSUB4P3MumRJrZNPWA3gvts9W9MEWh",
-      "dex": "RaydiumClmm",
-      "token_mint_a": "jupSoLaHXQiZZTSfEWMTRRgpnyFm8f6sZdosWBjx93v",
-      "token_mint_b": "mSoLzYCxHdYgdzU16g5QSh3i5K3z3KZK7ytfqcJm7So",
-      "token_vault_a": "7vpbrRXugGPvV2KcjbHq5KcDb54pjNogUhJquNoddmxd",
-      "token_vault_b": "3FbBYnr9cwPxXeztfroM1o1iFbLQsSSsfVZWdRZqKaqZ",
-      "decimals_a": 9,
-      "decimals_b": 9,
-      "amm_config": "J8V2SiKvjui5SE1FPQchGR2n25ndF68isq1Z7aR7AJmz",
-      "_comment": "Raydium jupSOL/mSOL CLMM",
-      "observation_state": "6Q6BYLzXBr9BxWMWyep1K4m3Eq5LELt1d37LGaa3Q8MJ"
-    },
-    {
-      "address": "8xWHPtjzvcZjrGyMpWhfyRxNgVZyVvdtACavwbE7YjTx",
-      "dex": "RaydiumClmm",
-      "token_mint_a": "jupSoLaHXQiZZTSfEWMTRRgpnyFm8f6sZdosWBjx93v",
-      "token_mint_b": "mSoLzYCxHdYgdzU16g5QSh3i5K3z3KZK7ytfqcJm7So",
-      "token_vault_a": "62QVFuc49PZNHhPyKVdFtAaJCV15qsvheCajGZF9SLaM",
-      "token_vault_b": "4djaUBZxMpVD8LQD9RU7hn1uz448ZTAwr5oKymh5c4jG",
-      "decimals_a": 9,
-      "decimals_b": 9,
-      "amm_config": "JDNwM8TG2JxCrxHJCB3uuYQRDbFT6bKUyiB8fUS8HAw6",
-      "_comment": "Raydium jupSOL/mSOL CLMM",
-      "observation_state": "AGFyGLxCLMyyugEQo93yNHFCAq2gJZQi9ZVYyjFEUugV"
-    },
-    {
-      "address": "Dw6B81YMBFDFqEkstZWFsrRSQoUJjStQZmrWTK8fCw2R",
-      "dex": "RaydiumClmm",
-      "token_mint_a": "mSoLzYCxHdYgdzU16g5QSh3i5K3z3KZK7ytfqcJm7So",
-      "token_mint_b": "J1toso1uCk3RLmjorhTtrVwY9HJ7X8V9yYac6Y7kGCPn",
-      "token_vault_a": "8uf4ZgC23Jyph7b63ydT6c9odtZkM6LiJAoPVjEZ7LQF",
-      "token_vault_b": "7RpJQnXB8U7CdrZh9om7QkqKVZ2FWVek26orLFDG59NH",
-      "decimals_a": 9,
-      "decimals_b": 9,
-      "amm_config": "J8V2SiKvjui5SE1FPQchGR2n25ndF68isq1Z7aR7AJmz",
-      "_comment": "Raydium mSOL/JitoSOL CLMM",
-      "observation_state": "24sRGUnKGaK2WjMv4JoVWKHMxWD93H3HLKmjdrapwXnr"
-    },
-    {
       "address": "CiHghAc3Fat5JgBB4L6vUcY6hud89YwgL1q4nKu1rsNQ",
       "dex": "RaydiumClmm",
       "token_mint_a": "mSoLzYCxHdYgdzU16g5QSh3i5K3z3KZK7ytfqcJm7So",
@@ -2704,6 +1051,611 @@
       "amm_config": "JEBsjaSYm9es6zf2feTzJABjKEW2tr4xPTRG7cnPBxW5",
       "_comment": "Raydium mSOL/USDC CLMM",
       "observation_state": "CHawdSFGMh8f45VAKD3iyJ1Pf5TmJVnkbFFaJWQpaVbf"
+    },
+    {
+      "address": "8GuXrPq6deS1ZzNXYmBjVZ5P48cAmKGrhhpdAn2FURPC",
+      "dex": "RaydiumClmm",
+      "token_mint_a": "cbbtcf3aa214zXHbiAZQwf4122FBYbraNdFqgw4iMij",
+      "token_mint_b": "3NZ9JMVBmGAqocybic2c7LQCJScmgsAZ6vQqTDzcqmJh",
+      "token_vault_a": "2YxdGhAmHXUboDVPNEadjkmDcPicEpnh1P6WQEbqoSgY",
+      "token_vault_b": "2YTFHjtqJ56RUvHh9bAbkxsKRjNMZFuTwYnhSuhHMp26",
+      "decimals_a": 8,
+      "decimals_b": 8,
+      "_comment": "Raydium cbBTC/WBTC CLMM"
+    },
+    {
+      "address": "Etwo8fwUx5RHgfpwiJHJ5hWRNqrjzQk4C48h27R3xVnd",
+      "dex": "RaydiumClmm",
+      "token_mint_a": "cbbtcf3aa214zXHbiAZQwf4122FBYbraNdFqgw4iMij",
+      "token_mint_b": "J1toso1uCk3RLmjorhTtrVwY9HJ7X8V9yYac6Y7kGCPn",
+      "token_vault_a": "7ecDZ8fLsbCMa7shEeTUdL9wUGP3gBVVicHCBFhssLod",
+      "token_vault_b": "3ZBNELFTFDMzBr9mHnJoGMm44LdramXubsbCTZPPFk5y",
+      "decimals_a": 8,
+      "decimals_b": 9,
+      "_comment": "Raydium cbBTC/JitoSOL CLMM"
+    },
+    {
+      "address": "CqXeBvzvB4BKxLxwoHNdnLV58PfL8W7iVN8kaezkCrJX",
+      "dex": "RaydiumClmm",
+      "token_mint_a": "So11111111111111111111111111111111111111112",
+      "token_mint_b": "cbbtcf3aa214zXHbiAZQwf4122FBYbraNdFqgw4iMij",
+      "token_vault_a": "8UfCPsTTiuGCsbKx57MjRb2RuNSn9yR4PuzJ3bwmHoMk",
+      "token_vault_b": "ez8wXMHNDj9WmeUbPx1AoTsgJcLnHPvJmwhCiS9BMKx",
+      "decimals_a": 9,
+      "decimals_b": 8,
+      "_comment": "Raydium SOL/cbBTC CLMM"
+    },
+    {
+      "address": "4v8ufj8Hj7UvFgtofQJAtzUud5xomwZfEqfCTHZ4wM72",
+      "dex": "OrcaWhirlpool",
+      "token_mint_a": "cbbtcf3aa214zXHbiAZQwf4122FBYbraNdFqgw4iMij",
+      "token_mint_b": "3NZ9JMVBmGAqocybic2c7LQCJScmgsAZ6vQqTDzcqmJh",
+      "token_vault_a": "Br2L7L6Vfro799PuNH7xdQPs6bZ4DGi2DMFsUX3DdUPW",
+      "token_vault_b": "4WBthDFFdS8mqJ3o9hoxtaEewcn7nuXpqUnQiHhJfHVQ",
+      "decimals_a": 8,
+      "decimals_b": 8,
+      "_comment": "Orca cbBTC/WBTC Whirlpool"
+    },
+    {
+      "address": "HxA6SKW5qA4o12fjVgTpXdq2YnZ5Zv1s7SB4FFomsyLM",
+      "dex": "OrcaWhirlpool",
+      "token_mint_a": "cbbtcf3aa214zXHbiAZQwf4122FBYbraNdFqgw4iMij",
+      "token_mint_b": "EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v",
+      "token_vault_a": "FWiLr7QtETCRs3CxFTAMmLynitX8uEjw9HxpFjxKQrAe",
+      "token_vault_b": "5ahiXjuZgWQPqYEay5GFHv5r3ycXqgxacoeXX7VetByd",
+      "decimals_a": 8,
+      "decimals_b": 6,
+      "_comment": "Orca cbBTC/USDC Whirlpool"
+    },
+    {
+      "address": "3NJQ6RKnNHb9ErLoKL6ch4mmWAxgfg3v9UBGTVNCWSZf",
+      "dex": "OrcaWhirlpool",
+      "token_mint_a": "So11111111111111111111111111111111111111112",
+      "token_mint_b": "cbbtcf3aa214zXHbiAZQwf4122FBYbraNdFqgw4iMij",
+      "token_vault_a": "5BWmyEHSekdf9YqBTgkGQwDQVryvjk6DyABw2Fg9HqfU",
+      "token_vault_b": "883cEKAmbEzJBVGE6QLH4aS12nVAvdySHSTdxXdF4iQT",
+      "decimals_a": 9,
+      "decimals_b": 8,
+      "_comment": "Orca SOL/cbBTC Whirlpool"
+    },
+    {
+      "address": "CeaZcxBNLpJWtxzt58qQmfMBtJY8pQLvursXTJYGQpbN",
+      "dex": "OrcaWhirlpool",
+      "token_mint_a": "So11111111111111111111111111111111111111112",
+      "token_mint_b": "cbbtcf3aa214zXHbiAZQwf4122FBYbraNdFqgw4iMij",
+      "token_vault_a": "DYkz5CCMUshPUso6Eg25f2kw5cnexYAKSrN6ZMSPM2xS",
+      "token_vault_b": "7G26tTFk7VhpqhnRHqvgsWh7NhVeLj7cGNCXs9PWfVR3",
+      "decimals_a": 9,
+      "decimals_b": 8,
+      "_comment": "Orca SOL/cbBTC Whirlpool"
+    },
+    {
+      "address": "53oyyjgybx6dH7i5aGeKfBUi3xPJQDeBkaENPri57x2H",
+      "dex": "MeteoraDlmm",
+      "token_mint_a": "cbbtcf3aa214zXHbiAZQwf4122FBYbraNdFqgw4iMij",
+      "token_mint_b": "3NZ9JMVBmGAqocybic2c7LQCJScmgsAZ6vQqTDzcqmJh",
+      "token_vault_a": "5LaTKNpjhHoxmWrCFPqhSkUHKdzpK3b95PdDwQecCxmH",
+      "token_vault_b": "Hrz5yLrAKJtC5FttkWEupPwsYSVteEJiKoNrwvjnvxRs",
+      "decimals_a": 8,
+      "decimals_b": 8,
+      "_comment": "Meteora cbBTC/WBTC DLMM"
+    },
+    {
+      "address": "7ubS3GccjhQY99AYNKXjNJqnXjaokEdfdV915xnCb96r",
+      "dex": "MeteoraDlmm",
+      "token_mint_a": "cbbtcf3aa214zXHbiAZQwf4122FBYbraNdFqgw4iMij",
+      "token_mint_b": "EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v",
+      "token_vault_a": "81GLeor2tJ9dut4YUE7BzGE4WfTtD4LbvMwLsrmw7wTg",
+      "token_vault_b": "9mBxhiBNki6FjcmXeFGfKDf6o4fGXZ8JtG4jxNDeiv6u",
+      "decimals_a": 8,
+      "decimals_b": 6,
+      "_comment": "Meteora cbBTC/USDC DLMM"
+    },
+    {
+      "address": "9ekpyKvtF5zAmATn9py5JtB9vfaUxr37J13fm2Un41Ff",
+      "dex": "MeteoraDlmm",
+      "token_mint_a": "cbbtcf3aa214zXHbiAZQwf4122FBYbraNdFqgw4iMij",
+      "token_mint_b": "EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v",
+      "token_vault_a": "Az7x8AJ96kiutuPgcBjFk84zFcEeEGsyzdEAR1ayeHYo",
+      "token_vault_b": "68JiNuECjQ9YNYYsm8RNanqC3tiQ2PEMWQbA8YdyNDJJ",
+      "decimals_a": 8,
+      "decimals_b": 6,
+      "_comment": "Meteora cbBTC/USDC DLMM"
+    },
+    {
+      "address": "Hz1EtXTGaFEtAWRgRNpDMFV6vnSZtQUY9UqmdM6vfKSS",
+      "dex": "MeteoraDlmm",
+      "token_mint_a": "cbbtcf3aa214zXHbiAZQwf4122FBYbraNdFqgw4iMij",
+      "token_mint_b": "So11111111111111111111111111111111111111112",
+      "token_vault_a": "53QtjGY8tueZ3tQVY3kJ8PMF8joP5etj4EQtxPqm647R",
+      "token_vault_b": "37X6Cr513nFVMpd1i3nT1mbJMSwaWkcCUd1nGGuH7trQ",
+      "decimals_a": 8,
+      "decimals_b": 9,
+      "_comment": "Meteora cbBTC/SOL DLMM"
+    },
+    {
+      "address": "7ENJsaWAy4PRs24NYd1WqUdY3DWi43rHvyZXhCjEiNWE",
+      "dex": "PancakeSwapClmm",
+      "token_mint_a": "cbbtcf3aa214zXHbiAZQwf4122FBYbraNdFqgw4iMij",
+      "token_mint_b": "EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v",
+      "token_vault_a": "8z59PR6e79NWQmstgE4Ktv5WsEjPVjGAdHWXmTUfJCbc",
+      "token_vault_b": "33QePMtgj6t36VD24ec8k5QKfuTvNF1CDDW61VyNaXGJ",
+      "decimals_a": 8,
+      "decimals_b": 6,
+      "_comment": "PancakeSwap cbBTC/USDC CLMM"
+    },
+    {
+      "address": "9Gx2jRszQQxTrExaoLxztgwsbMcWSVLRBsXGojHHAQo7",
+      "dex": "PancakeSwapClmm",
+      "token_mint_a": "So11111111111111111111111111111111111111112",
+      "token_mint_b": "cbbtcf3aa214zXHbiAZQwf4122FBYbraNdFqgw4iMij",
+      "token_vault_a": "EFqBGwtwT4WREpMpewHm4iCcSc2R31sXczL7KYJUt24b",
+      "token_vault_b": "9AEZZUtfhKvVyBoBBUmn1AwFHtJUmb1wtuJi4ecnY9Zi",
+      "decimals_a": 9,
+      "decimals_b": 8,
+      "_comment": "PancakeSwap SOL/cbBTC CLMM"
+    },
+    {
+      "address": "CgurzM8AZeWbxS7yDkRr3uMWxvTqtVTtpjwtr8aZVjcQ",
+      "dex": "PancakeSwapClmm",
+      "token_mint_a": "So11111111111111111111111111111111111111112",
+      "token_mint_b": "cbbtcf3aa214zXHbiAZQwf4122FBYbraNdFqgw4iMij",
+      "token_vault_a": "4mFVKhShrkdWyafSmBUnf1FRfZDq1GBcWcY7n4VGV3QY",
+      "token_vault_b": "HhYhBFXzUGqW5PoTP1M1xdpUocyyShUrD42qNMt7dDHU",
+      "decimals_a": 9,
+      "decimals_b": 8,
+      "_comment": "PancakeSwap SOL/cbBTC CLMM"
+    },
+    {
+      "address": "zHGN3Kh1miQSuehUWD1TPYTxkCkUrtT8foNxtASsiKJ",
+      "dex": "RaydiumClmm",
+      "token_mint_a": "WLFinEv6ypjkczcS83FZqFpgFZYwQXutRbxGe7oC16g",
+      "token_mint_b": "EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v",
+      "token_vault_a": "2Av9Jj1qnHNQMAdUiVbqbyR83xfzVDfKYD3DQRcHCx3i",
+      "token_vault_b": "3vT5XNxLj1eSrpNZotxXSmhEz6vypz4GK5fqkNcqVFJt",
+      "decimals_a": 6,
+      "decimals_b": 6,
+      "_comment": "Raydium WLFI/USDC CLMM"
+    },
+    {
+      "address": "7riviMqVTj8qUgY6WuGsUcKveMtzVxiJNesPP9ycNeAP",
+      "dex": "RaydiumClmm",
+      "token_mint_a": "USD1ttGY1N17NEEHLmELoaybftRBUSErhqYiQzvEmuB",
+      "token_mint_b": "WLFinEv6ypjkczcS83FZqFpgFZYwQXutRbxGe7oC16g",
+      "token_vault_a": "7txMS7TYXRHgERfSzombeV5BgJt7ccZVw2aStshzxT66",
+      "token_vault_b": "FpWNpfKeJCrQfc4br3oHBc7G7UU3qQPTeSQCaXEmGYiK",
+      "decimals_a": 6,
+      "decimals_b": 6,
+      "_comment": "Raydium USD1/WLFI CLMM"
+    },
+    {
+      "address": "4UUMuTFCmznhNfFkG21hU33bkArJdNLWK4XyF2tpnVVn",
+      "dex": "MeteoraDlmm",
+      "token_mint_a": "WLFinEv6ypjkczcS83FZqFpgFZYwQXutRbxGe7oC16g",
+      "token_mint_b": "EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v",
+      "token_vault_a": "9xX8pCUvh2iQP1AEFqLkZjc4bbHXHBz35Zo6WkY1hFnF",
+      "token_vault_b": "HBiLoRMUEEXJmePgAUceFae52hYgvp7a6GymRkK2JMic",
+      "decimals_a": 6,
+      "decimals_b": 6,
+      "_comment": "Meteora WLFI/USDC DLMM"
+    },
+    {
+      "address": "Fiomh3FCCXAk8tbeRaoq1T9wHLJwpf2L52av8LiHinZh",
+      "dex": "MeteoraDlmm",
+      "token_mint_a": "WLFinEv6ypjkczcS83FZqFpgFZYwQXutRbxGe7oC16g",
+      "token_mint_b": "So11111111111111111111111111111111111111112",
+      "token_vault_a": "EATguLhpAnin1yWfHXr7CdFEkGD7zuDfCRrketH9gwde",
+      "token_vault_b": "3nWRYXeeDNdNcvK92RVMBmgBWEzG3ygbCnVTr3K3SRaR",
+      "decimals_a": 6,
+      "decimals_b": 9,
+      "_comment": "Meteora WLFI/SOL DLMM"
+    },
+    {
+      "address": "HqvvjZS7fdMbcHW3nLowPmYzHKdsw7CNjUTj9DPZfz1Q",
+      "dex": "PancakeSwapClmm",
+      "token_mint_a": "USD1ttGY1N17NEEHLmELoaybftRBUSErhqYiQzvEmuB",
+      "token_mint_b": "WLFinEv6ypjkczcS83FZqFpgFZYwQXutRbxGe7oC16g",
+      "token_vault_a": "7tCCcmXoZa85yRXeYEprGLqjr9UXPm7RhDMYeYsv4py2",
+      "token_vault_b": "F6jzTP1scdXXCCnVGU3oz8bYjoVecSHnvcxHqPV9KmXu",
+      "decimals_a": 6,
+      "decimals_b": 6,
+      "_comment": "PancakeSwap USD1/WLFI CLMM"
+    },
+    {
+      "address": "9tXiuRRw7kbejLhZXtxDxYs2REe43uH2e7k1kocgdM9B",
+      "dex": "OrcaWhirlpool",
+      "token_mint_a": "2b1kV6DkPAnxd5ixfnxCpjxmKwqjjaYmCZfHsFu24GXo",
+      "token_mint_b": "EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v",
+      "token_vault_a": "EeF6oBy6AQiBJoRx5xiRNxa6cmpQE3ayVagj28QFZuyg",
+      "token_vault_b": "MvB8poDgpDPbRgx8MXeb7EPEsawGuiBTqpkpM9exeLi",
+      "decimals_a": 6,
+      "decimals_b": 6,
+      "_comment": "Orca PYUSD/USDC Whirlpool"
+    },
+    {
+      "address": "6Wfzz7Xczn4pciH4LnvF79r34htiWpTXNPCFz4jWZpi3",
+      "dex": "OrcaWhirlpool",
+      "token_mint_a": "So11111111111111111111111111111111111111112",
+      "token_mint_b": "2b1kV6DkPAnxd5ixfnxCpjxmKwqjjaYmCZfHsFu24GXo",
+      "token_vault_a": "7PqaLJX4MPTEGfPrczU1KTGLNJ8HHiJ7N4U9L5wxRYo5",
+      "token_vault_b": "Gqqgu1QDSpfcoSGpq2UXcUsguAwY93KkFq51RsiL4e7r",
+      "decimals_a": 9,
+      "decimals_b": 6,
+      "_comment": "Orca SOL/PYUSD Whirlpool"
+    },
+    {
+      "address": "9xrtw5ZPV1gZwVm2WzZZKygctUt8Vt4vnwQ62DRiuLzq",
+      "dex": "PancakeSwapClmm",
+      "token_mint_a": "2b1kV6DkPAnxd5ixfnxCpjxmKwqjjaYmCZfHsFu24GXo",
+      "token_mint_b": "Es9vMFrzaCERmJfrF4H2FYD4KCoNkY11McCe8BenwNYB",
+      "token_vault_a": "6ajPQjhJRFQxPxVnt7HeVoqqBWj8YK5XRcHVvs6MGNVb",
+      "token_vault_b": "AAzYNMKMnkq1ERTHHC6skpzUUYDowEXttWHA6XwNa948",
+      "decimals_a": 6,
+      "decimals_b": 6,
+      "_comment": "PancakeSwap PYUSD/USDT CLMM"
+    },
+    {
+      "address": "BCDdHonby65iduz3Ev3c9v5XjNkzyu5e56KRFHpBM4T9",
+      "dex": "RaydiumClmm",
+      "token_mint_a": "USD1ttGY1N17NEEHLmELoaybftRBUSErhqYiQzvEmuB",
+      "token_mint_b": "EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v",
+      "token_vault_a": "3PHtS2UAJEHq9zrJthFaSTmcTeccv9PpJEqvN6ZQyBFJ",
+      "token_vault_b": "fWK4NW83YPL2rgqLHpCMYzTiXu2XW23pmxW8Nq3MrWX",
+      "decimals_a": 6,
+      "decimals_b": 6,
+      "_comment": "Raydium USD1/USDC CLMM"
+    },
+    {
+      "address": "DZHqcR2tEv58Ni6e3pvKVuTh1SmLPUhAtoaa3HsQVMga",
+      "dex": "RaydiumClmm",
+      "token_mint_a": "USD1ttGY1N17NEEHLmELoaybftRBUSErhqYiQzvEmuB",
+      "token_mint_b": "Es9vMFrzaCERmJfrF4H2FYD4KCoNkY11McCe8BenwNYB",
+      "token_vault_a": "48sa9dC6VR4WXteftCtTkQhMsijp5WB1zroZEGFZSDUx",
+      "token_vault_b": "FYckoaoZ9x46cZsNu921x6BuLyHQBR73tSd4q9YrfwB9",
+      "decimals_a": 6,
+      "decimals_b": 6,
+      "_comment": "Raydium USD1/USDT CLMM"
+    },
+    {
+      "address": "AQAGYQsdU853WAKhXM79CgNdoyhrRwXvYHX6qrDyC1FS",
+      "dex": "RaydiumClmm",
+      "token_mint_a": "So11111111111111111111111111111111111111112",
+      "token_mint_b": "USD1ttGY1N17NEEHLmELoaybftRBUSErhqYiQzvEmuB",
+      "token_vault_a": "5QpMZ6MuyKjg8Qa1X8gM5G3YMsd43rpHb2iQ6hdcRM7m",
+      "token_vault_b": "DHY2efKhMcZyAgmPw82C2Gez1e98Ab7oWcXfxz9frUCr",
+      "decimals_a": 9,
+      "decimals_b": 6,
+      "_comment": "Raydium SOL/USD1 CLMM"
+    },
+    {
+      "address": "G8LqPHYAMcwP14CDgk9XsV9VdwpsW3aJ59VubwnyrJVr",
+      "dex": "RaydiumClmm",
+      "token_mint_a": "So11111111111111111111111111111111111111112",
+      "token_mint_b": "USD1ttGY1N17NEEHLmELoaybftRBUSErhqYiQzvEmuB",
+      "token_vault_a": "CdpY42BTUgCmvACA8oHeCkvChKHyjqwtRbUAkpSj7xJW",
+      "token_vault_b": "3KxnkzueoZiayw5kAT6o4nzyoyPxkwMdxviv7wNgVvyc",
+      "decimals_a": 9,
+      "decimals_b": 6,
+      "_comment": "Raydium SOL/USD1 CLMM"
+    },
+    {
+      "address": "4qpDaAUb5oUrFH7EomqoEvvTjQeh9D4svZ48sUk7JVrk",
+      "dex": "OrcaWhirlpool",
+      "token_mint_a": "USD1ttGY1N17NEEHLmELoaybftRBUSErhqYiQzvEmuB",
+      "token_mint_b": "Es9vMFrzaCERmJfrF4H2FYD4KCoNkY11McCe8BenwNYB",
+      "token_vault_a": "H55QU7fJs1a4JSozav68ew6TZM1KWhH6UU77it41JKwM",
+      "token_vault_b": "DzbsHAUDeeM5SsbbDMryUxYAJo1STX8dmnL2xaPYZbxq",
+      "decimals_a": 6,
+      "decimals_b": 6,
+      "_comment": "Orca USD1/USDT Whirlpool"
+    },
+    {
+      "address": "F9SNVFmT1qxGrMnMDBp6xZNTC6AbXYzvXV4b8tez3NfN",
+      "dex": "OrcaWhirlpool",
+      "token_mint_a": "USD1ttGY1N17NEEHLmELoaybftRBUSErhqYiQzvEmuB",
+      "token_mint_b": "EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v",
+      "token_vault_a": "zE6Jxcx59bHqL6y89hVbQrpnhfgHpbHKmEU2yDM5cZh",
+      "token_vault_b": "XRDTsX5TW28bs4gvqTVXzB6B5kn2A5scK3YkSutL5vu",
+      "decimals_a": 6,
+      "decimals_b": 6,
+      "_comment": "Orca USD1/USDC Whirlpool"
+    },
+    {
+      "address": "7hZQ3QmsocJJLuHrw39R9XqZNzt4BmBBNVNSnvJExtqA",
+      "dex": "MeteoraDlmm",
+      "token_mint_a": "USD1ttGY1N17NEEHLmELoaybftRBUSErhqYiQzvEmuB",
+      "token_mint_b": "EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v",
+      "token_vault_a": "46Bdo21EuZ9iyrqtP4LsphsxvQrNAwZZoiXmwVHmM4ZP",
+      "token_vault_b": "9gjf28TAVPN1A49Ut7FBdb6y7PnMYdWbNG6bCcuCXT4L",
+      "decimals_a": 6,
+      "decimals_b": 6,
+      "_comment": "Meteora USD1/USDC DLMM"
+    },
+    {
+      "address": "B4S8b2V1a1FPYXfPpYYFwUVmZbKbWLSvRbs8dTSNZFMj",
+      "dex": "MeteoraDlmm",
+      "token_mint_a": "USD1ttGY1N17NEEHLmELoaybftRBUSErhqYiQzvEmuB",
+      "token_mint_b": "So11111111111111111111111111111111111111112",
+      "token_vault_a": "9utH1iDxGmqXuSuGRCfqvXdF4y5V3nvTGS8iaVRiGmbJ",
+      "token_vault_b": "A16FB7JQxw4o7TccjJ5i3y5vXgFSddFyimvnkfiegi1t",
+      "decimals_a": 6,
+      "decimals_b": 9,
+      "_comment": "Meteora USD1/SOL DLMM"
+    },
+    {
+      "address": "EAmNmUzzbk9HUrH1paYmKj8AjnSMg7xnbfA6mdZ3qdJ2",
+      "dex": "MeteoraDlmm",
+      "token_mint_a": "USD1ttGY1N17NEEHLmELoaybftRBUSErhqYiQzvEmuB",
+      "token_mint_b": "So11111111111111111111111111111111111111112",
+      "token_vault_a": "DxqtxbWuyfEoENhUVrXhBfEycdHzs3pvTrVJoQGLjhAg",
+      "token_vault_b": "HB5GwHrCSaB64oU4Md7F97PjKTciTwSC5YVEcCeiYkXu",
+      "decimals_a": 6,
+      "decimals_b": 9,
+      "_comment": "Meteora USD1/SOL DLMM"
+    },
+    {
+      "address": "CWNajRMzUb7ywfuVu9N7b9myhm6GPGFVNaMNAPkNpSjn",
+      "dex": "PancakeSwapClmm",
+      "token_mint_a": "USD1ttGY1N17NEEHLmELoaybftRBUSErhqYiQzvEmuB",
+      "token_mint_b": "EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v",
+      "token_vault_a": "HU8T4DHXoB9dCh7NDBPDmEM5jYTbd1MScuug2rb42ohM",
+      "token_vault_b": "o2VyYuw4VHSco9rDXtyDK9PVeTcQAU69T8VdSccCGsq",
+      "decimals_a": 6,
+      "decimals_b": 6,
+      "_comment": "PancakeSwap USD1/USDC CLMM"
+    },
+    {
+      "address": "7DYHBVJNBSu3pZZkSt6Sdq3rbGuCQH2MJAuHqVY6oG2Q",
+      "dex": "PancakeSwapClmm",
+      "token_mint_a": "So11111111111111111111111111111111111111112",
+      "token_mint_b": "USD1ttGY1N17NEEHLmELoaybftRBUSErhqYiQzvEmuB",
+      "token_vault_a": "B2mEmSEvEJUjpmFJXmAw1zmT7iVgqUWoUDRUbKTHskiQ",
+      "token_vault_b": "BSTgtrJ7feyTpvwZVk9hbzrvxw77eUq7SkRCaCEvPfdZ",
+      "decimals_a": 9,
+      "decimals_b": 6,
+      "_comment": "PancakeSwap SOL/USD1 CLMM"
+    },
+    {
+      "address": "8BetQ5rnFoub3rwihqQuCgt526G4wDTZzi7TTeUWG2j1",
+      "dex": "RaydiumClmm",
+      "token_mint_a": "pumpCmXqMfrsAkQ5r49WcJnRayYRqmXz6ae8H7H9Dfn",
+      "token_mint_b": "EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v",
+      "token_vault_a": "FJd7eRxN8kuEbxKokKkCiVLrxAAGQuDou9fD5YRRni31",
+      "token_vault_b": "EssN8pVukEPqAWfuZPdWsqTM1Zp3u1VkvPHhXBCUvffu",
+      "decimals_a": 6,
+      "decimals_b": 6,
+      "_comment": "Raydium PUMP/USDC CLMM"
+    },
+    {
+      "address": "Dwgaka8QiSkFQ3bGXhZpmncM63DwhjK5zzQRiqt9WA8K",
+      "dex": "RaydiumClmm",
+      "token_mint_a": "pumpCmXqMfrsAkQ5r49WcJnRayYRqmXz6ae8H7H9Dfn",
+      "token_mint_b": "EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v",
+      "token_vault_a": "DeS3z2LtEJW8QFE7CuACSgxPVfUztiLiPsSN4AzqCL5W",
+      "token_vault_b": "8QTgBwxf6gWtHvYhLMTQGmv7qwPqf4VrmrapXx1Bk42h",
+      "decimals_a": 6,
+      "decimals_b": 6,
+      "_comment": "Raydium PUMP/USDC CLMM"
+    },
+    {
+      "address": "45ssPkUQs1ssbeDqxD2mZrMdJYAXF7GyQyhS5xDXuWC5",
+      "dex": "RaydiumClmm",
+      "token_mint_a": "So11111111111111111111111111111111111111112",
+      "token_mint_b": "pumpCmXqMfrsAkQ5r49WcJnRayYRqmXz6ae8H7H9Dfn",
+      "token_vault_a": "A5VBGEV5ghKGSNFLpSy83ePE1BMpd2hZ8BHxFafNBNf6",
+      "token_vault_b": "48xDcrnnENiygxTXGu9KPAuew3xRkfyrfb5iU6BNFbQK",
+      "decimals_a": 9,
+      "decimals_b": 6,
+      "_comment": "Raydium SOL/PUMP CLMM"
+    },
+    {
+      "address": "Fkpc9nwCcRu2MKzLS4GkC3URmzCDpV8cMZgN1HZF6K2x",
+      "dex": "RaydiumClmm",
+      "token_mint_a": "So11111111111111111111111111111111111111112",
+      "token_mint_b": "pumpCmXqMfrsAkQ5r49WcJnRayYRqmXz6ae8H7H9Dfn",
+      "token_vault_a": "7VeBH9qt3hgqZTCpNQWisWWkCY2VkRFvwoE9k6R1jmsH",
+      "token_vault_b": "3A6UaZqG9aanDQe7Mgfg11fMkSHpxyDSwqEcwnCQsbuk",
+      "decimals_a": 9,
+      "decimals_b": 6,
+      "_comment": "Raydium SOL/PUMP CLMM"
+    },
+    {
+      "address": "8haL6hj9Kq9knYHC3H2GyGijc61G81uCBU19z9zxJDW",
+      "dex": "OrcaWhirlpool",
+      "token_mint_a": "pumpCmXqMfrsAkQ5r49WcJnRayYRqmXz6ae8H7H9Dfn",
+      "token_mint_b": "Es9vMFrzaCERmJfrF4H2FYD4KCoNkY11McCe8BenwNYB",
+      "token_vault_a": "2Pius3M6g4Sd66DMQqA23G3YqGYhUGnj4YhWatno6gps",
+      "token_vault_b": "7qBLddDsJuT5LaJMgcq3hJL2eNjP3PwSiezj2VgisqgG",
+      "decimals_a": 6,
+      "decimals_b": 6,
+      "_comment": "Orca PUMP/USDT Whirlpool"
+    },
+    {
+      "address": "4AFAkCSkSNmra64irggEFd8ZtF4WCtFe51qVaFFNBL2D",
+      "dex": "OrcaWhirlpool",
+      "token_mint_a": "pumpCmXqMfrsAkQ5r49WcJnRayYRqmXz6ae8H7H9Dfn",
+      "token_mint_b": "EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v",
+      "token_vault_a": "3XWmS4tKXFcyeuKSD6k1QL6zdpDy4Zo5yMGs8oYVXBo5",
+      "token_vault_b": "AitcTqqjRXtwVj29pENmNda5kc8qnum2B2d5CZu9kT49",
+      "decimals_a": 6,
+      "decimals_b": 6,
+      "_comment": "Orca PUMP/USDC Whirlpool"
+    },
+    {
+      "address": "7eMnzvi48Nbz2yRaQrCWqfQ7awPNPfV3AboaejktyGMD",
+      "dex": "OrcaWhirlpool",
+      "token_mint_a": "So11111111111111111111111111111111111111112",
+      "token_mint_b": "pumpCmXqMfrsAkQ5r49WcJnRayYRqmXz6ae8H7H9Dfn",
+      "token_vault_a": "4tGuML51o823SDDGc8NhoqtMDU6AScZaGNTTLtFHGQwr",
+      "token_vault_b": "7YwSt3APtm2dRPmXpbvPUxgxyBDF3diwS7Q6fTPY5nsD",
+      "decimals_a": 9,
+      "decimals_b": 6,
+      "_comment": "Orca SOL/PUMP Whirlpool"
+    },
+    {
+      "address": "BofA2ViUSudPBTUms2KRuG6AHNeMawjNfwqTJDgx5BKW",
+      "dex": "OrcaWhirlpool",
+      "token_mint_a": "So11111111111111111111111111111111111111112",
+      "token_mint_b": "pumpCmXqMfrsAkQ5r49WcJnRayYRqmXz6ae8H7H9Dfn",
+      "token_vault_a": "BkSYpPsv11UPDLonxBZf2mFndfuN2MrDwYt4gjDEnk8D",
+      "token_vault_b": "2wcLHj441NnqiUon4LcmMo6dGAUqwEW84nfFKnfuTnPt",
+      "decimals_a": 9,
+      "decimals_b": 6,
+      "_comment": "Orca SOL/PUMP Whirlpool"
+    },
+    {
+      "address": "3VsrgEfHMkipoJPhfsq9NDpw27niKcYohYyrFh3bD2gP",
+      "dex": "MeteoraDlmm",
+      "token_mint_a": "pumpCmXqMfrsAkQ5r49WcJnRayYRqmXz6ae8H7H9Dfn",
+      "token_mint_b": "So11111111111111111111111111111111111111112",
+      "token_vault_a": "5sY9SbNEJvTBcePM1D4UEEoiu6PNH1UQqtbcHhrEoPXX",
+      "token_vault_b": "7LZqGqwFgpLEthSkNQu2z2yLNTVN4Ka6yTmQaXpdvEc6",
+      "decimals_a": 6,
+      "decimals_b": 9,
+      "_comment": "Meteora PUMP/SOL DLMM"
+    },
+    {
+      "address": "6qFVNTiiBf1GXJ55kMVh3KNy5rm5CgmxdUcWdGBDBhPt",
+      "dex": "MeteoraDlmm",
+      "token_mint_a": "pumpCmXqMfrsAkQ5r49WcJnRayYRqmXz6ae8H7H9Dfn",
+      "token_mint_b": "EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v",
+      "token_vault_a": "BuBG5osETJooBY3nind3Z9E7cYxsVE2Xz88fxCRPq7Qd",
+      "token_vault_b": "7DFofXrfZz4k39raypVCn6qphpLuxWgQvPrJyGrF1xRo",
+      "decimals_a": 6,
+      "decimals_b": 6,
+      "_comment": "Meteora PUMP/USDC DLMM"
+    },
+    {
+      "address": "7AHYfY1uiW6koTJ85LLfquubyCCpFU9WevMmNx8Zhp8D",
+      "dex": "MeteoraDlmm",
+      "token_mint_a": "pumpCmXqMfrsAkQ5r49WcJnRayYRqmXz6ae8H7H9Dfn",
+      "token_mint_b": "So11111111111111111111111111111111111111112",
+      "token_vault_a": "8FtNwMGEwzMV3NWXUKRAksyw2QbyQE9QXVTiN93wumc8",
+      "token_vault_b": "Ae1tZUNpbmyeZpun6YNBNLD3b882nkcQaHMwdqaYT55V",
+      "decimals_a": 6,
+      "decimals_b": 9,
+      "_comment": "Meteora PUMP/SOL DLMM"
+    },
+    {
+      "address": "88LoXa6pK8RjStugRxTwz3scTHMc986y7xE1DLNbwfPy",
+      "dex": "MeteoraDlmm",
+      "token_mint_a": "pumpCmXqMfrsAkQ5r49WcJnRayYRqmXz6ae8H7H9Dfn",
+      "token_mint_b": "EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v",
+      "token_vault_a": "9Q8VnDa4RvdWRpYjTjC7h39GjuQXjMfCbkHFaQNL1qcY",
+      "token_vault_b": "Hp7DSn9JqJRK8UGYeMLBWYjda6oxpS4rzht3udMhXKMU",
+      "decimals_a": 6,
+      "decimals_b": 6,
+      "_comment": "Meteora PUMP/USDC DLMM"
+    },
+    {
+      "address": "9SMp4yLKGtW9TnLimfVPkDARsyNSfJw43WMke4r7KoZj",
+      "dex": "MeteoraDlmm",
+      "token_mint_a": "pumpCmXqMfrsAkQ5r49WcJnRayYRqmXz6ae8H7H9Dfn",
+      "token_mint_b": "EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v",
+      "token_vault_a": "6uVEyA1RRhuTzDroFGBrDsAHwE4b6hCSwgyXAHjTZEUv",
+      "token_vault_b": "5RLzTiyGuadAC4SE3s7MGonXszFShJtZewVmmHGUUbkV",
+      "decimals_a": 6,
+      "decimals_b": 6,
+      "_comment": "Meteora PUMP/USDC DLMM"
+    },
+    {
+      "address": "D7CCRNx6e2ck22P8N93xqJ2Kbcu13RmYVFYeVRqAyN8n",
+      "dex": "MeteoraDlmm",
+      "token_mint_a": "pumpCmXqMfrsAkQ5r49WcJnRayYRqmXz6ae8H7H9Dfn",
+      "token_mint_b": "So11111111111111111111111111111111111111112",
+      "token_vault_a": "Gqof9TwiBFH9uxjCgSJW5mYkzXZJkv7JTcHuoamZgwD8",
+      "token_vault_b": "5Rs32avVWMjtSaumLGULzgSbAasjk1yQewZ6iMy7Sw1e",
+      "decimals_a": 6,
+      "decimals_b": 9,
+      "_comment": "Meteora PUMP/SOL DLMM"
+    },
+    {
+      "address": "EdKfDWPx3ExFH7PQY5Rdja8rPrNgRE97FpwQ2VpFyX6Q",
+      "dex": "MeteoraDlmm",
+      "token_mint_a": "pumpCmXqMfrsAkQ5r49WcJnRayYRqmXz6ae8H7H9Dfn",
+      "token_mint_b": "EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v",
+      "token_vault_a": "EAFVyzX3zuYJZDmwUQQu1LhGctAePkGzG8A9KLEGLTCy",
+      "token_vault_b": "G5882qsRw49D9iehwUDbBAuy2B4PxeqnVHuWh5SJcPwn",
+      "decimals_a": 6,
+      "decimals_b": 6,
+      "_comment": "Meteora PUMP/USDC DLMM"
+    },
+    {
+      "address": "EtPcWELeHvrwaUwESUJTtvSAtmJS4DRbqtzMcY82s58J",
+      "dex": "MeteoraDlmm",
+      "token_mint_a": "pumpCmXqMfrsAkQ5r49WcJnRayYRqmXz6ae8H7H9Dfn",
+      "token_mint_b": "So11111111111111111111111111111111111111112",
+      "token_vault_a": "EzwHtxtukyp85J22w4g1ey2oC5qPRWwQVibyV8A5eSEe",
+      "token_vault_b": "2AVkCuJAQLHe6VD4jtnJPEwcFQJKYjnsc1aW3vGnP7zk",
+      "decimals_a": 6,
+      "decimals_b": 9,
+      "_comment": "Meteora PUMP/SOL DLMM"
+    },
+    {
+      "address": "HAPPNCH9iHLGvZ89s6tNW2zZdQ4qEN2t7Yxt4tLyTjVB",
+      "dex": "MeteoraDlmm",
+      "token_mint_a": "pumpCmXqMfrsAkQ5r49WcJnRayYRqmXz6ae8H7H9Dfn",
+      "token_mint_b": "Es9vMFrzaCERmJfrF4H2FYD4KCoNkY11McCe8BenwNYB",
+      "token_vault_a": "92K8HfGjcLiDyHhjFeQqF1drjY2PMgbtXG911Rd6A2Bh",
+      "token_vault_b": "GoaGj4i8stkPa5jUfuY5pUMWWDjm5SzdZnxw75uCNbCN",
+      "decimals_a": 6,
+      "decimals_b": 6,
+      "_comment": "Meteora PUMP/USDT DLMM"
+    },
+    {
+      "address": "HbjYfcWZBjCBYTJpZkLGxqArVmZVu3mQcRudb6Wg1sVh",
+      "dex": "MeteoraDlmm",
+      "token_mint_a": "pumpCmXqMfrsAkQ5r49WcJnRayYRqmXz6ae8H7H9Dfn",
+      "token_mint_b": "So11111111111111111111111111111111111111112",
+      "token_vault_a": "5uXsebqNi3jDBvHvLJUuLqouUEHyQNDZcREHpLSwCZpM",
+      "token_vault_b": "CD1RxU49jNwxD7LvRvrdWDNLpx5ZrJ7khMEzTNudk94s",
+      "decimals_a": 6,
+      "decimals_b": 9,
+      "_comment": "Meteora PUMP/SOL DLMM"
+    },
+    {
+      "address": "CswgRRrExvwQCrt5Q5QPYAfkf4ksezkEPACcsDbSpuYC",
+      "dex": "PancakeSwapClmm",
+      "token_mint_a": "pumpCmXqMfrsAkQ5r49WcJnRayYRqmXz6ae8H7H9Dfn",
+      "token_mint_b": "Es9vMFrzaCERmJfrF4H2FYD4KCoNkY11McCe8BenwNYB",
+      "token_vault_a": "AVF6vU1rbegF6uMTjxroTLxDnVUK9URcQHx7cCxrJUk",
+      "token_vault_b": "GhpNW4XagipKSg5UdtEWrWxP5ruqTM9Tys1NZJtPmH5M",
+      "decimals_a": 6,
+      "decimals_b": 6,
+      "_comment": "PancakeSwap PUMP/USDT CLMM"
+    },
+    {
+      "address": "5YPxToTobawvkbn5rkWKYDhZqHf5v6LAtRLNPGiq6U2A",
+      "dex": "PancakeSwapClmm",
+      "token_mint_a": "So11111111111111111111111111111111111111112",
+      "token_mint_b": "pumpCmXqMfrsAkQ5r49WcJnRayYRqmXz6ae8H7H9Dfn",
+      "token_vault_a": "GMswD1295kTvTr3EN4Nqr1Q7f3oqov261jrZZBnDZMoW",
+      "token_vault_b": "BEyX6Nwqj1wQqSJWEHK5ezKtNxatyrgGu1tbCLnLpNQt",
+      "decimals_a": 9,
+      "decimals_b": 6,
+      "_comment": "PancakeSwap SOL/PUMP CLMM"
+    },
+    {
+      "address": "8tpmZEtYup1UEXNqaKoXWE5eiK7yqxh9cGfh76YeCtuC",
+      "dex": "PancakeSwapClmm",
+      "token_mint_a": "So11111111111111111111111111111111111111112",
+      "token_mint_b": "pumpCmXqMfrsAkQ5r49WcJnRayYRqmXz6ae8H7H9Dfn",
+      "token_vault_a": "4y4KAXo8xQHhPN1XMJaEE2qcuDcndpqeBAXViV2VYTNg",
+      "token_vault_b": "qN8eqTR152tRtvu2zVQNkqDKR18mgVmYiDrv8RVU9ht",
+      "decimals_a": 9,
+      "decimals_b": 6,
+      "_comment": "PancakeSwap SOL/PUMP CLMM"
+    },
+    {
+      "address": "DQ9weJhfiU4iL5LUoeshDrm5KxDHCMiSbnnKJz7buMcf",
+      "dex": "MeteoraDlmm",
+      "token_mint_a": "DrZ26cKJDksVRWib3DVVsjo9eeXccc7hKhDJviiYEEZY",
+      "token_mint_b": "EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v",
+      "token_vault_a": "7B9apQQARoF3af9RE9PWqZNinUWz7bNw4WnbaHke1udR",
+      "token_vault_b": "8hd7iwBe6UH9EM7ca5eALRV6fXf8Q1LUEaDnsUPbggTc",
+      "decimals_a": 6,
+      "decimals_b": 6,
+      "_comment": "Meteora YZY/USDC DLMM"
     }
   ]
 }

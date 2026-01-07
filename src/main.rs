@@ -22,7 +22,7 @@ mod pools;
 
 use arb::ArbDetector;
 use config::Config;
-use executor::{JitoClient, TxBuilder};
+use executor::{HeliusSender, TxBuilder};
 use helius::{parse_token_balance, Helius};
 use pools::PoolRegistry;
 
@@ -46,7 +46,7 @@ async fn main() -> anyhow::Result<()> {
 
     tracing::info!("Biggie starting...");
     tracing::info!("Helius RPC: {}", config.helius_rpc);
-    tracing::info!("Jito endpoint: {}", config.jito_endpoint);
+    tracing::info!("Helius Sender: {}", config.helius_sender);
 
     // Load keypair
     let payer = Arc::new(config.payer()?);
@@ -63,7 +63,7 @@ async fn main() -> anyhow::Result<()> {
 
     // Initialize clients
     let mut helius = Helius::new(config.helius_rpc.clone(), config.helius_ws.clone());
-    let jito = JitoClient::new(config.jito_endpoint.clone());
+    let sender = HeliusSender::new(config.helius_sender.clone());
     let tx_builder = TxBuilder::new(&config, payer.clone());
     let arb_detector = ArbDetector::new(config.min_profit_lamports, config.slippage_bps);
 
@@ -172,18 +172,18 @@ async fn main() -> anyhow::Result<()> {
                     // Build and submit transaction
                     match tx_builder.build_arb_tx(&opp, &registry, blockhash) {
                         Ok(tx) => {
-                            match jito.send_bundle(vec![tx]).await {
-                                Ok(bundle_id) => {
+                            match sender.send_transaction(&tx).await {
+                                Ok(signature) => {
                                     arbs_submitted += 1;
                                     tracing::info!(
-                                        "Bundle submitted: {} (found={} submitted={})",
-                                        bundle_id,
+                                        "TX submitted: {} (found={} submitted={})",
+                                        signature,
                                         arbs_found,
                                         arbs_submitted
                                     );
                                 }
                                 Err(e) => {
-                                    tracing::error!("Bundle submission failed: {}", e);
+                                    tracing::error!("TX submission failed: {}", e);
                                 }
                             }
                         }
@@ -204,19 +204,9 @@ async fn main() -> anyhow::Result<()> {
                 }
             }
             Err(e) => {
-                tracing::error!("WebSocket error: {}", e);
-                // Attempt reconnection
-                tracing::info!("Attempting reconnection in 5s...");
-                tokio::time::sleep(Duration::from_secs(5)).await;
-
-                if let Err(e) = helius.connect().await {
-                    tracing::error!("Reconnection failed: {}", e);
-                    continue;
-                }
-
-                if let Err(e) = helius.subscribe_accounts_tracked(&registry.all_vaults).await {
-                    tracing::error!("Resubscription failed: {}", e);
-                }
+                tracing::error!("Update receive error: {}", e);
+                // Connections auto-reconnect internally, just log and continue
+                tokio::time::sleep(Duration::from_millis(100)).await;
             }
         }
     }

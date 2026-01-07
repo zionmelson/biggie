@@ -238,10 +238,20 @@ pub const SUPPORTED_MINT_STRS: &[&str] = &[
     "bSo13r4TkiE4KumL71LsHTPpL2euBYLFx6h9HP3piy1",
     // jupSOL
     "jupSoLaHXQiZZTSfEWMTRRgpnyFm8f6sZdosWBjx93v",
-    // WEN
-    "WENWENvqqNya429ubCdR81ZmD69brwQaaBYY6p3LCpk",
     // POPCAT
     "7GCihgDB8fe6KNjn2MYtkzZcRjQy3t9GHdC8uHYmW2hr",
+    // cbBTC (Coinbase wrapped BTC)
+    "cbbtcf3aa214zXHbiAZQwf4122FBYbraNdFqgw4iMij",
+    // WLFI (World Liberty Financial)
+    "WLFinEv6ypjkczcS83FZqFpgFZYwQXutRbxGe7oC16g",
+    // PYUSD (PayPal USD)
+    "2b1kV6DkPAnxd5ixfnxCpjxmKwqjjaYmCZfHsFu24GXo",
+    // USD1 (stablecoin)
+    "USD1ttGY1N17NEEHLmELoaybftRBUSErhqYiQzvEmuB",
+    // PUMP (pump.fun token)
+    "pumpCmXqMfrsAkQ5r49WcJnRayYRqmXz6ae8H7H9Dfn",
+    // YZY (Yeezy)
+    "DrZ26cKJDksVRWib3DVVsjo9eeXccc7hKhDJviiYEEZY",
 ];
 
 use std::collections::HashSet;
@@ -278,8 +288,13 @@ pub fn mint_to_symbol(mint: &str) -> &'static str {
         "J1toso1uCk3RLmjorhTtrVwY9HJ7X8V9yYac6Y7kGCPn" => "jitoSOL",
         "bSo13r4TkiE4KumL71LsHTPpL2euBYLFx6h9HP3piy1" => "bSOL",
         "jupSoLaHXQiZZTSfEWMTRRgpnyFm8f6sZdosWBjx93v" => "jupSOL",
-        "WENWENvqqNya429ubCdR81ZmD69brwQaaBYY6p3LCpk" => "WEN",
         "7GCihgDB8fe6KNjn2MYtkzZcRjQy3t9GHdC8uHYmW2hr" => "POPCAT",
+        "cbbtcf3aa214zXHbiAZQwf4122FBYbraNdFqgw4iMij" => "cbBTC",
+        "WLFinEv6ypjkczcS83FZqFpgFZYwQXutRbxGe7oC16g" => "WLFI",
+        "2b1kV6DkPAnxd5ixfnxCpjxmKwqjjaYmCZfHsFu24GXo" => "PYUSD",
+        "USD1ttGY1N17NEEHLmELoaybftRBUSErhqYiQzvEmuB" => "USD1",
+        "pumpCmXqMfrsAkQ5r49WcJnRayYRqmXz6ae8H7H9Dfn" => "PUMP",
+        "DrZ26cKJDksVRWib3DVVsjo9eeXccc7hKhDJviiYEEZY" => "YZY",
         _ => "???",
     }
 }

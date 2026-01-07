@@ -145,11 +145,34 @@ impl ArbDetector {
         buy_a_sell_a: bool,
         pair: &PairKey,
     ) -> Option<ArbOpportunity> {
+        // buy_a_sell_a: true = borrow pair.1, buy pair.0, sell pair.0 for pair.1
+        //               false = borrow pair.0, buy pair.1, sell pair.1 for pair.0
+        //
+        // For the buy leg: we swap FROM the borrow token TO the buy token
+        // For the sell leg: we swap FROM the buy token BACK TO the borrow token
+        //
+        // IMPORTANT: Pools may have different token orderings!
+        // Pool where mint_a == pair.0: "normal" ordering
+        // Pool where mint_a == pair.1: "flipped" ordering
+        //
+        // For normal pool:  pair.0→pair.1 means a_to_b=true
+        // For flipped pool: pair.0→pair.1 means a_to_b=false (because pool's A is pair.1)
+        
         // Find best pool to buy on
         let mut best_buy: Option<(&Pool, u64)> = None;
         for pool in pools {
-            // buy_a_sell_a: swap B→A (a_to_b = false)
-            let output = calculate_swap(pool, borrow_amount, !buy_a_sell_a)?;
+            // Determine if pool ordering is flipped relative to pair
+            let pool_is_flipped = pool.mint_a == pair.1;
+            
+            // Buy leg: borrow token → buy token
+            // If buy_a_sell_a: pair.1 → pair.0
+            // If !buy_a_sell_a: pair.0 → pair.1
+            let pair_direction_a_to_b = !buy_a_sell_a; // pair.0 → pair.1
+            
+            // Convert to pool's a_to_b based on ordering
+            let pool_a_to_b = if pool_is_flipped { !pair_direction_a_to_b } else { pair_direction_a_to_b };
+            
+            let output = calculate_swap(pool, borrow_amount, pool_a_to_b)?;
             if best_buy.as_ref().map(|(_, o)| output > *o).unwrap_or(true) {
                 best_buy = Some((pool, output));
             }
@@ -162,8 +185,19 @@ impl ArbDetector {
             if pool.address == buy_pool.address {
                 continue; // Can't use same pool
             }
-            // Sell A→B (a_to_b = true if buy_a_sell_a)
-            let output = calculate_swap(pool, buy_output, buy_a_sell_a)?;
+            
+            // Determine if pool ordering is flipped relative to pair
+            let pool_is_flipped = pool.mint_a == pair.1;
+            
+            // Sell leg: buy token → borrow token
+            // If buy_a_sell_a: pair.0 → pair.1
+            // If !buy_a_sell_a: pair.1 → pair.0
+            let pair_direction_a_to_b = buy_a_sell_a; // pair.0 → pair.1
+            
+            // Convert to pool's a_to_b based on ordering
+            let pool_a_to_b = if pool_is_flipped { !pair_direction_a_to_b } else { pair_direction_a_to_b };
+            
+            let output = calculate_swap(pool, buy_output, pool_a_to_b)?;
             if best_sell.as_ref().map(|(_, o)| output > *o).unwrap_or(true) {
                 best_sell = Some((pool, output));
             }
