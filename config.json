@@ -1,6 +1,6 @@
 {
-  "helius_rpc": "https://mainnet.helius-rpc.com/?api-key=4079de3e-e8c1-45f8-b1f7-3089747153b8",
-  "helius_ws": "wss://mainnet.helius-rpc.com/?api-key=4079de3e-e8c1-45f8-b1f7-3089747153b8",
+  "helius_rpc": "https://mainnet.helius-rpc.com/?api-key=",
+  "helius_ws": "wss://mainnet.helius-rpc.com/?api-key=",
   "jito_endpoint": "https://ny.mainnet.block-engine.jito.wtf",
   "jito_auth_keypair": "/home/ubuntu/jit.json",
   "payer_keypair": "/home/ubuntu/id.json",
