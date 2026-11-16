@@ -1,4 +1,6 @@
-# tre Arb Bot
+# AI GENERATED CODE DO NOT WASTE TIME READING
+
+## tre Arb Bot
 
 `tre` is a high-performance Solana cross-pool arbitrage bot using a **unified Turbine + Geyser architecture**. It detects state changes from confirmed transactions via low-latency shred data, then executes cross-pool arbitrage when price discrepancies exist between pools.
 
